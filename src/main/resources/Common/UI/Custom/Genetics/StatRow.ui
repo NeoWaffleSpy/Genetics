@@ -1,0 +1,13 @@
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 24);
+
+  Label #Name {
+    FlexWeight: 1;
+    Style: (TextColor: #96a9be);
+  }
+
+  Label #Value {
+    Style: (RenderBold: true);
+  }
+}

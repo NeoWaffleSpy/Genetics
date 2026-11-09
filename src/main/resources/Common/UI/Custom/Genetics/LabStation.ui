@@ -1,0 +1,153 @@
+$C = "../Common.ui";
+
+@SlotStyle = (
+  SlotSize: 64,
+  SlotIconSize: 56,
+  SlotSpacing: 4,
+  SlotBackground: "../Common/BlockSelectorSlotBackground.png"
+);
+
+$C.@PageOverlay {}
+
+// Middle: the station, its sample slot and the analysis of the sample.
+$C.@DecoratedContainer #Panel {
+  @CloseButton = true;
+  Anchor: (Width: 820, Height: 470, Bottom: 480);
+
+  #Title {
+    Group {
+      $C.@Title {
+        @Text = "Lab Station";
+      }
+    }
+  }
+
+  #Content {
+    Group {
+      LayoutMode: Left;
+      FlexWeight: 1;
+
+      // Left: the slot and the sampled mob's portrait.
+      Group {
+        LayoutMode: Top;
+        Anchor: (Width: 150);
+
+        Label {
+          Text: "Sample";
+          Padding: (Bottom: 8);
+          Style: (RenderBold: true, TextColor: #E8A93B);
+        }
+
+        ItemGrid #SampleSlot {
+          Anchor: (Width: 64, Height: 64);
+          SlotsPerRow: 1;
+          AreItemsDraggable: true;
+          Style: @SlotStyle;
+        }
+
+        AssetImage #MobIcon {
+          Anchor: (Width: 128, Height: 128, Top: 16);
+          Visible: false;
+        }
+      }
+
+      // Right: the analysis.
+      Group {
+        LayoutMode: Top;
+        FlexWeight: 1;
+        Padding: (Full: 14);
+        Background: #000000(0.2);
+
+        Label #EmptyLabel {
+          Text: "Empty";
+          Style: (FontSize: 22, RenderBold: true, TextColor: #878e9c);
+        }
+
+        Group #Details {
+          LayoutMode: Top;
+          FlexWeight: 1;
+          Visible: false;
+
+          Label #MobName {
+            Padding: (Bottom: 10);
+            Style: (FontSize: 24, RenderBold: true);
+          }
+
+          Group {
+            LayoutMode: Left;
+            FlexWeight: 1;
+
+            Group {
+              LayoutMode: Top;
+              Anchor: (Width: 230);
+              Padding: (Right: 20);
+
+              Label {
+                Text: "Stats (max)";
+                Padding: (Bottom: 6);
+                Style: (RenderBold: true, TextColor: #E8A93B);
+              }
+
+              Group #StatList {
+                LayoutMode: TopScrolling;
+                FlexWeight: 1;
+                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+              }
+            }
+
+            Group {
+              LayoutMode: Top;
+              FlexWeight: 1;
+
+              Label {
+                Text: "Status effects";
+                Padding: (Bottom: 6);
+                Style: (RenderBold: true, TextColor: #E8A93B);
+              }
+
+              Label #NoEffects {
+                Text: "None";
+                Style: (TextColor: #878e9c);
+              }
+
+              Group #EffectList {
+                LayoutMode: TopScrolling;
+                FlexWeight: 1;
+                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Bottom: the player's inventory.
+$C.@DecoratedContainer #InventoryPanel {
+  Anchor: (Width: 680, Height: 420, Bottom: 30);
+
+  #Title {
+    Group {
+      $C.@Title {
+        @Text = "Inventory";
+      }
+    }
+  }
+
+  #Content {
+    ItemGrid #Storage {
+      Anchor: (Width: 608, Height: 268);
+      SlotsPerRow: 9;
+      AreItemsDraggable: true;
+      Style: @SlotStyle;
+    }
+
+    ItemGrid #Hotbar {
+      Anchor: (Width: 608, Height: 64, Top: 12);
+      SlotsPerRow: 9;
+      AreItemsDraggable: true;
+      Style: @SlotStyle;
+    }
+  }
+}
