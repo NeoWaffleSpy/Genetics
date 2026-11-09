@@ -77,5 +77,6 @@
     ]
   },
   "ItemSoundSetId": "ISS_Weapons_Wood",
-  "MaxStack": 100
+  "MaxStack": 1,
+  "MaxDurability": 0
 }
