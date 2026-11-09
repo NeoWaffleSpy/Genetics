@@ -7,9 +7,12 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
 
 ## Current content
 
-- **Syringe** (`Server/Item/Items/Tools/Syringe.json`): primary-use on an NPC or player runs
-  `UseSyringeInteraction`, which reports what was sampled and consumes one syringe.
-  The item currently borrows the Crude Hammer's model, icon, recipe and translations as testing placeholders.
+- **Syringe** (`Server/Item/Items/Tools/Syringe.json`): left-click a mob to fill it. It becomes
+  "<Mob>'s Genes" and stores a raw snapshot of the mob (id, model, stats, active effects) in its metadata.
+  Model and icon are temporary placeholders.
+- **Lab Station** (`Server/Item/Items/Bench/Lab_Station.json`): a one-slot station that only accepts syringes.
+  Its custom screen (`Common/UI/Custom/Genetics/LabStation.ui`) shows the sample's max stats and status
+  effects, with drag & drop between the station and the inventory. Uses the Alchemy bench's model as a placeholder.
 
 ## Layout
 
@@ -17,7 +20,10 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
 | --- | --- |
 | `src/main/java/com/genetics/GeneticsPlugin.java` | Plugin entry point, registers custom interactions |
 | `src/main/java/com/genetics/interaction/` | Custom interaction types |
-| `src/main/resources/Server/` | Server assets (items, …) |
+| `src/main/java/com/genetics/genes/` | Gene samples stored on syringes |
+| `src/main/java/com/genetics/labstation/` | Lab Station interaction and custom screen |
+| `src/main/resources/Server/` | Server assets (items, translations) |
+| `src/main/resources/Common/UI/Custom/Genetics/` | Custom UI layouts |
 | `gradle.properties` | Mod metadata; `manifest.json` is generated from it on every build |
 
 ## Development

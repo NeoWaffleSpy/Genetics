@@ -1,5 +1,6 @@
 package com.genetics.labstation;
 
+import com.genetics.genes.GeneSample;
 import com.genetics.interaction.UseSyringeInteraction;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -30,8 +31,8 @@ import static com.hypixel.hytale.server.core.inventory.InventoryComponent.HOTBAR
 import static com.hypixel.hytale.server.core.inventory.InventoryComponent.STORAGE_SECTION_ID;
 
 /**
- * Fully custom Lab Station screen: the station panel with its sample slot in the middle, the player's inventory
- * at the bottom, all as server-filled grids.
+ * Fully custom Lab Station screen: the station panel (sample slot and its analysis) in the middle, the player's
+ * inventory at the bottom, all as server-filled grids.
  * Drag &amp; drop between the grids is applied server-side from the grid events the client reports.
  */
 public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.EventPayload> {
@@ -39,6 +40,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     private static final String SAMPLE_GRID = "#SampleSlot";
     private static final String STORAGE_GRID = "#Storage";
     private static final String HOTBAR_GRID = "#Hotbar";
+    private static final short SAMPLE_SLOT = 0;
     private static final List<String> GRIDS = List.of(SAMPLE_GRID, STORAGE_GRID, HOTBAR_GRID);
     /**
      * A drop arrives as two events, in this order: {@code Dropped} on the target grid (target slot, source slot,
@@ -82,7 +84,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             }
         }
 
-        writeGrids(commands, ref, store);
+        render(commands, ref, store);
 
         if (listeners.isEmpty()) {
             listeners.add(container.registerChangeEvent(event -> world.execute(this::refresh)));
@@ -210,8 +212,14 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         Ref<EntityStore> ref = playerRef.getReference();
         if (ref == null) return;
         UICommandBuilder commands = new UICommandBuilder();
-        writeGrids(commands, ref, ref.getStore());
+        render(commands, ref, ref.getStore());
         sendUpdate(commands, false);
+    }
+
+    /** Grids and the analysis of the sample in the slot. */
+    private void render(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        writeGrids(commands, ref, store);
+        SampleView.write(commands, GeneSample.read(container.getItemStack(SAMPLE_SLOT)));
     }
 
     private void writeGrids(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
