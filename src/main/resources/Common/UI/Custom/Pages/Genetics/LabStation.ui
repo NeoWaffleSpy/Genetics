@@ -10,8 +10,8 @@ $C = "../../Common.ui";
 $C.@PageOverlay {}
 
 $C.@DecoratedContainer {
-  Anchor: (Width: 900, Height: 560);
   @CloseButton = true;
+  Anchor: (Width: 900, Height: 560);
 
   #Title {
     Group {
