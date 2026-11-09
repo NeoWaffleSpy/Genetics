@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.hytale.tools)
 }
 
-group = "com.Genetics"
+group = "com.genetics"
 version = "0.1.0"
 val javaVersion = 25
 
