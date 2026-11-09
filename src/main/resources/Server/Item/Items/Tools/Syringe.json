@@ -1,7 +1,7 @@
 {
   "TranslationProperties": {
-    "Name": "server.items.Tool_Hammer_Crude.name",
-    "Description": "server.items.Tool_Hammer_Crude.description"
+    "Name": "server.items.Syringe.name",
+    "Description": "server.items.Syringe.description"
   },
   "Categories": [
     "Items.Tools"

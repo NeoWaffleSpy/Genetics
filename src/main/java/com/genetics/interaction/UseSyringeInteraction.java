@@ -4,7 +4,6 @@ import com.genetics.genes.GeneSample;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.protocol.WaitForDataFrom;
@@ -27,12 +26,12 @@ import javax.annotation.Nonnull;
 public class UseSyringeInteraction extends SimpleInstantInteraction {
     /** Interaction type id, referenced from item JSON as {@code "Type": "UseSyringeInteraction"}. */
     public static final String ID = "UseSyringeInteraction";
+    /** Item id of the Syringe (from {@code Server/Item/Items/Tools/Syringe.json}). */
+    public static final String ITEM_ID = "Syringe";
 
     public static final BuilderCodec<UseSyringeInteraction> CODEC = BuilderCodec.builder(
             UseSyringeInteraction.class, UseSyringeInteraction::new, SimpleInstantInteraction.CODEC
     ).documentation("Samples the targeted mob's genes into the held syringe.").build();
-
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     @Nonnull
     @Override
@@ -75,7 +74,6 @@ public class UseSyringeInteraction extends SimpleInstantInteraction {
         context.setHeldItem(filled);
 
         user.sendMessage(Message.raw("Sampled " + sample.getMobName() + "'s genes."));
-        LOGGER.atInfo().log("%s sampled %s's genes:\n%s", user.getUsername(), sample.getMobName(), sample.toPrettyJson());
     }
 
     private static void fail(@Nonnull InteractionContext context) {
