@@ -1,0 +1,68 @@
+$C = "../Common.ui";
+
+@SlotStyle = (
+  SlotSize: 64,
+  SlotIconSize: 56,
+  SlotSpacing: 4,
+  SlotBackground: "../Common/BlockSelectorSlotBackground.png"
+);
+
+$C.@PageOverlay {}
+
+// Middle: the station and its sample slot, sitting above the inventory panel.
+$C.@DecoratedContainer #Panel {
+  @CloseButton = true;
+  Anchor: (Width: 400, Height: 200, Bottom: 490);
+
+  #Title {
+    Group {
+      $C.@Title {
+        @Text = "Lab Station";
+      }
+    }
+  }
+
+  #Content {
+    Label {
+      Text: "Sample";
+      Padding: (Bottom: 8);
+      Style: (RenderBold: true, TextColor: #E8A93B);
+    }
+
+    ItemGrid #SampleSlot {
+      Anchor: (Width: 64, Height: 64);
+      SlotsPerRow: 1;
+      AreItemsDraggable: true;
+      Style: @SlotStyle;
+    }
+  }
+}
+
+// Bottom: the player's inventory.
+$C.@DecoratedContainer #InventoryPanel {
+  Anchor: (Width: 680, Height: 420, Bottom: 30);
+
+  #Title {
+    Group {
+      $C.@Title {
+        @Text = "Inventory";
+      }
+    }
+  }
+
+  #Content {
+    ItemGrid #Storage {
+      Anchor: (Width: 608, Height: 268);
+      SlotsPerRow: 9;
+      AreItemsDraggable: true;
+      Style: @SlotStyle;
+    }
+
+    ItemGrid #Hotbar {
+      Anchor: (Width: 608, Height: 64, Top: 12);
+      SlotsPerRow: 9;
+      AreItemsDraggable: true;
+      Style: @SlotStyle;
+    }
+  }
+}

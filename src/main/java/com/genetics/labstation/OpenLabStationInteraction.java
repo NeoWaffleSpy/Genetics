@@ -8,9 +8,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.windows.ContainerBlockWindow;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.inventory.container.filter.FilterActionType;
@@ -28,17 +26,15 @@ import org.joml.Vector3i;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Map;
-import java.util.UUID;
 
-/** Opens the Lab Station screen for the block being used. Its one container slot only accepts syringes. */
+/** Opens the fully custom Lab Station screen ({@link LabStationPage}). Its one container slot only accepts syringes. */
 public class OpenLabStationInteraction extends SimpleBlockInteraction {
     /** Interaction type id, referenced from block JSON as {@code "Type": "OpenLabStation"}. */
     public static final String ID = "OpenLabStation";
 
     public static final BuilderCodec<OpenLabStationInteraction> CODEC = BuilderCodec.builder(
             OpenLabStationInteraction.class, OpenLabStationInteraction::new, SimpleBlockInteraction.CODEC
-    ).documentation("Opens the Lab Station screen for the block being interacted with.").build();
+    ).documentation("Opens the Lab Station for the block being interacted with.").build();
 
     private static final short SAMPLE_SLOT = 0;
     private static final ItemSlotFilter SYRINGES_ONLY = item -> item != null && UseSyringeInteraction.ITEM_ID.equals(item.getId());
@@ -57,8 +53,7 @@ public class OpenLabStationInteraction extends SimpleBlockInteraction {
         Store<EntityStore> store = ref.getStore();
         Player player = commandBuffer.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = commandBuffer.getComponent(ref, PlayerRef.getComponentType());
-        UUIDComponent uuidComponent = commandBuffer.getComponent(ref, UUIDComponent.getComponentType());
-        if (player == null || playerRef == null || uuidComponent == null) return;
+        if (player == null || playerRef == null) return;
 
         ChunkStore chunkStore = world.getChunkStore();
         Ref<ChunkStore> sectionRef = chunkStore.getChunkSectionReferenceAtBlock(pos.x, pos.y, pos.z);
@@ -76,19 +71,7 @@ public class OpenLabStationInteraction extends SimpleBlockInteraction {
         ItemContainer container = containerBlock.getItemContainer();
         container.setSlotFilter(FilterActionType.ADD, SAMPLE_SLOT, SYRINGES_ONLY);
 
-        ContainerBlockWindow window = new ContainerBlockWindow(
-                pos.x, pos.y, pos.z, section.getRotationIndex(pos.x, pos.y, pos.z), blockType, container
-        );
-        UUID uuid = uuidComponent.getUuid();
-        Map<UUID, ContainerBlockWindow> windows = containerBlock.getWindows();
-        if (windows.putIfAbsent(uuid, window) != null) return;
-
-        LabStationPage page = new LabStationPage(playerRef, world, new Vector3i(pos), container, window);
-        if (player.getPageManager().openCustomPageWithWindows(ref, store, page, window)) {
-            window.registerCloseEvent(event -> windows.remove(uuid, window));
-        } else {
-            windows.remove(uuid, window);
-        }
+        player.getPageManager().openCustomPage(ref, store, new LabStationPage(playerRef, world, container));
     }
 
     @Override
