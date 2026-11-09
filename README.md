@@ -2,7 +2,7 @@
 
 A genetics mod for Hytale. Early development.
 
-Built from the [Hytale plugin template](https://github.com/AzureDoom/Hytale-Example-Plugin) using the
+Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Example-Plugin) using the
 [Hytale Gradle Plugin](https://github.com/AzureDoom/Hytale-Gradle-Plugin).
 
 ## Current content
