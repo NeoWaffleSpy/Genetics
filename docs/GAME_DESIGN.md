@@ -128,7 +128,7 @@ A separate data file that stores each mutation's **behavior**, **stats** and **C
 {
   "Mutations": {
     "TitanBlood": {
-      "Name": "server.genetics.mutation.TitanBlood.name",
+      "Name": "server.genetics.mutations.TitanBlood.name",
       "Complexity": 35,
       "Stats":   { "Health": 20 },
       "Effects": [],
@@ -137,7 +137,7 @@ A separate data file that stores each mutation's **behavior**, **stats** and **C
       "MinTier": "Complex"
     },
     "AdrenalSurge": {
-      "Name": "server.genetics.mutation.AdrenalSurge.name",
+      "Name": "server.genetics.mutations.AdrenalSurge.name",
       "Complexity": 45,
       "Stats":   {},
       "Effects": [],
@@ -674,14 +674,14 @@ where it stands after the author's answers.
 
 | Feature | Status |
 | --- | --- |
-| Syringe: sample a mob into item metadata | Done (raw snapshot of id, model, stats, effects) |
+| Syringe: sample a mob into item metadata | Done (genome format v1: genes, raw/processed flag, Complexity, source) |
 | Lab Station: one-slot screen showing stats and effects | Done |
-| Effect Codex, Mutation Codex, Complexity tiers (data + loaders) | Not started |
-| Complexity calculation | Not started |
+| Effect Codex, Mutation Codex, Complexity tiers (data + loaders) | Codices and mob profiles done; tiers not started |
+| Complexity calculation | Done (raw samples, with drawback limits) |
 | Genome Capacity stat, Genome Expansion, degradation | Not started |
-| Mob gene profiles | Not started |
-| Raw self-injection and active genome | Not started |
-| Copying your genome | Not started |
+| Mob gene profiles | Done (placeholder profiles for cow, rabbit, wolf, fish, frog, bat/owl, and a default) |
+| Raw self-injection and active genome | Done (quality roll, override rule, kept through death, syringe emptied) |
+| Copying your genome | Done |
 | Genetic Sickness stat and debuffs | Not started |
 | Phase 2 processing and splicing | Not started |
 | Phase 3 Genetic Library | Not started |

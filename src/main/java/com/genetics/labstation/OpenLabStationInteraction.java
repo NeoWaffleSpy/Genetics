@@ -29,8 +29,8 @@ import javax.annotation.Nullable;
 
 /** Opens the fully custom Lab Station screen ({@link LabStationPage}). Its one container slot only accepts syringes. */
 public class OpenLabStationInteraction extends SimpleBlockInteraction {
-    /** Interaction type id, referenced from block JSON as {@code "Type": "OpenLabStation"}. */
-    public static final String ID = "OpenLabStation";
+    /** Interaction type id, referenced from block JSON as {@code "Type": "Genetics_OpenLabStation"}. */
+    public static final String ID = "Genetics_OpenLabStation";
 
     public static final BuilderCodec<OpenLabStationInteraction> CODEC = BuilderCodec.builder(
             OpenLabStationInteraction.class, OpenLabStationInteraction::new, SimpleBlockInteraction.CODEC

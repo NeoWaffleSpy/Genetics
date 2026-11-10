@@ -69,8 +69,22 @@ $C.@DecoratedContainer #Panel {
           Visible: false;
 
           Label #MobName {
-            Padding: (Bottom: 10);
             Style: (FontSize: 24, RenderBold: true);
+          }
+
+          Group {
+            LayoutMode: Left;
+            Anchor: (Height: 26);
+            Padding: (Bottom: 10);
+
+            Label #Kind {
+              Padding: (Right: 16);
+              Style: (RenderBold: true, TextColor: #96a9be);
+            }
+
+            Label #Complexity {
+              Style: (RenderBold: true, TextColor: #E8A93B);
+            }
           }
 
           Group {
@@ -83,9 +97,14 @@ $C.@DecoratedContainer #Panel {
               Padding: (Right: 20);
 
               Label {
-                Text: "Stats (max)";
+                Text: "Stat genes";
                 Padding: (Bottom: 6);
                 Style: (RenderBold: true, TextColor: #E8A93B);
+              }
+
+              Label #NoStats {
+                Text: "None";
+                Style: (TextColor: #878e9c);
               }
 
               Group #StatList {
@@ -100,7 +119,7 @@ $C.@DecoratedContainer #Panel {
               FlexWeight: 1;
 
               Label {
-                Text: "Status effects";
+                Text: "Effect genes";
                 Padding: (Bottom: 6);
                 Style: (RenderBold: true, TextColor: #E8A93B);
               }

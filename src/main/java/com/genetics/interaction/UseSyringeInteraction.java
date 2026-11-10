@@ -1,6 +1,7 @@
 package com.genetics.interaction;
 
-import com.genetics.genes.GeneSample;
+import com.genetics.genome.Genome;
+import com.genetics.genome.GenomeSampler;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -21,13 +22,13 @@ import javax.annotation.Nonnull;
 
 /**
  * Used by the Syringe item: samples the targeted mob's genes into the held syringe.
- * The syringe is renamed to "&lt;MobName&gt;'s Genes" and keeps a {@link GeneSample} in its metadata.
+ * The syringe is renamed to "&lt;MobName&gt;'s Genes" and holds a raw {@link Genome} in its metadata.
  */
 public class UseSyringeInteraction extends SimpleInstantInteraction {
-    /** Interaction type id, referenced from item JSON as {@code "Type": "UseSyringeInteraction"}. */
-    public static final String ID = "UseSyringeInteraction";
-    /** Item id of the Syringe (from {@code Server/Item/Items/Tools/Syringe.json}). */
-    public static final String ITEM_ID = "Syringe";
+    /** Interaction type id, referenced from item JSON as {@code "Type": "Genetics_UseSyringe"}. */
+    public static final String ID = "Genetics_UseSyringe";
+    /** Item id of the Syringe (from {@code Server/Item/Items/Tools/Genetics_Syringe.json}). */
+    public static final String ITEM_ID = "Genetics_Syringe";
 
     public static final BuilderCodec<UseSyringeInteraction> CODEC = BuilderCodec.builder(
             UseSyringeInteraction.class, UseSyringeInteraction::new, SimpleInstantInteraction.CODEC
@@ -56,16 +57,16 @@ public class UseSyringeInteraction extends SimpleInstantInteraction {
             return;
         }
 
-        if (GeneSample.isPresentOn(syringe)) {
+        if (Genome.isPresentOn(syringe)) {
             user.sendMessage(Message.raw("This syringe already holds a sample."));
             fail(context);
             return;
         }
 
-        GeneSample sample = GeneSample.capture(target, npc, user.getLanguage(), commandBuffer);
-        ItemStack filled = syringe
-                .withMetadata(GeneSample.METADATA_KEY, sample.toBson())
-                .withMetadata(ItemDisplayMetadata.KEYED_CODEC, new ItemDisplayMetadata(Message.raw(sample.getMobName() + "'s Genes"), null));
+        Genome genome = GenomeSampler.sample(target, npc, user.getLanguage(), commandBuffer);
+        String mobName = genome.source() != null ? genome.source().mobName() : npc.getRoleName();
+        ItemStack filled = genome.writeTo(syringe)
+                .withMetadata(ItemDisplayMetadata.KEYED_CODEC, new ItemDisplayMetadata(Message.raw(mobName + "'s Genes"), null));
 
         if (!context.getHeldItemContainer().replaceItemStackInSlot(context.getHeldItemSlot(), syringe, filled).succeeded()) {
             fail(context);
@@ -73,7 +74,7 @@ public class UseSyringeInteraction extends SimpleInstantInteraction {
         }
         context.setHeldItem(filled);
 
-        user.sendMessage(Message.raw("Sampled " + sample.getMobName() + "'s genes."));
+        user.sendMessage(Message.raw("Sampled " + mobName + "'s genes (" + genome.genes().size() + " genes, Complexity " + genome.complexity() + ")."));
     }
 
     private static void fail(@Nonnull InteractionContext context) {

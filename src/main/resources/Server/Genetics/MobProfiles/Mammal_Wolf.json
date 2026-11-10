@@ -1,0 +1,10 @@
+{
+  "Roles": [ "Wolf_Black", "Wolf_White" ],
+  "StatRolls": 2,
+  "StatPool": [
+    { "Stat": "Health",  "Weight": 1, "Min": 2, "Max": 4 },
+    { "Stat": "Stamina", "Weight": 1, "Min": 2, "Max": 4 }
+  ],
+  "TemporaryEffect": { "Id": "Meat_Buff_T1", "Duration": 180 },
+  "Drawbacks": [ { "Stat": "Mana", "Chance": 0.4, "Min": 8, "Max": 10 } ]
+}

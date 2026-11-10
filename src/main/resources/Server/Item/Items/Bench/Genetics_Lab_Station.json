@@ -1,7 +1,7 @@
 {
   "TranslationProperties": {
-    "Name": "server.items.Lab_Station.name",
-    "Description": "server.items.Lab_Station.description"
+    "Name": "server.genetics.items.Lab_Station.name",
+    "Description": "server.genetics.items.Lab_Station.description"
   },
   "Icon": "Icons/ItemsGenerated/Bench_Alchemy.png",
   "Categories": [
@@ -55,7 +55,7 @@
       "Use": {
         "Interactions": [
           {
-            "Type": "OpenLabStation"
+            "Type": "Genetics_OpenLabStation"
           }
         ]
       }

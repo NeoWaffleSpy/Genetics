@@ -1,0 +1,9 @@
+{
+  "Roles": [ "Bat", "Bat_Ice", "Owl_Brown", "Owl_Snow" ],
+  "StatRolls": 1,
+  "StatPool": [ { "Stat": "Stamina", "Weight": 1, "Min": 2, "Max": 5 } ],
+  "TemporaryEffect": { "Id": "Genetics_NightVision", "Duration": 180 },
+  "PermanentEffectChance": 0.35,
+  "PermanentEffects": [ { "Id": "Genetics_NightVision", "Weight": 1 } ],
+  "Drawbacks": [ { "Stat": "Health", "Chance": 0.3, "Min": 3, "Max": 5 } ]
+}

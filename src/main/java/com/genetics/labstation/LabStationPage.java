@@ -1,6 +1,6 @@
 package com.genetics.labstation;
 
-import com.genetics.genes.GeneSample;
+import com.genetics.genome.Genome;
 import com.genetics.interaction.UseSyringeInteraction;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -219,7 +219,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     /** Grids and the analysis of the sample in the slot. */
     private void render(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         writeGrids(commands, ref, store);
-        SampleView.write(commands, GeneSample.read(container.getItemStack(SAMPLE_SLOT)));
+        SampleView.write(commands, Genome.read(container.getItemStack(SAMPLE_SLOT)), playerRef.getLanguage());
     }
 
     private void writeGrids(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
