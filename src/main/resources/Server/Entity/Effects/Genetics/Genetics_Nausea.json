@@ -1,0 +1,15 @@
+{
+  "Name": "server.genetics.effects.Nausea.name",
+  "Duration": 10,
+  "Debuff": true,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "ApplicationEffects": {
+    "HorizontalSpeedMultiplier": 0.4,
+    "MovementEffects": { "DisableSprint": true, "DisableJump": true },
+    "ScreenEffect": "ScreenEffects/Poison_T1.png",
+    "EntityTopTint": "#9ccf5a",
+    "EntityBottomTint": "#6f9a3a"
+  },
+  "StatusEffectIcon": "UI/StatusEffects/Genetics/Nausea.png"
+}

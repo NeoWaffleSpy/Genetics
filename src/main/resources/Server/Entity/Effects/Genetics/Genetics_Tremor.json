@@ -1,0 +1,13 @@
+{
+  "Name": "server.genetics.effects.Tremor.name",
+  "Duration": 8,
+  "Debuff": true,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "ApplicationEffects": {
+    "AbilityEffects": { "Disabled": [ "Primary", "Secondary" ] },
+    "MouseSensitivityAdjustmentTarget": 0.6,
+    "MouseSensitivityAdjustmentDuration": 0.2
+  },
+  "StatusEffectIcon": "UI/StatusEffects/Genetics/Tremor.png"
+}

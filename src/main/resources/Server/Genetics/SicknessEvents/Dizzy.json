@@ -1,0 +1,10 @@
+{
+  "MinBand": "Moderate",
+  "Weight": 7,
+  "Cooldown": 45,
+  "Message": "server.genetics.sickness.event.Dizzy",
+  "Actions": [
+    { "Type": "ApplyEffect", "Id": "Genetics_Dizzy", "Duration": 6 },
+    { "Type": "CameraShake", "Id": "Impact_Light", "Repeat": 5, "Interval": 1.2 }
+  ]
+}

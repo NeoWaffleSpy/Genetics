@@ -3,5 +3,6 @@
   "StatRolls": 1,
   "StatPool": [ { "Stat": "Stamina", "Weight": 1, "Min": 5, "Max": 10 } ],
   "TemporaryEffect": { "Id": "Genetics_Speed", "Duration": 120 },
-  "Drawbacks": [ { "Stat": "Health", "Chance": 0.3, "Min": 3, "Max": 5 } ]
+  "Drawbacks": [ { "Stat": "Health", "Chance": 0.3, "Min": 3, "Max": 5 } ],
+  "Sound": "SFX_Rabbit_Alerted"
 }

@@ -32,18 +32,20 @@ public final class GenomeSampler {
 
     @Nonnull
     public static Genome sample(
-            @Nonnull Ref<EntityStore> target, @Nonnull NPCEntity npc, @Nullable String language, @Nonnull CommandBuffer<EntityStore> commandBuffer
+            @Nonnull Ref<EntityStore> target, @Nonnull NPCEntity npc, @Nullable String language, @Nonnull CommandBuffer<EntityStore> commandBuffer,
+            boolean identified
     ) {
         String role = npc.getRoleName();
-        Genome.Source source = new Genome.Source(role, mobName(npc, language),
-                modelIcon(commandBuffer.getComponent(target, PersistentModel.getComponentType())), System.currentTimeMillis());
+        PersistentModel model = commandBuffer.getComponent(target, PersistentModel.getComponentType());
+        String modelId = model != null ? model.getModelReference().getModelAssetId() : null;
+        Genome.Source source = new Genome.Source(role, mobName(npc, language), modelId, modelIcon(modelId), System.currentTimeMillis());
 
         MobGeneProfile profile = Codex.profileFor(role);
-        if (profile == null) return Genome.raw(source, List.of());
+        if (profile == null) return Genome.raw(source, List.of(), identified);
 
         boolean fallback = profile.getId().equals(MobGeneProfile.DEFAULT_ID) && !Arrays.asList(profile.getRoles()).contains(role);
         Set<String> mobStats = fallback ? statsWithMax(commandBuffer.getComponent(target, EntityStatMap.getComponentType())) : null;
-        return Genome.raw(source, roll(profile, mobStats, ThreadLocalRandom.current()));
+        return Genome.raw(source, roll(profile, mobStats, ThreadLocalRandom.current()), identified);
     }
 
     /**
@@ -122,8 +124,7 @@ public final class GenomeSampler {
     }
 
     @Nullable
-    private static String modelIcon(@Nullable PersistentModel model) {
-        String modelId = model != null ? model.getModelReference().getModelAssetId() : null;
+    private static String modelIcon(@Nullable String modelId) {
         ModelAsset asset = modelId != null ? ModelAsset.getAssetMap().getAsset(modelId) : null;
         return asset != null ? asset.getIcon() : null;
     }

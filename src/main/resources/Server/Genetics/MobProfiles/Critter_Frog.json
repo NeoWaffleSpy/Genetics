@@ -4,5 +4,6 @@
   "StatPool": [ { "Stat": "Stamina", "Weight": 1, "Min": 3, "Max": 6 } ],
   "PermanentEffectChance": 0.5,
   "PermanentEffects": [ { "Id": "Immunity_Fall", "Weight": 1 } ],
-  "Drawbacks": [ { "Stat": "Health", "Chance": 0.3, "Min": 3, "Max": 5 } ]
+  "Drawbacks": [ { "Stat": "Health", "Chance": 0.3, "Min": 3, "Max": 5 } ],
+  "Sound": "SFX_Frog_Idle"
 }

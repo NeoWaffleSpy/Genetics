@@ -1,0 +1,11 @@
+{
+  "MinBand": "Moderate",
+  "Weight": 8,
+  "Cooldown": 40,
+  "Message": "server.genetics.sickness.event.Sneeze",
+  "Actions": [
+    { "Type": "PlaySound", "Id": "SFX_Goblin_Scrapper_VO_Idle_Sneeze", "Pitch": 1.3 },
+    { "Type": "CameraShake", "Id": "Impact", "Delay": 0.3 },
+    { "Type": "Impulse", "Up": 0.15, "Back": 0.6, "Delay": 0.3 }
+  ]
+}

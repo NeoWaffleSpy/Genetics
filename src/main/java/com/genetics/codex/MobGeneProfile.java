@@ -125,6 +125,10 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
             .append(new KeyedCodec<>("PermanentEffects", ArrayCodec.ofBuilderCodec(EffectRoll.CODEC, EffectRoll[]::new)), (t, v) -> t.permanentEffects = v, t -> t.permanentEffects)
             .documentation("Pool of permanent effects; at most one is picked, by weight.").add()
             .append(new KeyedCodec<>("Drawbacks", ArrayCodec.ofBuilderCodec(Drawback.CODEC, Drawback[]::new)), (t, v) -> t.drawbacks = v, t -> t.drawbacks).add()
+            .append(new KeyedCodec<>("Sound", Codec.STRING), (t, v) -> t.sound = v, t -> t.sound)
+            .documentation("Sound event id of the mob's call, used by sickness events (PlaySourceMobSound).").add()
+            .append(new KeyedCodec<>("SyringeTier", Codec.INTEGER), (t, v) -> t.syringeTier = v, t -> t.syringeTier)
+            .documentation("Syringe tier needed to sample these mobs (1 = Crude). 0 or absent: based on the mob's max health.").add()
             .build();
 
     private static AssetStore<String, MobGeneProfile, DefaultAssetMap<String, MobGeneProfile>> store;
@@ -138,6 +142,8 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
     private double permanentEffectChance;
     private EffectRoll[] permanentEffects = new EffectRoll[0];
     private Drawback[] drawbacks = new Drawback[0];
+    private String sound;
+    private int syringeTier;
 
     private MobGeneProfile() {
     }
@@ -187,6 +193,15 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
     }
 
     @Nonnull
+    public int getSyringeTier() {
+        return syringeTier;
+    }
+
+    @javax.annotation.Nullable
+    public String getSound() {
+        return sound;
+    }
+
     public Drawback[] getDrawbacks() {
         return drawbacks != null ? drawbacks : new Drawback[0];
     }

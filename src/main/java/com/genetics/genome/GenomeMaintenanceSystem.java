@@ -1,6 +1,8 @@
 package com.genetics.genome;
 
+import com.genetics.capacity.GenomeCapacity;
 import com.hypixel.hytale.component.ArchetypeChunk;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
@@ -33,5 +35,8 @@ public class GenomeMaintenanceSystem extends EntityTickingSystem<EntityStore> {
         if (active.nextCheck > 0) return;
         active.nextCheck = INTERVAL;
         GenomeApplier.ensure(chunk.getReferenceTo(index), commandBuffer, active.getGenome());
+        // Genome Capacity's value is the active genome's Complexity; respawning resets it, so keep it in sync.
+        GenomeCapacity.setUsed(chunk.getComponent(index, EntityStatMap.getComponentType()),
+                active.getGenome() != null ? active.getGenome().complexity() : 0);
     }
 }

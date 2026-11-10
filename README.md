@@ -17,13 +17,25 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
   - **Right-click with an empty syringe** to copy your active genome into it, as a raw sample.
   - Model and icon are temporary placeholders.
 - **Active genome**: saved on the player, kept through death and re-applied after respawn.
+- **Genetic Sickness**: every injection adds sickness (Complexity × 4, less for processed samples). It decays over
+  about 3 minutes from the top, is kept through death, and its band (Mild, Moderate, Severe) shows as an effect icon
+  with the time left. While sick, random events fire: hiccups, the source mob's call, sneezes, nausea.
+- **Genome Capacity**: the most Complexity your body can carry (20 at the start). The Lab Station shows it next to a
+  sample's Complexity. Injecting a genome over capacity asks for confirmation, then degrades it until it fits
+  (mutations, then permanent effects, then stats) and pushes you into severe sickness. A **Genome Expansion** raises
+  it for good (the first one, Moderate, to 45).
+- **Syringe tiers**: Crude, Copper, Thorium and Adamantite. Stronger mobs need better syringes.
+- **Identification**: every sample is "Unidentified" until identified at the Lab Station with an **Identification Reagent**. Unidentified samples can still be injected blind.
+- **Gene Journal**: every species sampled and gene identified. New species show a notification, and milestones
+  (4 and 8 species) teach the Copper Syringe and Genome Expansion recipes. `/genetics journal` shows it.
 - **Lab Station** (`Server/Item/Items/Bench/Genetics_Lab_Station.json`): a one-slot station that only accepts
   syringes. Its custom screen (`Common/UI/Custom/Genetics/LabStation.ui`) shows the sample's source, Complexity,
   stat genes and effect genes, with drag & drop between the station and the inventory. Uses the Alchemy bench's
   model as a placeholder.
-- **Effects**: `Genetics_Speed` (+20% movement speed) and `Genetics_NightVision` (a soft light around the player).
-- **Data** (`Server/Genetics/`): the Effect Codex (stat weights, effect Complexity), the Mutation Codex and the
-  mob gene profiles. All are asset types, so other packs can add or override entries; edits hot-reload.
+- **Effects**: `Genetics_Speed` (+20% movement speed), `Genetics_NightVision` (a soft light around the player),
+  `Genetics_Nausea`, and one `Genetics_Sickness_*` effect per sickness band.
+- **Data** (`Server/Genetics/`): the Effect Codex (stat weights, effect Complexity), the Mutation Codex, the mob gene
+  profiles, the Sickness Event Codex, and `Balance/Default.json` (raw injection odds, sickness rates and bands). All are asset types, so other packs can add or override entries; edits hot-reload.
 
 ## Layout
 
@@ -34,6 +46,8 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
 | `src/main/java/com/genetics/genome/` | Genomes: format, sampling, Complexity, injection, active genome |
 | `src/main/java/com/genetics/codex/` | Loaders for the Codices and mob gene profiles |
 | `src/main/java/com/genetics/effect/` | Behavior of custom effects |
+| `src/main/java/com/genetics/action/` | Shared actions (ApplyEffect, PlaySound, Impulse, …) used by data files |
+| `src/main/java/com/genetics/sickness/` | Genetic Sickness: stat helpers, state, bands, decay and events |
 | `src/main/java/com/genetics/labstation/` | Lab Station interaction and custom screen |
 | `src/main/resources/Server/` | Server assets (items, effects, translations, Genetics data) |
 | `src/main/resources/Common/UI/Custom/Genetics/` | Custom UI layouts |

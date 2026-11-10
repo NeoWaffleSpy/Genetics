@@ -3,5 +3,6 @@
   "StatRolls": 1,
   "StatPool": [ { "Stat": "Health", "Weight": 1, "Min": 3, "Max": 8 } ],
   "TemporaryEffect": { "Id": "HealthRegen_Buff_T1", "Duration": 180 },
-  "Drawbacks": [ { "Stat": "Stamina", "Chance": 0.3, "Min": 3, "Max": 5 } ]
+  "Drawbacks": [ { "Stat": "Stamina", "Chance": 0.3, "Min": 3, "Max": 5 } ],
+  "Sound": "SFX_Cow_Idle"
 }

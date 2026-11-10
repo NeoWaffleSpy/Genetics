@@ -1,0 +1,35 @@
+{
+  "TranslationProperties": {
+    "Name": "server.genetics.items.Identification_Reagent.name",
+    "Description": "server.genetics.items.Identification_Reagent.description"
+  },
+  "Icon": "Icons/ItemsGenerated/Ingredient_Crystal_Fragments_Cyan.png",
+  "Quality": "Common",
+  "Categories": [
+    "Items.Ingredients"
+  ],
+  "Model": "Resources/Crystals/Crystal_Fragment.blockymodel",
+  "Texture": "Resources/Crystals/Crystal_Fragment_Textures/Cyan.png",
+  "PlayerAnimationsId": "Item",
+  "IconProperties": {
+    "Scale": 0.75,
+    "Translation": [ -0.3, 0.3 ],
+    "Rotation": [ 34.315, 29.815, 22.5 ]
+  },
+  "Recipe": {
+    "TimeSeconds": 1,
+    "KnowledgeRequired": false,
+    "OutputQuantity": 2,
+    "Input": [
+      { "ItemId": "Ingredient_Fibre", "Quantity": 2 },
+      { "ItemId": "Ingredient_Life_Essence", "Quantity": 1 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Crafting" ] }
+    ]
+  },
+  "Tags": { "Type": [ "Ingredient" ] },
+  "ItemSoundSetId": "ISS_Items_Gems",
+  "MaxStack": 50,
+  "DropOnDeath": true
+}

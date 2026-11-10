@@ -1,0 +1,9 @@
+{
+  "MinBand": "Severe",
+  "Weight": 8,
+  "Cooldown": 35,
+  "Message": "server.genetics.sickness.event.Nausea",
+  "Actions": [
+    { "Type": "ApplyEffect", "Id": "Genetics_Nausea", "Duration": 10 }
+  ]
+}

@@ -4,6 +4,8 @@ import com.genetics.codex.Codex;
 import com.genetics.codex.MutationEntry;
 import com.genetics.genome.Gene;
 import com.genetics.genome.Genome;
+import com.genetics.genome.InjectionRoller;
+import com.genetics.interaction.Injection;
 import com.genetics.genome.Translations;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -23,7 +25,13 @@ final class SampleView {
     private SampleView() {
     }
 
-    static void write(@Nonnull UICommandBuilder commands, @Nullable Genome genome, @Nullable String language) {
+    /**
+     * @param used      Complexity of the viewer's active genome
+     * @param capacity  the viewer's Genome Capacity
+     * @param reagents  how many Identification Reagents the viewer carries
+     */
+    static void write(@Nonnull UICommandBuilder commands, @Nullable Genome genome, @Nullable String language,
+                      double used, double capacity, int reagents) {
         commands.clear("#StatList");
         commands.clear("#EffectList");
         commands.set("#EmptyLabel.Visible", genome == null);
@@ -35,9 +43,32 @@ final class SampleView {
         if (genome == null) return;
 
         String mobName = genome.source() != null ? genome.source().mobName() : "Unknown";
-        commands.set("#MobName.Text", mobName + "'s Genes");
+        boolean identified = genome.identified();
+        commands.set("#MobName.Text", identified ? mobName + "'s Genes" : "Unidentified " + mobName + " Sample");
         commands.set("#Kind.Text", genome.processed() ? "Genetic material" : "Raw sample");
+        commands.set("#Capacity.Text", "Your capacity: " + number(used) + " / " + number(capacity));
+        commands.set("#Genes.Visible", identified);
+        commands.set("#IdentifyPanel.Visible", !identified);
+        if (!identified) {
+            commands.set("#Complexity.Text", "Complexity ?");
+            commands.set("#CapacityWarning.Visible", false);
+            commands.set("#CapacityOk.Visible", false);
+            commands.set("#ReagentCount.Text", "Identification Reagents carried: " + reagents);
+            return;
+        }
+
         commands.set("#Complexity.Text", "Complexity " + number(genome.complexity()));
+        double carried = Injection.lastingComplexity(genome);
+        boolean over = carried > capacity;
+        commands.set("#CapacityWarning.Visible", over);
+        commands.set("#CapacityOk.Visible", !over);
+        if (over) {
+            commands.set("#CapacityWarning.Text", "Over your capacity (" + number(carried) + " / " + number(capacity)
+                    + "): injecting it will degrade it and make you very sick.");
+        } else {
+            commands.set("#CapacityOk.Text", genome.processed() ? "Fits your capacity. Genetic material is injected exactly as it is."
+                    : "Fits your capacity. " + Math.round(InjectionRoller.asIsChance(genome) * 100) + "% chance per gene to come out as-is.");
+        }
 
         int stats = 0;
         int cards = 0;

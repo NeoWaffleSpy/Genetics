@@ -1,0 +1,10 @@
+{
+  "MinBand": "Mild",
+  "MaxBand": "Moderate",
+  "Weight": 6,
+  "Cooldown": 90,
+  "Message": "server.genetics.sickness.event.Morph",
+  "Actions": [
+    { "Type": "MorphIntoSourceMob", "Duration": 8 }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "MinBand": "Mild",
+  "MaxBand": "Moderate",
+  "Weight": 10,
+  "Cooldown": 30,
+  "Message": "server.genetics.sickness.event.MobCall",
+  "Actions": [
+    { "Type": "PlaySourceMobSound", "Repeat": 2, "Interval": 0.9 }
+  ]
+}

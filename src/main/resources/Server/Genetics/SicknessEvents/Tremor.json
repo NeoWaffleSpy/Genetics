@@ -1,0 +1,9 @@
+{
+  "MinBand": "Severe",
+  "Weight": 6,
+  "Cooldown": 45,
+  "Message": "server.genetics.sickness.event.Tremor",
+  "Actions": [
+    { "Type": "ApplyEffect", "Id": "Genetics_Tremor", "Duration": 8 }
+  ]
+}

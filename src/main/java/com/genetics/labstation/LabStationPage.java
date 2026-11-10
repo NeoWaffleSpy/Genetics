@@ -1,7 +1,12 @@
 package com.genetics.labstation;
 
+import com.genetics.capacity.GenomeCapacity;
+import com.genetics.genome.ActiveGenome;
 import com.genetics.genome.Genome;
-import com.genetics.interaction.UseSyringeInteraction;
+import com.genetics.interaction.Syringes;
+import com.genetics.journal.Journal;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -37,10 +42,12 @@ import static com.hypixel.hytale.server.core.inventory.InventoryComponent.STORAG
  */
 public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.EventPayload> {
     private static final String LAYOUT = "Genetics/LabStation.ui";
-    private static final String SAMPLE_GRID = "#SampleSlot";
-    private static final String STORAGE_GRID = "#Storage";
-    private static final String HOTBAR_GRID = "#Hotbar";
+    static final String SAMPLE_GRID = "#SampleSlot";
+    static final String STORAGE_GRID = "#Storage";
+    static final String HOTBAR_GRID = "#Hotbar";
     private static final short SAMPLE_SLOT = 0;
+    /** Item consumed to identify a sample. */
+    public static final String REAGENT_ID = "Genetics_Identification_Reagent";
     private static final List<String> GRIDS = List.of(SAMPLE_GRID, STORAGE_GRID, HOTBAR_GRID);
     /**
      * A drop arrives as two events, in this order: {@code Dropped} on the target grid (target slot, source slot,
@@ -56,7 +63,9 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             CustomUIEventBindingType.SlotMouseDragCompleted,
             CustomUIEventBindingType.SlotMouseDragExited,
             CustomUIEventBindingType.SlotClickPressWhileDragging,
-            CustomUIEventBindingType.SlotClickReleaseWhileDragging
+            CustomUIEventBindingType.SlotClickReleaseWhileDragging,
+            CustomUIEventBindingType.SlotMouseEntered,
+            CustomUIEventBindingType.SlotMouseExited
     );
 
     private final World world;
@@ -66,6 +75,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     private EventPayload pendingDrop;
     @Nullable
     private String lastClickedGrid;
+    /** Slot under the mouse, described by our own tooltip (the grids' built-in tooltips are turned off). */
+    @Nullable
+    private String hoveredGrid;
+    private int hoveredSlot = -1;
     private boolean closed;
 
     public LabStationPage(@Nonnull PlayerRef playerRef, @Nonnull World world, @Nonnull ItemContainer container) {
@@ -78,6 +91,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder commands, @Nonnull UIEventBuilder events, @Nonnull Store<EntityStore> store) {
         commands.append(LAYOUT);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#Panel #CloseButton", new EventData().append("Action", "Close"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#IdentifyButton", new EventData().append("Action", "Identify"), false);
         for (String grid : GRIDS) {
             for (CustomUIEventBindingType type : SLOT_EVENTS) {
                 events.addEventBinding(type, grid, new EventData().append("Action", type.name()).append("Grid", grid), false);
@@ -102,7 +116,20 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             case "Close" -> {
                 if (!closed) close();
             }
+            case "Identify" -> identify(ref, store);
             case "SlotClicking" -> lastClickedGrid = data.grid;
+            case "SlotMouseEntered" -> {
+                hoveredGrid = data.grid;
+                hoveredSlot = data.slotIndex != null ? data.slotIndex : -1;
+                refreshTooltip(ref, store);
+            }
+            case "SlotMouseExited" -> {
+                if (data.grid != null && data.grid.equals(hoveredGrid) && (data.slotIndex == null || data.slotIndex == hoveredSlot)) {
+                    hoveredGrid = null;
+                    hoveredSlot = -1;
+                    refreshTooltip(ref, store);
+                }
+            }
             case "Dropped" -> pendingDrop = data;
             case "SlotMouseDragCompleted" -> {
                 EventPayload drop = pendingDrop;
@@ -181,7 +208,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
 
     /** The station's slot only takes syringes; the player's inventory takes anything. */
     private boolean accepts(@Nonnull ItemContainer target, @Nonnull ItemStack stack) {
-        return target != container || UseSyringeInteraction.ITEM_ID.equals(stack.getItemId());
+        return target != container || Syringes.isSyringe(stack.getItemId());
     }
 
     @Nullable
@@ -219,7 +246,66 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     /** Grids and the analysis of the sample in the slot. */
     private void render(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         writeGrids(commands, ref, store);
-        SampleView.write(commands, Genome.read(container.getItemStack(SAMPLE_SLOT)), playerRef.getLanguage());
+        writeTooltip(commands, ref, store);
+        EntityStatMap stats = store.getComponent(ref, EntityStatMap.getComponentType());
+        ActiveGenome active = store.getComponent(ref, ActiveGenome.getComponentType());
+        double used = active != null && active.getGenome() != null ? active.getGenome().complexity() : 0;
+        SampleView.write(commands, Genome.read(container.getItemStack(SAMPLE_SLOT)), playerRef.getLanguage(),
+                used, GenomeCapacity.capacity(stats), countReagents(store, ref));
+    }
+
+    /**
+     * Identifies the sample in the slot for one Identification Reagent from the player's inventory (design doc §6):
+     * its genes and Complexity are revealed and recorded in the Gene Journal.
+     */
+    private void identify(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        ItemStack stack = container.getItemStack(SAMPLE_SLOT);
+        Genome genome = Genome.read(stack);
+        if (genome == null || genome.identified()) return;
+        for (int section : new int[]{HOTBAR_SECTION_ID, STORAGE_SECTION_ID}) {
+            ItemContainer inventory = playerContainer(store, ref, section);
+            if (inventory == null) continue;
+            for (short slot = 0; slot < inventory.getCapacity(); slot++) {
+                ItemStack candidate = inventory.getItemStack(slot);
+                if (isEmpty(candidate) || !REAGENT_ID.equals(candidate.getItemId())) continue;
+                if (!inventory.removeItemStackFromSlot(slot, 1).succeeded()) continue;
+                Genome identified = genome.asIdentified();
+                container.setItemStackForSlot(SAMPLE_SLOT, Syringes.fill(stack, identified));
+                Journal.onIdentify(ref, store, identified);
+                refresh();
+                return;
+            }
+        }
+        playerRef.sendMessage(Message.raw("You need an Identification Reagent to identify this sample."));
+    }
+
+    private static int countReagents(@Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref) {
+        int count = 0;
+        for (int section : new int[]{HOTBAR_SECTION_ID, STORAGE_SECTION_ID}) {
+            ItemContainer inventory = playerContainer(store, ref, section);
+            if (inventory != null) count += inventory.countItemStacks(stack -> REAGENT_ID.equals(stack.getItemId()));
+        }
+        return count;
+    }
+
+    /** Sends only the tooltip: re-sending the grids while the mouse moves could interrupt a drag. */
+    private void refreshTooltip(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        if (closed) return;
+        UICommandBuilder commands = new UICommandBuilder();
+        writeTooltip(commands, ref, store);
+        sendUpdate(commands, false);
+    }
+
+    /** Shows {@link ItemTooltip} for the hovered slot, or hides it. */
+    private void writeTooltip(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        ItemContainer hovered = containerFor(store, ref, hoveredGrid);
+        ItemStack stack = hovered != null && hoveredSlot >= 0 && hoveredSlot < hovered.getCapacity()
+                ? hovered.getItemStack((short) hoveredSlot) : null;
+        if (isEmpty(stack) || hoveredGrid == null) {
+            commands.set("#TooltipLayer.Visible", false);
+            return;
+        }
+        ItemTooltip.write(commands, stack, hoveredGrid, hoveredSlot, playerRef.getLanguage());
     }
 
     private void writeGrids(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {

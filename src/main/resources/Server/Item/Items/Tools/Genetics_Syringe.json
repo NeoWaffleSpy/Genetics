@@ -42,7 +42,8 @@
     "Primary": {
       "Interactions": [
         {
-          "Type": "Genetics_UseSyringe"
+          "Type": "Genetics_UseSyringe",
+          "Tier": 1
         }
       ]
     },

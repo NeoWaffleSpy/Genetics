@@ -1,0 +1,16 @@
+{
+  "Name": "server.genetics.effects.Dizzy.name",
+  "Duration": 6,
+  "Debuff": true,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "ApplicationEffects": {
+    "HorizontalSpeedMultiplier": 0.75,
+    "MouseSensitivityAdjustmentTarget": 0.35,
+    "MouseSensitivityAdjustmentDuration": 0.5,
+    "ScreenEffect": "ScreenEffects/Water.png",
+    "EntityTopTint": "#c7a6e8",
+    "EntityBottomTint": "#8a6fb0"
+  },
+  "StatusEffectIcon": "UI/StatusEffects/Genetics/Dizzy.png"
+}
