@@ -1,6 +1,7 @@
 package com.genetics.interaction;
 
 import com.genetics.genes.GeneSample;
+import com.genetics.genes.SampleCapture;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -21,7 +22,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Used by the Syringe item: samples the targeted mob's genes into the held syringe.
- * The syringe is renamed to "&lt;MobName&gt;'s Genes" and keeps a {@link GeneSample} in its metadata.
+ * The syringe is renamed to "&lt;MobName&gt;'s Genes" and keeps a raw {@link GeneSample} in its metadata.
  */
 public class UseSyringeInteraction extends SimpleInstantInteraction {
     /** Interaction type id, referenced from item JSON as {@code "Type": "UseSyringeInteraction"}. */
@@ -62,10 +63,10 @@ public class UseSyringeInteraction extends SimpleInstantInteraction {
             return;
         }
 
-        GeneSample sample = GeneSample.capture(target, npc, user.getLanguage(), commandBuffer);
-        ItemStack filled = syringe
-                .withMetadata(GeneSample.METADATA_KEY, sample.toBson())
-                .withMetadata(ItemDisplayMetadata.KEYED_CODEC, new ItemDisplayMetadata(Message.raw(sample.getMobName() + "'s Genes"), null));
+        GeneSample sample = SampleCapture.fromMob(target, npc, user.getLanguage(), commandBuffer);
+        String mobName = sample.getSource().getName();
+        ItemStack filled = sample.writeTo(syringe)
+                .withMetadata(ItemDisplayMetadata.KEYED_CODEC, new ItemDisplayMetadata(Message.raw(mobName + "'s Genes"), null));
 
         if (!context.getHeldItemContainer().replaceItemStackInSlot(context.getHeldItemSlot(), syringe, filled).succeeded()) {
             fail(context);
@@ -73,7 +74,7 @@ public class UseSyringeInteraction extends SimpleInstantInteraction {
         }
         context.setHeldItem(filled);
 
-        user.sendMessage(Message.raw("Sampled " + sample.getMobName() + "'s genes."));
+        user.sendMessage(Message.raw("Sampled " + mobName + "'s genes."));
     }
 
     private static void fail(@Nonnull InteractionContext context) {

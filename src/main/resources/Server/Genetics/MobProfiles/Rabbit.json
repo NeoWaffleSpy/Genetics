@@ -1,0 +1,11 @@
+{
+  "Roles": [ "Rabbit", "Tamed_Rabbit" ],
+  "StatRolls": 1,
+  "Stats": [
+    { "Stat": "Stamina", "Min": 5, "Max": 10, "Weight": 1 }
+  ],
+  "TemporaryEffect": { "Effect": "Food_Stamina_Boost_Small", "Duration": 180 },
+  "Drawbacks": [
+    { "Stat": "Health", "Min": -5, "Max": -5, "Chance": 0.3 }
+  ]
+}

@@ -1,5 +1,6 @@
 package com.genetics;
 
+import com.genetics.data.GeneticsData;
 import com.genetics.interaction.UseSyringeInteraction;
 import com.genetics.labstation.OpenLabStationInteraction;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -21,6 +22,7 @@ public class GeneticsPlugin extends JavaPlugin {
         getCodecRegistry(Interaction.CODEC)
                 .register(UseSyringeInteraction.ID, UseSyringeInteraction.class, UseSyringeInteraction.CODEC)
                 .register(OpenLabStationInteraction.ID, OpenLabStationInteraction.class, OpenLabStationInteraction.CODEC);
+        GeneticsData.register(getAssetRegistry());
         LOGGER.atInfo().log("Genetics set up.");
     }
 }
