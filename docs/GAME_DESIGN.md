@@ -97,59 +97,47 @@ A data file that gives every status effect an arbitrary Complexity value. It is 
 part of the calculation. **Proposal:** it also holds the weight of each stat, so all base values are in
 one file.
 
+**Implemented** as two Hytale asset types, one file per entry, named after the vanilla stat or effect it
+describes. Resource packs and other mods can add or override entries, and files hot-reload:
+
 ```jsonc
-// Server/Genetics/EffectCodex.json
-{
-  "Stats": {
-    "Health":  { "WeightPerPercent": 0.8 },
-    "Stamina": { "WeightPerPercent": 0.6 },
-    "Mana":    { "WeightPerPercent": 0.6 },
-    "Oxygen":  { "WeightPerPercent": 0.2 }
-  },
-  "Effects": {
-    "Regeneration": { "Temporary": 3, "Permanent": 25 },
-    "NightVision":  { "Temporary": 1, "Permanent": 10 },
-    "Speed":        { "Temporary": 4, "Permanent": 30 }
-  },
-  "DefaultEffect": { "Temporary": 5, "Permanent": 40 }
-}
+// Server/Genetics/Stats/Health.json                 (also Stamina, Mana, Oxygen)
+{ "WeightPerPercent": 0.8 }
+
+// Server/Genetics/Effects/HealthRegen_Buff_T1.json  (the file name is the vanilla effect id)
+{ "Temporary": 3, "Permanent": 25 }
+
+// Server/Genetics/Effects/Default.json              (used for effects without an entry)
+{ "Temporary": 5, "Permanent": 40 }
 ```
 
 **Proposal:** each effect has separate values for its temporary and permanent forms, since a permanent
-effect is worth far more. Effects missing from the Codex use `DefaultEffect`, so new or modded effects
+effect is worth far more. Effects missing from the Codex use the `Default` entry, so new or modded effects
 work without an entry (and the server logs a warning so they get one).
 
 ### 3.3 Mutation Codex (Decided)
 
 A separate data file that stores each mutation's **behavior**, **stats** and **Complexity value**.
 
+**Implemented** as a Hytale asset type, one file per mutation, named after its id:
+
 ```jsonc
-// Server/Genetics/MutationCodex.json
+// Server/Genetics/Mutations/AdrenalSurge.json
 {
-  "Mutations": {
-    "TitanBlood": {
-      "Name": "server.genetics.mutation.TitanBlood.name",
-      "Complexity": 35,
-      "Stats":   { "Health": 20 },
-      "Effects": [],
-      "Behaviors": [],
-      "Weight": 10,
-      "MinTier": "Complex"
-    },
-    "AdrenalSurge": {
-      "Name": "server.genetics.mutation.AdrenalSurge.name",
-      "Complexity": 45,
-      "Stats":   {},
-      "Effects": [],
-      "Behaviors": [
-        { "Type": "OnLowHealth", "Threshold": 0.25, "Apply": "Speed", "Duration": 6, "Cooldown": 60 }
-      ],
-      "Weight": 5,
-      "MinTier": "Advanced"
-    }
-  }
+  "Name": "server.genetics.mutation.AdrenalSurge.name",
+  "Complexity": 45,
+  "Stats":   {},
+  "Effects": [],
+  "Behaviors": [
+    { "Type": "OnLowHealth", "Threshold": 0.25, "Apply": "Ability_Enrage_Buff", "Duration": 6, "Cooldown": 60 }
+  ],
+  "Weight": 5,
+  "MinTier": "Advanced"
 }
 ```
+
+Behaviors are loaded as raw documents (each must name its `Type`) until the shared Action system exists.
+`MinTier` is kept as a tier id until the Complexity tiers are loaded.
 
 - **Stats** and **Effects** use the same vanilla stats and effects as normal genes.
 - **Behaviors** are small reusable triggers coded in Java and referenced by `Type`, so new mutations can
@@ -299,7 +287,7 @@ tier, or both:
 | --- | --- |
 | `Action` (interface) with `ApplyEffect`, `PlaySound`, `Impulse`, … | Small effects registered by `Type` name, shared by mutation behaviors and sickness events. |
 | `GeneLibrary` (player component) | Stores the player's extracted genes for Phase 3 (§8.1). |
-| `EffectCodex`, `MutationCodex`, `SicknessEvents`, `ComplexityTiers` | Load and validate the data files at startup. Ideally registered as Hytale asset types so resource packs and other mods can extend them; plain JSON resources otherwise. |
+| `EffectCodex`, `MutationCodex`, `SicknessEvents`, `ComplexityTiers` | Load and validate the data files at startup. Registered as Hytale asset types (one file per entry), so resource packs and other mods can extend them. The Codices and mob profiles are done this way (`com.genetics.data`). |
 | `ComplexityCalculator` | Genome → Complexity, using the two Codices. Has no knowledge of tiers or costs. |
 | `TierResolver` | Complexity → tier. |
 | `Scaling` (interface) with `Flat`, `Linear`, `Exponential` | Turns a Complexity value into an amount. Registered by `Type` name, the same way the mod already registers interaction types, so new rules can be added later. |
@@ -357,7 +345,23 @@ give Burn genes). Instead, each mob gets a **gene profile** in data (one per rol
 - an optional **permanent effect** pool (unlocked later in Phase 1, or by mob tier);
 - optional **negative genes**: drawbacks that can roll alongside the positives.
 
-Mobs without a profile fall back to a generic pool built from their stats. Without new stats, much of
+Mobs without a profile fall back to a generic pool built from their stats.
+
+**Implemented** as a Hytale asset type, one file per profile. A profile lists the NPC role ids that use it;
+mobs that no profile lists use the `Default` profile. Sampling rolls `StatRolls` different stats from the
+pool (by `Weight`), adds the temporary effect, and rolls each permanent effect and drawback on its `Chance`:
+
+```jsonc
+// Server/Genetics/MobProfiles/Cattle.json
+{
+  "Roles": [ "Cow", "Cow_Calf", "Tamed_Cow", "Tamed_Cow_Calf" ],
+  "StatRolls": 1,
+  "Stats": [ { "Stat": "Health", "Min": 3, "Max": 8, "Weight": 1 } ],
+  "TemporaryEffect": { "Effect": "HealthRegen_Buff_T1", "Duration": 180 },
+  "PermanentEffects": [],
+  "Drawbacks": [ { "Stat": "Stamina", "Min": -5, "Max": -5, "Chance": 0.3 } ]
+}
+``` Without new stats, much of
 what makes a creature distinctive has to come from **effects**. Example profiles (placeholders, effect
 names need checking against the vanilla list):
 
@@ -672,14 +676,40 @@ where it stands after the author's answers.
 
 ## 15. Implementation status
 
+### Sample format
+
+A syringe stores its genome by value in item metadata, under `Genetics:Genes`:
+
+```jsonc
+{
+  "Version": 1,                 // format version, written by the codec
+  "Processed": false,           // false = raw sample, true = genetic material
+  "Complexity": 0.0,            // 0 = not calculated yet (calculated Complexity is never below 1)
+  "Source": { "Id": "Cow", "Name": "Cow", "Icon": "Icons/…", "SampledAt": 1762700000000 },
+  "Genes": [
+    { "Type": "Stat",     "Id": "Health", "Value": 6.2 },          // percent; negative = drawback
+    { "Type": "Effect",   "Id": "HealthRegen_Buff_T1", "Permanent": false, "Duration": 180 },
+    { "Type": "Effect",   "Id": "…", "Permanent": true },
+    { "Type": "Mutation", "Id": "TitanBlood" }
+  ]
+}
+```
+
+Samples from a newer format version can't be read but still count as present, so they're never overwritten.
+Version 0 (the old raw snapshot, with no `Version` key) reads as a raw sample with the mob's identity and no
+genes.
+
+### Features
+
 | Feature | Status |
 | --- | --- |
-| Syringe: sample a mob into item metadata | Done (raw snapshot of id, model, stats, effects) |
-| Lab Station: one-slot screen showing stats and effects | Done |
-| Effect Codex, Mutation Codex, Complexity tiers (data + loaders) | Not started |
+| Syringe: sample a mob into item metadata | Done (genome rolled from the mob's gene profile, see Sample format) |
+| Lab Station: one-slot screen showing the sample's genes, kind and Complexity | Done |
+| Effect Codex, Mutation Codex (data + loaders) | Done (asset types, validated on load and hot reload) |
+| Complexity tiers (data + loader) | Not started |
 | Complexity calculation | Not started |
 | Genome Capacity stat, Genome Expansion, degradation | Not started |
-| Mob gene profiles | Not started |
+| Mob gene profiles | Data, loader and rolling done; only Cow, Rabbit, Wolf and Default have profiles |
 | Raw self-injection and active genome | Not started |
 | Copying your genome | Not started |
 | Genetic Sickness stat and debuffs | Not started |

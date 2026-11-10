@@ -1,166 +1,152 @@
 package com.genetics.genes;
 
-import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
-import com.hypixel.hytale.server.core.asset.type.model.config.Model;
-import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
-import com.hypixel.hytale.server.core.entity.UUIDComponent;
-import com.hypixel.hytale.server.core.entity.effect.ActiveEntityEffect;
-import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.validation.Validators;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
-import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
-import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
-import com.hypixel.hytale.server.npc.role.Role;
-import org.bson.BsonArray;
-import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
-import org.bson.BsonDouble;
-import org.bson.BsonInt64;
-import org.bson.BsonString;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * A snapshot of a mob's genetic data, copied by value at sampling time and stored in item metadata.
- * Nothing here references the live entity, so the sample stays valid after the mob changes, despawns or dies.
+ * The genome held in a syringe, stored by value in item metadata (GDD §2): a list of {@link Gene genes}, whether it is a
+ * raw sample or processed genetic material, its Complexity, and where it came from. Nothing here references a live
+ * entity or the data files, so the sample stays valid after the mob despawns or the Codices change.
  *
  * <pre>
  * "Genetics:Genes": {
- *   "MobId": "Cow", "MobName": "Cow", "EntityUuid": "…", "SampledAt": 1762700000000,
- *   "Model":   { "Id": "Cow", "Scale": 1.0, "Icon": "Icons/…" },
- *   "Stats":   { "Health": { "Value": 103.0, "Min": 0.0, "Max": 103.0 }, … },
- *   "Effects": [ { "Id": "Burn", "Name": "Burn", "Icon": "…", "RemainingDuration": 2.5, "InitialDuration": 5.0,
- *                  "Infinite": false, "Debuff": true }, … ]
+ *   "Version": 1,
+ *   "Processed": false,
+ *   "Complexity": 0.0,
+ *   "Source": { "Id": "Cow", "Name": "Cow", "Icon": "Icons/…", "SampledAt": 1762700000000 },
+ *   "Genes": [ { "Type": "Stat", "Id": "Health", "Value": 6.0 }, … ]
  * }
  * </pre>
+ *
+ * <b>Versions.</b> {@code Version} is written by the codec ({@link #FORMAT_VERSION}). A sample written by a newer
+ * version of the mod is left untouched: it still counts as present, so the syringe can't be overwritten, but it can't
+ * be read. Version 0 is the old raw snapshot of the mob (stats and active effects, no {@code Version} key); it reads as
+ * a raw sample that keeps the mob's identity and has no genes.
  */
 public final class GeneSample {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
     /** Item metadata key the sample is stored under. */
     public static final String METADATA_KEY = "Genetics:Genes";
+    /** Current format version. Bump it, and add a migration in {@link #read}, whenever the stored layout changes. */
+    public static final int FORMAT_VERSION = 1;
+    /** Complexity of a sample that hasn't been calculated yet. Calculated Complexity is never below 1 (GDD §3.1). */
+    public static final double COMPLEXITY_UNKNOWN = 0.0;
 
-    private final String mobName;
-    private final BsonDocument data;
+    public static final BuilderCodec<GeneSample> CODEC = BuilderCodec.builder(GeneSample.class, GeneSample::new)
+            .versioned()
+            .codecVersion(FORMAT_VERSION)
+            .append(new KeyedCodec<>("Processed", Codec.BOOLEAN), (s, v) -> s.processed = v, s -> s.processed)
+            .documentation("False for a raw sample, true for genetic material.")
+            .add()
+            .append(new KeyedCodec<>("Complexity", Codec.DOUBLE), (s, v) -> s.complexity = v, s -> s.complexity)
+            .documentation("Complexity score of the genome; 0 if not calculated yet.")
+            .add()
+            .append(new KeyedCodec<>("Source", SampleSource.CODEC), (s, v) -> s.source = v, s -> s.source)
+            .documentation("The mob (or player) the genome came from.")
+            .addValidator(Validators.nonNull())
+            .add()
+            .append(new KeyedCodec<>("Genes", Gene.ARRAY_CODEC), (s, v) -> s.genes = v, s -> s.genes)
+            .documentation("The genome.")
+            .add()
+            .build();
+    private static final KeyedCodec<GeneSample> KEYED_CODEC = new KeyedCodec<>(METADATA_KEY, CODEC);
 
-    private GeneSample(@Nonnull String mobName, @Nonnull BsonDocument data) {
-        this.mobName = mobName;
-        this.data = data;
+    private boolean processed;
+    private double complexity = COMPLEXITY_UNKNOWN;
+    private SampleSource source;
+    private Gene[] genes = new Gene[0];
+
+    private GeneSample() {
     }
 
-    /** Copies the target NPC's identity, model, stats and active effects into a new sample. */
+    public GeneSample(@Nonnull SampleSource source, @Nonnull List<Gene> genes, boolean processed, double complexity) {
+        this.source = source;
+        this.genes = genes.toArray(Gene[]::new);
+        this.processed = processed;
+        this.complexity = complexity;
+    }
+
+    /** A raw, unprocessed sample whose Complexity hasn't been calculated yet. */
     @Nonnull
-    public static GeneSample capture(
-            @Nonnull Ref<EntityStore> target, @Nonnull NPCEntity npc, @Nullable String language, @Nonnull CommandBuffer<EntityStore> commandBuffer
-    ) {
-        String mobName = resolveMobName(npc, language);
-
-        BsonDocument data = new BsonDocument()
-                .append("MobId", new BsonString(npc.getRoleName()))
-                .append("MobName", new BsonString(mobName));
-
-        UUIDComponent uuid = commandBuffer.getComponent(target, UUIDComponent.getComponentType());
-        if (uuid != null) data.append("EntityUuid", new BsonString(uuid.getUuid().toString()));
-
-        data.append("SampledAt", new BsonInt64(System.currentTimeMillis()));
-
-        BsonDocument model = captureModel(commandBuffer.getComponent(target, PersistentModel.getComponentType()));
-        if (model != null) data.append("Model", model);
-
-        data.append("Stats", captureStats(commandBuffer.getComponent(target, EntityStatMap.getComponentType())));
-        data.append("Effects", captureEffects(commandBuffer.getComponent(target, EffectControllerComponent.getComponentType()), language));
-
-        return new GeneSample(mobName, data);
+    public static GeneSample raw(@Nonnull SampleSource source, @Nonnull List<Gene> genes) {
+        return new GeneSample(source, genes, false, COMPLEXITY_UNKNOWN);
     }
 
-    /** True if the stack already holds a gene sample. */
-    public static boolean isPresentOn(@Nonnull ItemStack stack) {
-        return read(stack) != null;
+    /** True if the stack holds a sample, readable or not. A syringe that holds one can't take another. */
+    public static boolean isPresentOn(@Nullable ItemStack stack) {
+        BsonDocument metadata = stack != null ? stack.getMetadata() : null;
+        return metadata != null && metadata.containsKey(METADATA_KEY);
     }
 
-    /** The raw sample stored on a stack, or {@code null} if it holds none. */
+    /** The sample stored on a stack, or {@code null} if it holds none or it can't be read. */
     @Nullable
-    public static BsonDocument read(@Nullable ItemStack stack) {
+    public static GeneSample read(@Nullable ItemStack stack) {
         BsonDocument metadata = stack != null ? stack.getMetadata() : null;
         if (metadata == null || !metadata.isDocument(METADATA_KEY)) return null;
-        return metadata.getDocument(METADATA_KEY);
+
+        BsonDocument stored = metadata.getDocument(METADATA_KEY);
+        if (!stored.containsKey("Version")) return fromLegacySnapshot(stored);
+        try {
+            return CODEC.decode(stored);
+        } catch (RuntimeException e) {
+            LOGGER.atWarning().log("Unreadable gene sample on " + stack.getItemId() + ": " + e.getMessage());
+            return null;
+        }
     }
 
+    /** A copy of {@code stack} holding this sample. */
     @Nonnull
-    public String getMobName() {
-        return mobName;
+    public ItemStack writeTo(@Nonnull ItemStack stack) {
+        return stack.withMetadata(KEYED_CODEC, this);
     }
 
+    /** Version 0: the raw snapshot of the mob. Keeps who it came from; the snapshot's stats and effects aren't genes. */
     @Nonnull
-    public BsonDocument toBson() {
-        return data;
+    private static GeneSample fromLegacySnapshot(@Nonnull BsonDocument snapshot) {
+        String mobId = string(snapshot, "MobId", "Unknown");
+        BsonDocument model = snapshot.isDocument("Model") ? snapshot.getDocument("Model") : null;
+        long sampledAt = snapshot.isNumber("SampledAt") ? snapshot.getNumber("SampledAt").longValue() : 0L;
+        SampleSource source = new SampleSource(mobId, string(snapshot, "MobName", mobId), model != null ? string(model, "Icon", null) : null, sampledAt);
+        return raw(source, List.of());
     }
 
     @Nullable
-    private static BsonDocument captureModel(@Nullable PersistentModel persistentModel) {
-        if (persistentModel == null) return null;
-        Model.ModelReference reference = persistentModel.getModelReference();
-        String modelId = reference.getModelAssetId();
-        if (modelId == null) return null;
-
-        BsonDocument out = new BsonDocument()
-                .append("Id", new BsonString(modelId))
-                .append("Scale", new BsonDouble(reference.getScale()));
-        ModelAsset asset = ModelAsset.getAssetMap().getAsset(modelId);
-        if (asset != null && asset.getIcon() != null) out.append("Icon", new BsonString(asset.getIcon()));
-        return out;
+    private static String string(@Nonnull BsonDocument doc, @Nonnull String key, @Nullable String fallback) {
+        return doc.isString(key) ? doc.getString(key).getValue() : fallback;
     }
 
     @Nonnull
-    private static BsonDocument captureStats(@Nullable EntityStatMap stats) {
-        BsonDocument out = new BsonDocument();
-        if (stats == null) return out;
-
-        for (int i = 0; i < stats.size(); i++) {
-            EntityStatValue stat = stats.get(i);
-            if (stat == null) continue;
-            out.append(stat.getId(), new BsonDocument()
-                    .append("Value", new BsonDouble(stat.get()))
-                    .append("Min", new BsonDouble(stat.getMin()))
-                    .append("Max", new BsonDouble(stat.getMax())));
-        }
-        return out;
+    public SampleSource getSource() {
+        return source;
     }
 
     @Nonnull
-    private static BsonArray captureEffects(@Nullable EffectControllerComponent effects, @Nullable String language) {
-        BsonArray out = new BsonArray();
-        if (effects == null) return out;
-
-        for (ActiveEntityEffect effect : effects.getActiveEffects().values()) {
-            EntityEffect asset = EntityEffect.getAssetMap().getAsset(effect.getEntityEffectIndex());
-            String id = asset != null ? asset.getId() : "#" + effect.getEntityEffectIndex();
-
-            BsonDocument entry = new BsonDocument()
-                    .append("Id", new BsonString(id))
-                    .append("Name", new BsonString(Translations.resolve(language, asset != null ? asset.getName() : null, prettify(id))));
-            if (asset != null && asset.getStatusEffectIcon() != null) entry.append("Icon", new BsonString(asset.getStatusEffectIcon()));
-            entry.append("RemainingDuration", new BsonDouble(effect.getRemainingDuration()))
-                    .append("InitialDuration", new BsonDouble(effect.getInitialDuration()))
-                    .append("Infinite", new BsonBoolean(effect.isInfinite()))
-                    .append("Debuff", new BsonBoolean(effect.isDebuff()));
-            out.add(entry);
-        }
-        return out;
+    public List<Gene> getGenes() {
+        return genes != null ? Arrays.asList(genes) : List.of();
     }
 
-    /** The mob's translated name (e.g. "Cow"), falling back to a prettified role id. */
-    @Nonnull
-    private static String resolveMobName(@Nonnull NPCEntity npc, @Nullable String language) {
-        Role role = npc.getRole();
-        return Translations.resolve(language, role != null ? role.getNameTranslationKey() : null, prettify(npc.getRoleName()));
+    /** False for a raw sample, true for genetic material. */
+    public boolean isProcessed() {
+        return processed;
     }
 
-    @Nonnull
-    private static String prettify(@Nonnull String id) {
-        return id.replace('_', ' ');
+    /** The genome's Complexity, or {@link #COMPLEXITY_UNKNOWN} if it hasn't been calculated. */
+    public double getComplexity() {
+        return complexity;
+    }
+
+    public boolean isComplexityKnown() {
+        return complexity > COMPLEXITY_UNKNOWN;
     }
 }

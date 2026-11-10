@@ -1,4 +1,4 @@
-// One "modal" card per status effect the mob had when sampled.
+// One card per effect gene or mutation in the sample.
 Group {
   LayoutMode: Top;
   Padding: (Bottom: 6);

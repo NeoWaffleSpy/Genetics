@@ -1,0 +1,7 @@
+{
+  "StatRolls": 1,
+  "Stats": [
+    { "Stat": "Health", "Min": 1, "Max": 3, "Weight": 1 },
+    { "Stat": "Stamina", "Min": 1, "Max": 3, "Weight": 1 }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "Name": "server.genetics.mutation.AdrenalSurge.name",
+  "Complexity": 45,
+  "Stats": {},
+  "Effects": [],
+  "Behaviors": [
+    { "Type": "OnLowHealth", "Threshold": 0.25, "Apply": "Ability_Enrage_Buff", "Duration": 6, "Cooldown": 60 }
+  ],
+  "Weight": 5,
+  "MinTier": "Advanced"
+}

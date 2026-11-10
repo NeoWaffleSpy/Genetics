@@ -2,3 +2,5 @@ items.Syringe.name = Syringe
 items.Syringe.description = Draws a genetic sample from a creature.
 items.Lab_Station.name = Lab Station
 items.Lab_Station.description = Analyses the genes held in a syringe.
+genetics.mutation.TitanBlood.name = Titan Blood
+genetics.mutation.AdrenalSurge.name = Adrenal Surge
