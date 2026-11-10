@@ -1,0 +1,7 @@
+{
+  "Name": "server.genetics.effects.NightVision.name",
+  "Duration": 180,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "StatusEffectIcon": "UI/StatusEffects/Genetics/NightVision.png"
+}

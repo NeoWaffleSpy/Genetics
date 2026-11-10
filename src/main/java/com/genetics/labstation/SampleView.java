@@ -1,18 +1,20 @@
 package com.genetics.labstation;
 
+import com.genetics.codex.Codex;
+import com.genetics.codex.MutationEntry;
+import com.genetics.genome.Gene;
+import com.genetics.genome.Genome;
+import com.genetics.genome.Translations;
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import org.bson.BsonArray;
-import org.bson.BsonDocument;
-import org.bson.BsonValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Locale;
-import java.util.Map;
 
 /**
- * Renders a gene sample into the analysis area of the Lab Station screen: "Empty", or the mob's portrait and name,
- * each stat's max value, and one card per status effect.
+ * Renders a genome into the analysis area of the Lab Station screen: "Empty", or the source mob, whether the sample is
+ * raw or processed, its Complexity, one row per stat gene and one card per effect or mutation gene.
  */
 final class SampleView {
     private static final String STAT_ROW = "Genetics/StatRow.ui";
@@ -21,67 +23,77 @@ final class SampleView {
     private SampleView() {
     }
 
-    static void write(@Nonnull UICommandBuilder commands, @Nullable BsonDocument sample) {
+    static void write(@Nonnull UICommandBuilder commands, @Nullable Genome genome, @Nullable String language) {
         commands.clear("#StatList");
         commands.clear("#EffectList");
-        commands.set("#EmptyLabel.Visible", sample == null);
-        commands.set("#Details.Visible", sample != null);
+        commands.set("#EmptyLabel.Visible", genome == null);
+        commands.set("#Details.Visible", genome != null);
 
-        BsonDocument model = sample != null && sample.isDocument("Model") ? sample.getDocument("Model") : null;
-        String icon = model != null ? string(model, "Icon", null) : null;
+        String icon = genome != null && genome.source() != null ? genome.source().icon() : null;
         commands.set("#MobIcon.Visible", icon != null);
         if (icon != null) commands.set("#MobIcon.AssetPath", icon);
-        if (sample == null) return;
+        if (genome == null) return;
 
-        commands.set("#MobName.Text", string(sample, "MobName", "Unknown") + "'s Genes");
+        String mobName = genome.source() != null ? genome.source().mobName() : "Unknown";
+        commands.set("#MobName.Text", mobName + "'s Genes");
+        commands.set("#Kind.Text", genome.processed() ? "Genetic material" : "Raw sample");
+        commands.set("#Complexity.Text", "Complexity " + number(genome.complexity()));
 
-        if (sample.isDocument("Stats")) {
-            int i = 0;
-            for (Map.Entry<String, BsonValue> stat : sample.getDocument("Stats").entrySet()) {
-                if (!stat.getValue().isDocument()) continue;
-                BsonDocument values = stat.getValue().asDocument();
-                // Stats with no maximum (e.g. Ammo on a mob) carry no information.
-                if (!values.isNumber("Max") || values.getNumber("Max").doubleValue() <= 0) continue;
-                String row = "#StatList[" + i++ + "]";
-                commands.append("#StatList", STAT_ROW);
-                commands.set(row + " #Name.Text", stat.getKey());
-                commands.set(row + " #Value.Text", number(values, "Max"));
+        int stats = 0;
+        int cards = 0;
+        for (Gene gene : genome.genes()) {
+            switch (gene) {
+                case Gene.Stat stat -> {
+                    String row = "#StatList[" + stats++ + "]";
+                    String value = (stat.percent() > 0 ? "+" : "") + number(stat.percent()) + "%";
+                    commands.append("#StatList", STAT_ROW);
+                    commands.set(row + " #Name.Text", "Max " + prettify(stat.stat()));
+                    commands.set(row + " #Value.Visible", !stat.isDrawback());
+                    commands.set(row + " #Drawback.Visible", stat.isDrawback());
+                    commands.set(row + (stat.isDrawback() ? " #Drawback.Text" : " #Value.Text"), value);
+                }
+                case Gene.Effect effect -> {
+                    EntityEffect asset = EntityEffect.getAssetMap().getAsset(effect.effect());
+                    String name = Translations.resolve(language, asset != null ? asset.getName() : null, prettify(effect.effect()));
+                    String kind = effect.permanent() ? "Permanent" : "Temporary  ·  " + duration(effect.duration());
+                    double complexity = Codex.effectComplexity(effect.effect(), effect.permanent());
+                    card(commands, cards++, name, kind + "  ·  +" + number(complexity) + " Complexity",
+                            asset != null ? asset.getStatusEffectIcon() : null);
+                }
+                case Gene.Mutation mutation -> {
+                    MutationEntry entry = Codex.mutation(mutation.mutation());
+                    String name = Translations.resolve(language, entry != null ? entry.getName() : null, prettify(mutation.mutation()));
+                    String details = entry != null ? "Mutation  ·  +" + number(entry.getComplexity()) + " Complexity" : "Unknown mutation";
+                    card(commands, cards++, name, details, null);
+                }
             }
         }
+        commands.set("#NoStats.Visible", stats == 0);
+        commands.set("#NoEffects.Visible", cards == 0);
+    }
 
-        BsonArray effects = sample.isArray("Effects") ? sample.getArray("Effects") : new BsonArray();
-        commands.set("#NoEffects.Visible", effects.isEmpty());
-        int i = 0;
-        for (BsonValue value : effects) {
-            if (!value.isDocument()) continue;
-            BsonDocument effect = value.asDocument();
-            String card = "#EffectList[" + i++ + "]";
-            commands.append("#EffectList", EFFECT_CARD);
-            commands.set(card + " #Name.Text", string(effect, "Name", string(effect, "Id", "Unknown")));
-            commands.set(card + " #Details.Text", describeEffect(effect));
-
-            String effectIcon = string(effect, "Icon", null);
-            commands.set(card + " #Icon.Visible", effectIcon != null);
-            if (effectIcon != null) commands.set(card + " #Icon.AssetPath", effectIcon);
-        }
+    private static void card(@Nonnull UICommandBuilder commands, int index, @Nonnull String name, @Nonnull String details, @Nullable String icon) {
+        String card = "#EffectList[" + index + "]";
+        commands.append("#EffectList", EFFECT_CARD);
+        commands.set(card + " #Name.Text", name);
+        commands.set(card + " #Details.Text", details);
+        commands.set(card + " #Icon.Visible", icon != null);
+        if (icon != null) commands.set(card + " #Icon.AssetPath", icon);
     }
 
     @Nonnull
-    private static String describeEffect(@Nonnull BsonDocument effect) {
-        String kind = effect.isBoolean("Debuff") && effect.getBoolean("Debuff").getValue() ? "Debuff" : "Buff";
-        if (effect.isBoolean("Infinite") && effect.getBoolean("Infinite").getValue()) return kind + "  ·  Infinite";
-        return kind + "  ·  " + number(effect, "RemainingDuration") + "s left of " + number(effect, "InitialDuration") + "s";
-    }
-
-    @Nullable
-    static String string(@Nonnull BsonDocument doc, @Nonnull String key, @Nullable String fallback) {
-        return doc.isString(key) ? doc.getString(key).getValue() : fallback;
+    private static String duration(double seconds) {
+        long total = Math.round(seconds);
+        return String.format(Locale.ROOT, "%d:%02d", total / 60, total % 60);
     }
 
     @Nonnull
-    private static String number(@Nonnull BsonDocument doc, @Nonnull String key) {
-        if (!doc.isNumber(key)) return "-";
-        double value = doc.getNumber(key).doubleValue();
+    private static String prettify(@Nonnull String id) {
+        return id.replace('_', ' ');
+    }
+
+    @Nonnull
+    private static String number(double value) {
         return value == Math.rint(value) ? String.valueOf((long) value) : String.format(Locale.ROOT, "%.1f", value);
     }
 }

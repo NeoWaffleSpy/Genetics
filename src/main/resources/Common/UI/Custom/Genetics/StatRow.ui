@@ -1,3 +1,4 @@
+// One stat gene: "Max Health  +6.5%". Drawbacks use the red #Drawback label instead of #Value.
 Group {
   LayoutMode: Left;
   Anchor: (Height: 24);
@@ -8,6 +9,11 @@ Group {
   }
 
   Label #Value {
-    Style: (RenderBold: true);
+    Style: (RenderBold: true, TextColor: #8fd17a);
+  }
+
+  Label #Drawback {
+    Visible: false;
+    Style: (RenderBold: true, TextColor: #e06666);
   }
 }

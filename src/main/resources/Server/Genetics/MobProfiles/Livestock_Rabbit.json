@@ -1,0 +1,7 @@
+{
+  "Roles": [ "Rabbit", "Bunny", "Tamed_Rabbit", "Tamed_Bunny" ],
+  "StatRolls": 1,
+  "StatPool": [ { "Stat": "Stamina", "Weight": 1, "Min": 5, "Max": 10 } ],
+  "TemporaryEffect": { "Id": "Genetics_Speed", "Duration": 120 },
+  "Drawbacks": [ { "Stat": "Health", "Chance": 0.3, "Min": 3, "Max": 5 } ]
+}

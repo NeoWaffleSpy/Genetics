@@ -1,7 +1,7 @@
 {
   "TranslationProperties": {
-    "Name": "server.items.Syringe.name",
-    "Description": "server.items.Syringe.description"
+    "Name": "server.genetics.items.Syringe.name",
+    "Description": "server.genetics.items.Syringe.description"
   },
   "Categories": [
     "Items.Tools"
@@ -42,18 +42,14 @@
     "Primary": {
       "Interactions": [
         {
-          "Type": "UseSyringeInteraction"
+          "Type": "Genetics_UseSyringe"
         }
       ]
     },
     "Secondary": {
       "Interactions": [
         {
-          "Type": "CycleBlockGroup",
-          "RunTime": 0.1,
-          "Effects": {
-            "ItemAnimationId": "Mine"
-          }
+          "Type": "Genetics_SelfInject"
         }
       ]
     }

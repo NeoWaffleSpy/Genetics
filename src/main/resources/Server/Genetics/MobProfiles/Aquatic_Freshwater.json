@@ -1,0 +1,7 @@
+{
+  "Roles": [ "Bluegill", "Salmon", "Trout_Rainbow" ],
+  "StatRolls": 1,
+  "StatPool": [ { "Stat": "Oxygen", "Weight": 1, "Min": 10, "Max": 25 } ],
+  "TemporaryEffect": { "Id": "Food_Stamina_Regen_Small", "Duration": 120 },
+  "Drawbacks": [ { "Stat": "Stamina", "Chance": 0.3, "Min": 3, "Max": 5 } ]
+}

@@ -1,0 +1,9 @@
+{
+  "StatRolls": 1,
+  "StatPool": [
+    { "Stat": "Health",  "Weight": 3, "Min": 2, "Max": 5 },
+    { "Stat": "Stamina", "Weight": 2, "Min": 2, "Max": 5 },
+    { "Stat": "Mana",    "Weight": 1, "Min": 2, "Max": 5 },
+    { "Stat": "Oxygen",  "Weight": 1, "Min": 5, "Max": 10 }
+  ]
+}

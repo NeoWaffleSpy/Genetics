@@ -1,0 +1,9 @@
+{
+  "Name": "server.genetics.mutations.TitanBlood.name",
+  "Complexity": 35,
+  "Stats": { "Health": 20 },
+  "Effects": [],
+  "Behaviors": [],
+  "Weight": 10,
+  "MinTier": "Complex"
+}

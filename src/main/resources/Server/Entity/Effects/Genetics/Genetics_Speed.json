@@ -1,0 +1,10 @@
+{
+  "Name": "server.genetics.effects.Speed.name",
+  "Duration": 120,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "ApplicationEffects": {
+    "HorizontalSpeedMultiplier": 1.2
+  },
+  "StatusEffectIcon": "UI/StatusEffects/Genetics/Speed.png"
+}
