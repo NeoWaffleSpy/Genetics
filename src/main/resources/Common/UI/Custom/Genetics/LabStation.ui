@@ -7,6 +7,11 @@ $C = "../Common.ui";
   SlotBackground: "../Common/BlockSelectorSlotBackground.png"
 );
 
+@Separator = Group {
+  Anchor: (Top: 0, Height: 1);
+  Background: (Color: #25262c);
+};
+
 $C.@PageOverlay {}
 
 // Middle: the station, its sample slot and the analysis of the sample.
@@ -32,17 +37,25 @@ $C.@DecoratedContainer #Panel {
         LayoutMode: Top;
         Anchor: (Width: 150);
 
+        // Fixed heights: LabStationPage places the tooltip from these sizes.
         Label {
           Text: "Sample";
+          Anchor: (Height: 32);
           Padding: (Bottom: 8);
           Style: (RenderBold: true, TextColor: #E8A93B);
         }
 
-        ItemGrid #SampleSlot {
-          Anchor: (Width: 64, Height: 64);
-          SlotsPerRow: 1;
-          AreItemsDraggable: true;
-          Style: @SlotStyle;
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 64);
+
+          ItemGrid #SampleSlot {
+            Anchor: (Width: 64, Height: 64);
+            SlotsPerRow: 1;
+            AreItemsDraggable: true;
+            InfoDisplay: None;
+            Style: @SlotStyle;
+          }
         }
 
         AssetImage #MobIcon {
@@ -83,11 +96,55 @@ $C.@DecoratedContainer #Panel {
             }
 
             Label #Complexity {
+              Padding: (Right: 16);
               Style: (RenderBold: true, TextColor: #E8A93B);
+            }
+
+            Label #Capacity {
+              Style: (RenderBold: true, TextColor: #96a9be);
             }
           }
 
-          Group {
+          Label #CapacityWarning {
+            Visible: false;
+            Padding: (Bottom: 8);
+            Style: (RenderBold: true, TextColor: #e06666, Wrap: true);
+          }
+
+          Label #CapacityOk {
+            Visible: false;
+            Padding: (Bottom: 8);
+            Style: (RenderBold: true, TextColor: #8fd17a);
+          }
+
+          // Shown instead of the genes while the sample is unidentified.
+          Group #IdentifyPanel {
+            LayoutMode: Top;
+            FlexWeight: 1;
+            Visible: false;
+
+            Label {
+              Text: "This sample hasn't been identified yet. Identify it to reveal its genes and Complexity, or inject it blind.";
+              Padding: (Bottom: 14);
+              Style: (FontSize: 16, TextColor: #96a9be, Wrap: true);
+            }
+
+            Label #ReagentCount {
+              Padding: (Bottom: 10);
+              Style: (RenderBold: true, TextColor: #E8A93B);
+            }
+
+            Group {
+              LayoutMode: Left;
+              Anchor: (Height: 48);
+
+              $C.@TextButton #IdentifyButton {
+                @Text = "Identify (1 reagent)";
+              }
+            }
+          }
+
+          Group #Genes {
             LayoutMode: Left;
             FlexWeight: 1;
 
@@ -144,7 +201,8 @@ $C.@DecoratedContainer #Panel {
 
 // Bottom: the player's inventory.
 $C.@DecoratedContainer #InventoryPanel {
-  Anchor: (Width: 680, Height: 420, Bottom: 30);
+  // Content width = the grids' width (608 + 2 x 17 padding), so the slots' positions are known exactly.
+  Anchor: (Width: 642, Height: 420, Bottom: 30);
 
   #Title {
     Group {
@@ -159,6 +217,7 @@ $C.@DecoratedContainer #InventoryPanel {
       Anchor: (Width: 608, Height: 268);
       SlotsPerRow: 9;
       AreItemsDraggable: true;
+      InfoDisplay: None;
       Style: @SlotStyle;
     }
 
@@ -166,7 +225,84 @@ $C.@DecoratedContainer #InventoryPanel {
       Anchor: (Width: 608, Height: 64, Top: 12);
       SlotsPerRow: 9;
       AreItemsDraggable: true;
+      InfoDisplay: None;
       Style: @SlotStyle;
     }
+  }
+}
+
+// Our own item tooltip, a copy of the game's (Interface/InGame/Tooltips/ItemTooltip.ui). The grids' built-in
+// tooltip is turned off (InfoDisplay: None) because it stayed on screen when the page closed under it; this one
+// belongs to the page, so it closes with it.
+// The layer covers both panels (bottom of the inventory to top of the station). LabStationPage places the tooltip
+// in it: #TooltipGap (under the tooltip) is the distance from the layer's bottom, #TooltipIndent from its left.
+Group #TooltipLayer {
+  Anchor: (Width: 820, Height: 920, Bottom: 30);
+  LayoutMode: Bottom;
+  Visible: false;
+
+  Group {
+    LayoutMode: Left;
+
+    Group #TooltipIndent {
+      Anchor: (Width: 0);
+    }
+
+    Group #ItemTooltip {
+      Anchor: (Width: 320);
+      Background: (TexturePath: "Tooltips/ItemTooltipDefault.png", Border: 24);
+
+      Group #TooltipArrow {
+        Anchor: (Width: 33, Height: 24, Bottom: -8);
+        Background: (TexturePath: "Tooltips/ItemTooltipDefaultArrow.png");
+      }
+
+      Group {
+        Padding: (Full: 24, Top: 21);
+        LayoutMode: Top;
+
+        Group {
+          LayoutMode: Left;
+
+          Label #TooltipName {
+            FlexWeight: 2;
+            Style: (RenderBold: true, FontSize: 18, Wrap: true);
+          }
+
+          Label #TooltipQuality {
+            Padding: (Left: 5, Top: 3);
+            Style: (HorizontalAlignment: End, FontSize: 14);
+          }
+        }
+
+        Group #TooltipDescription {
+          Padding: (Top: 5);
+
+          @Separator {}
+
+          Label #TooltipDescriptionText {
+            Anchor: (Top: 6);
+            Style: (TextColor: #696969, FontSize: 14, Wrap: true);
+          }
+        }
+
+        Group #TooltipFooter {
+          Padding: (Top: 5);
+
+          @Separator {}
+
+          Label #TooltipDurability {
+            Anchor: (Top: 6);
+            Style: (HorizontalAlignment: End, TextColor: #bca57a, FontSize: 14);
+          }
+        }
+      }
+    }
+  }
+
+  // Below the tooltip: Bottom layout keeps the children's order and pushes the stack down, so this spacer
+  // lifts the tooltip off the layer's bottom.
+  Group #TooltipGap {
+    Anchor: (Height: 0);
   }
 }

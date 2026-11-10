@@ -1,0 +1,8 @@
+{
+  "Name": "server.genetics.effects.Sickness_Mild.name",
+  "Duration": 60,
+  "Debuff": true,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "StatusEffectIcon": "UI/StatusEffects/Genetics/Sickness_Mild.png"
+}

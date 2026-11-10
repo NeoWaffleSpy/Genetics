@@ -1,0 +1,19 @@
+// Item tooltip skins, one per item rarity (copies of the game's UI/ItemQualities/Tooltips textures).
+// LabStationPage switches #ItemTooltip and #TooltipArrow between them with Value.ref("Genetics/TooltipSkins.ui", name).
+
+@ItemTooltipDefault = PatchStyle(TexturePath: "Tooltips/ItemTooltipDefault.png", Border: 24);
+@ItemTooltipDefaultArrow = PatchStyle(TexturePath: "Tooltips/ItemTooltipDefaultArrow.png");
+@ItemTooltipCommon = PatchStyle(TexturePath: "Tooltips/ItemTooltipCommon.png", Border: 24);
+@ItemTooltipCommonArrow = PatchStyle(TexturePath: "Tooltips/ItemTooltipCommonArrow.png");
+@ItemTooltipUncommon = PatchStyle(TexturePath: "Tooltips/ItemTooltipUncommon.png", Border: 24);
+@ItemTooltipUncommonArrow = PatchStyle(TexturePath: "Tooltips/ItemTooltipUncommonArrow.png");
+@ItemTooltipRare = PatchStyle(TexturePath: "Tooltips/ItemTooltipRare.png", Border: 24);
+@ItemTooltipRareArrow = PatchStyle(TexturePath: "Tooltips/ItemTooltipRareArrow.png");
+@ItemTooltipEpic = PatchStyle(TexturePath: "Tooltips/ItemTooltipEpic.png", Border: 24);
+@ItemTooltipEpicArrow = PatchStyle(TexturePath: "Tooltips/ItemTooltipEpicArrow.png");
+@ItemTooltipLegendary = PatchStyle(TexturePath: "Tooltips/ItemTooltipLegendary.png", Border: 24);
+@ItemTooltipLegendaryArrow = PatchStyle(TexturePath: "Tooltips/ItemTooltipLegendaryArrow.png");
+@ItemTooltipJunk = PatchStyle(TexturePath: "Tooltips/ItemTooltipJunk.png", Border: 24);
+@ItemTooltipJunkArrow = PatchStyle(TexturePath: "Tooltips/ItemTooltipJunkArrow.png");
+@ItemTooltipTechnical = PatchStyle(TexturePath: "Tooltips/ItemTooltipTechnical.png", Border: 24);
+@ItemTooltipTechnicalArrow = PatchStyle(TexturePath: "Tooltips/ItemTooltipTechnicalArrow.png");

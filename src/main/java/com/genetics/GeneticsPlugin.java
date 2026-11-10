@@ -1,10 +1,17 @@
 package com.genetics;
 
+import com.genetics.action.Action;
 import com.genetics.codex.Codex;
+import com.genetics.command.GeneticsCommand;
+import com.genetics.sickness.SicknessState;
+import com.genetics.sickness.SicknessSystem;
+import com.genetics.effect.MorphSystem;
 import com.genetics.effect.NightVisionSystem;
 import com.genetics.genome.ActiveGenome;
 import com.genetics.genome.GenomeMaintenanceSystem;
 import com.genetics.interaction.SelfInjectInteraction;
+import com.genetics.interaction.UseExpansionInteraction;
+import com.genetics.journal.GeneJournal;
 import com.genetics.interaction.UseSyringeInteraction;
 import com.genetics.labstation.OpenLabStationInteraction;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
@@ -25,17 +32,25 @@ public class GeneticsPlugin extends JavaPlugin {
 
     @Override
     protected void setup() {
+        Action.registerBuiltIns();
         Codex.register(getAssetRegistry());
         getCodecRegistry(Interaction.CODEC)
                 .register(UseSyringeInteraction.ID, UseSyringeInteraction.class, UseSyringeInteraction.CODEC)
                 .register(SelfInjectInteraction.ID, SelfInjectInteraction.class, SelfInjectInteraction.CODEC)
+                .register(UseExpansionInteraction.ID, UseExpansionInteraction.class, UseExpansionInteraction.CODEC)
                 .register(OpenLabStationInteraction.ID, OpenLabStationInteraction.class, OpenLabStationInteraction.CODEC);
 
         ComponentRegistryProxy<EntityStore> entities = getEntityStoreRegistry();
         ActiveGenome.setComponentType(entities.registerComponent(ActiveGenome.class, ActiveGenome.ID, ActiveGenome.CODEC));
         NightVisionSystem.Light.setComponentType(entities.registerComponent(NightVisionSystem.Light.class, NightVisionSystem.Light::new));
+        MorphSystem.State.setComponentType(entities.registerComponent(MorphSystem.State.class, MorphSystem.State::new));
+        SicknessState.setComponentType(entities.registerComponent(SicknessState.class, SicknessState.ID, SicknessState.CODEC));
+        GeneJournal.setComponentType(entities.registerComponent(GeneJournal.class, GeneJournal.ID, GeneJournal.CODEC));
         entities.registerSystem(new GenomeMaintenanceSystem());
+        entities.registerSystem(new SicknessSystem());
+        getCommandRegistry().registerCommand(new GeneticsCommand());
         entities.registerSystem(new NightVisionSystem());
+        entities.registerSystem(new MorphSystem());
         LOGGER.atInfo().log("Genetics set up.");
     }
 

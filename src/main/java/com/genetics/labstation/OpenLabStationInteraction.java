@@ -1,6 +1,6 @@
 package com.genetics.labstation;
 
-import com.genetics.interaction.UseSyringeInteraction;
+import com.genetics.interaction.Syringes;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -37,7 +37,7 @@ public class OpenLabStationInteraction extends SimpleBlockInteraction {
     ).documentation("Opens the Lab Station for the block being interacted with.").build();
 
     private static final short SAMPLE_SLOT = 0;
-    private static final ItemSlotFilter SYRINGES_ONLY = item -> item != null && UseSyringeInteraction.ITEM_ID.equals(item.getId());
+    private static final ItemSlotFilter SYRINGES_ONLY = item -> item != null && Syringes.isSyringe(item.getId());
 
     @Override
     protected void interactWithBlock(

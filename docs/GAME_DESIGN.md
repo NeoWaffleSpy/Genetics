@@ -382,8 +382,8 @@ Five changes, all in data except the Journal:
 3. **An early permanent change.** A few Zone 1 species carry one weak permanent utility effect (Complexity
    8–12, e.g. night vision from a cave creature). It fits in the starting capacity with a small stat gene,
    so the first "my body changed" moment comes early.
-4. **Discovery moments.** The first sample of each species is identified for free, adds a Gene Journal
-   entry, and shows a notification with progress ("New genome: Cow, Zone 1 3/12").
+4. **Discovery moments.** The first sample of each species adds a Gene Journal entry and shows a
+   notification with progress ("New genome: Cow, Zone 1 3/12").
 5. **Journal milestones teach recipes.** Sampling enough species in a zone teaches a recipe, using
    vanilla's recipe knowledge (`KnowledgeRequired` in item recipes). For example, 6 Zone 1 species teach
    the Lab Station T2 upgrade, and a full zone teaches that tier's Genome Expansion recipe. Expansions are
@@ -678,10 +678,13 @@ where it stands after the author's answers.
 | Lab Station: one-slot screen showing stats and effects | Done |
 | Effect Codex, Mutation Codex, Complexity tiers (data + loaders) | Codices and mob profiles done; tiers not started |
 | Complexity calculation | Done (raw samples, with drawback limits) |
-| Genome Capacity stat, Genome Expansion, degradation | Not started |
+| Genome Capacity stat, Genome Expansion, degradation | Done (stat, over-capacity check and degradation, warning screen, Moderate expansion) |
 | Mob gene profiles | Done (placeholder profiles for cow, rabbit, wolf, fish, frog, bat/owl, and a default) |
 | Raw self-injection and active genome | Done (quality roll, override rule, kept through death, syringe emptied) |
 | Copying your genome | Done |
-| Genetic Sickness stat and debuffs | Not started |
+| Genetic Sickness stat and debuffs | Done (stat, bands, decay, kept through death; shared Action system; 10 events across the three bands) |
+| Gene Journal, discovery notifications, milestone recipe unlocks | Done (journal shown with /genetics journal for now) |
+| Identification and reagent | Done |
+| Syringe tiers | Done (Crude, Copper, Thorium, Adamantite; tier from profile or max health) |
 | Phase 2 processing and splicing | Not started |
 | Phase 3 Genetic Library | Not started |

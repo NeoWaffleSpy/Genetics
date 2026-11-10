@@ -1,0 +1,20 @@
+{
+  "Name": "server.genetics.effects.Fever.name",
+  "Duration": 10,
+  "Debuff": true,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "StatModifiers": {
+    "Stamina": -1.5,
+    "StaminaRegenDelay": -1.5
+  },
+  "ValueType": "Absolute",
+  "DamageCalculatorCooldown": 1,
+  "ApplicationEffects": {
+    "MovementEffects": { "DisableSprint": true },
+    "ScreenEffect": "ScreenEffects/Fire.png",
+    "EntityTopTint": "#ff8a5c",
+    "EntityBottomTint": "#c9452a"
+  },
+  "StatusEffectIcon": "UI/StatusEffects/Genetics/Fever.png"
+}

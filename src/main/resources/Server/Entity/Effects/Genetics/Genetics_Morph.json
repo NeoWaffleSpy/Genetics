@@ -1,0 +1,10 @@
+{
+  "Name": "server.genetics.effects.Morph.name",
+  "Duration": 8,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "ApplicationEffects": {
+    "Particles": [ { "SystemId": "Potion_Morph_Burst" } ]
+  },
+  "StatusEffectIcon": "Icons/ItemsGenerated/Potion_Purify.png"
+}

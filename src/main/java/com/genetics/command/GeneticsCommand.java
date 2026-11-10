@@ -1,0 +1,157 @@
+package com.genetics.command;
+
+import com.genetics.capacity.GenomeCapacity;
+import com.genetics.codex.Balance;
+import com.genetics.codex.SicknessEvent;
+import com.genetics.genome.GeneText;
+import com.genetics.journal.GeneJournal;
+import com.genetics.journal.Journal;
+import com.genetics.genome.ActiveGenome;
+import com.genetics.genome.Genome;
+import com.genetics.sickness.Sickness;
+import com.genetics.sickness.SicknessSystem;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
+import com.hypixel.hytale.server.core.command.system.basecommands.AbstractCommandCollection;
+import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+
+import javax.annotation.Nonnull;
+import java.util.TreeSet;
+
+/**
+ * Testing and admin tools, for the Builder permission group:
+ * <pre>
+ * /genetics sickness &lt;0-100&gt;   set your Genetic Sickness
+ * /genetics event &lt;id&gt;         fire a sickness event on yourself now (ignores bands and cooldowns)
+ * /genetics events             list the sickness event ids
+ * /genetics capacity &lt;value&gt;   set your Genome Capacity (test tool; expansions only ever raise it)
+ * /genetics journal            show your Gene Journal
+ * </pre>
+ */
+public class GeneticsCommand extends AbstractCommandCollection {
+    public GeneticsCommand() {
+        super("genetics", "server.genetics.commands.genetics.desc");
+        setPermissionGroups("hytale:Builder");
+        addSubCommand(new SetSickness());
+        addSubCommand(new FireEvent());
+        addSubCommand(new ListEvents());
+        addSubCommand(new SetCapacity());
+        addSubCommand(new ShowJournal());
+    }
+
+    private static final class SetCapacity extends AbstractPlayerCommand {
+        private final RequiredArg<Float> value = withRequiredArg("value", "server.genetics.commands.capacity.value.desc", ArgTypes.FLOAT);
+
+        SetCapacity() {
+            super("capacity", "server.genetics.commands.capacity.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            float before = GenomeCapacity.capacity(ref, store);
+            GenomeCapacity.setCapacity(ref, store, value.get(context));
+            context.sendMessage(Message.raw("Genome Capacity: " + GeneText.number(before) + " -> " + GeneText.number(GenomeCapacity.capacity(ref, store)) + "."));
+        }
+    }
+
+    private static final class ShowJournal extends AbstractPlayerCommand {
+        ShowJournal() {
+            super("journal", "server.genetics.commands.journal.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            GeneJournal journal = Journal.of(ref, store);
+            TreeSet<String> names = new TreeSet<>();
+            journal.getSpecies().values().forEach(entry -> names.add(entry.getName() + " x" + entry.getSamples()));
+            context.sendMessage(Message.raw("Gene Journal: " + journal.speciesCount() + " species, " + journal.geneCount() + " genes identified."));
+            if (!names.isEmpty()) context.sendMessage(Message.raw("Species: " + String.join(", ", names) + "."));
+            Balance.Milestone next = Journal.nextMilestone(journal);
+            context.sendMessage(Message.raw(next != null
+                    ? "Next milestone at " + next.getSpecies() + " species (" + (next.getSpecies() - journal.speciesCount()) + " to go)."
+                    : "All milestones reached."));
+        }
+    }
+
+    private static final class SetSickness extends AbstractPlayerCommand {
+        private final RequiredArg<Float> value = withRequiredArg("value", "server.genetics.commands.sickness.value.desc", ArgTypes.FLOAT);
+
+        SetSickness() {
+            super("sickness", "server.genetics.commands.sickness.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            float before = Sickness.get(store.getComponent(ref, EntityStatMap.getComponentType()));
+            float after = Sickness.set(ref, store, value.get(context));
+            context.sendMessage(Message.raw("Genetic Sickness: " + Math.round(before) + " -> " + Math.round(after) + "."));
+        }
+    }
+
+    private static final class FireEvent extends AbstractPlayerCommand {
+        private final RequiredArg<String> id = withRequiredArg("id", "server.genetics.commands.event.id.desc", ArgTypes.STRING);
+
+        FireEvent() {
+            super("event", "server.genetics.commands.event.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            String wanted = id.get(context);
+            SicknessEvent event = SicknessEvent.getAssetMap().getAsset(wanted);
+            if (event == null) {
+                for (SicknessEvent candidate : SicknessEvent.getAssetMap().getAssetMap().values()) {
+                    if (candidate.getId().equalsIgnoreCase(wanted)) event = candidate;
+                }
+            }
+            if (event == null) {
+                context.sendMessage(Message.raw("Unknown sickness event '" + wanted + "'. Events: " + eventList() + "."));
+                return;
+            }
+            SicknessSystem.trigger(ref, store, event);
+            ActiveGenome active = store.getComponent(ref, ActiveGenome.getComponentType());
+            Genome.Source source = active != null && active.getGenome() != null ? active.getGenome().source() : null;
+            context.sendMessage(Message.raw("Fired sickness event " + event.getId() + (source != null
+                    ? " (source mob: " + source.mobName() + ")."
+                    : ". No source mob: inject a sample first for MobCall and Morph.")));
+        }
+    }
+
+    private static final class ListEvents extends AbstractPlayerCommand {
+        ListEvents() {
+            super("events", "server.genetics.commands.events.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            context.sendMessage(Message.raw("Sickness events: " + eventList() + "."));
+        }
+    }
+
+    @Nonnull
+    private static String eventList() {
+        TreeSet<String> ids = new TreeSet<>();
+        for (SicknessEvent event : SicknessEvent.getAssetMap().getAssetMap().values()) {
+            ids.add(event.getId() + " (" + event.getMinBand() + ")");
+        }
+        return String.join(", ", ids);
+    }
+}

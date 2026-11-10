@@ -1,0 +1,35 @@
+{
+  "Injection": {
+    "C0": 20,
+    "WeakenChance": 0.5,
+    "DropChance": 0.3,
+    "KeepMin": 0.3,
+    "KeepMax": 0.7,
+    "WeakenedPermanentDuration": 180
+  },
+  "Sickness": {
+    "PerComplexity": 4,
+    "ProcessedMultiplier": 0.3,
+    "DecayPerSecond": 0.55,
+    "Bands": [
+      { "Id": "Healthy",  "MinSickness": 0,  "Message": "server.genetics.sickness.band.Healthy" },
+      { "Id": "Mild",     "MinSickness": 20, "EventIntervalMin": 60, "EventIntervalMax": 90,
+        "Effect": "Genetics_Sickness_Mild",     "Message": "server.genetics.sickness.band.Mild" },
+      { "Id": "Moderate", "MinSickness": 50, "EventIntervalMin": 30, "EventIntervalMax": 45,
+        "Effect": "Genetics_Sickness_Moderate", "Message": "server.genetics.sickness.band.Moderate" },
+      { "Id": "Severe",   "MinSickness": 80, "EventIntervalMin": 10, "EventIntervalMax": 20,
+        "Effect": "Genetics_Sickness_Severe",   "Message": "server.genetics.sickness.band.Severe" }
+    ]
+  },
+  "Capacity": {
+    "OverflowSicknessPerPoint": 2,
+    "OverflowBand": "Severe"
+  },
+  "Syringes": {
+    "HealthThresholds": [ 120, 250, 600 ]
+  },
+  "JournalMilestones": [
+    { "Id": "FirstSteps", "Species": 4, "Recipes": [ "Genetics_Syringe_Copper" ] },
+    { "Id": "Naturalist", "Species": 8, "Recipes": [ "Genetics_Genome_Expansion_Moderate" ] }
+  ]
+}

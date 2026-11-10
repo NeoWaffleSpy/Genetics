@@ -1,0 +1,15 @@
+{
+  "Name": "server.genetics.effects.Seizure.name",
+  "Duration": 4,
+  "Debuff": true,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "ApplicationEffects": {
+    "MovementEffects": { "DisableAll": true },
+    "AbilityEffects": { "Disabled": [ "Primary", "Secondary", "Ability1", "Ability3" ] },
+    "ScreenEffect": "ScreenEffects/VoidEscalationScreenEffect.png",
+    "EntityTopTint": "#fff27a",
+    "EntityBottomTint": "#d9b400"
+  },
+  "StatusEffectIcon": "UI/StatusEffects/Genetics/Seizure.png"
+}

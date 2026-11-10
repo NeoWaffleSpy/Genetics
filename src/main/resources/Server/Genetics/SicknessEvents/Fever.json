@@ -1,0 +1,9 @@
+{
+  "MinBand": "Severe",
+  "Weight": 7,
+  "Cooldown": 40,
+  "Message": "server.genetics.sickness.event.Fever",
+  "Actions": [
+    { "Type": "ApplyEffect", "Id": "Genetics_Fever", "Duration": 10 }
+  ]
+}

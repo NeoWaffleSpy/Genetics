@@ -1,0 +1,10 @@
+{
+  "MinBand": "Severe",
+  "Weight": 5,
+  "Cooldown": 50,
+  "Message": "server.genetics.sickness.event.Seizure",
+  "Actions": [
+    { "Type": "ApplyEffect", "Id": "Genetics_Seizure", "Duration": 4 },
+    { "Type": "CameraShake", "Id": "Impact_Strong", "Repeat": 7, "Interval": 0.55 }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "MinBand": "Moderate",
+  "Weight": 6,
+  "Cooldown": 40,
+  "Message": "server.genetics.sickness.event.Twitch",
+  "Actions": [
+    { "Type": "Impulse", "Side": 0.5, "Up": 0.1 },
+    { "Type": "Impulse", "Side": -0.6, "Up": 0.1, "Delay": 0.7 },
+    { "Type": "Impulse", "Side": 0.5, "Up": 0.1, "Delay": 1.4 }
+  ]
+}

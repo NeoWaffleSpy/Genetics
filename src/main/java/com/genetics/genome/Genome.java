@@ -21,8 +21,9 @@ import java.util.List;
  * "Genetics:Genome": {
  *   "Version": 1,
  *   "Processed": false,                  raw sample (false) or genetic material (true)
+ *   "Identified": true,                  false until identified at the Lab Station (genes hidden)
  *   "Complexity": 9.6,
- *   "Source": { "MobId": "Cow", "MobName": "Cow", "Icon": "Icons/…", "SampledAt": 1762700000000 },
+ *   "Source": { "MobId": "Cow", "MobName": "Cow", "Model": "Cow", "Icon": "Icons/…", "SampledAt": 1762700000000 },
  *   "Genes": [
  *     { "Type": "Stat",     "Stat": "Health", "Percent": 6.5 },
  *     { "Type": "Stat",     "Stat": "Stamina", "Percent": -4.0 },
@@ -33,7 +34,7 @@ import java.util.List;
  * </pre>
  * Complexity is stored rather than recomputed so that it stays what it was when the sample was made or processed.
  */
-public record Genome(int version, boolean processed, double complexity, @Nullable Source source, @Nonnull List<Gene> genes) {
+public record Genome(int version, boolean processed, boolean identified, double complexity, @Nullable Source source, @Nonnull List<Gene> genes) {
     /** Item metadata key the genome is stored under. */
     public static final String METADATA_KEY = "Genetics:Genome";
     /** Metadata key of the raw mob snapshots stored before genomes existed. */
@@ -42,12 +43,13 @@ public record Genome(int version, boolean processed, double complexity, @Nullabl
     public static final int FORMAT_VERSION = 1;
 
     /** Where a sample came from. Kept so the Lab Station and later systems (sickness events) can name the mob. */
-    public record Source(@Nonnull String mobId, @Nonnull String mobName, @Nullable String icon, long sampledAt) {
+    public record Source(@Nonnull String mobId, @Nonnull String mobName, @Nullable String model, @Nullable String icon, long sampledAt) {
         @Nonnull
         BsonDocument toBson() {
             BsonDocument doc = new BsonDocument()
                     .append("MobId", new BsonString(mobId))
                     .append("MobName", new BsonString(mobName));
+            if (model != null) doc.append("Model", new BsonString(model));
             if (icon != null) doc.append("Icon", new BsonString(icon));
             return doc.append("SampledAt", new BsonInt64(sampledAt));
         }
@@ -59,6 +61,7 @@ public record Genome(int version, boolean processed, double complexity, @Nullabl
             return new Source(
                     mobId,
                     doc.isString("MobName") ? doc.getString("MobName").getValue() : mobId,
+                    doc.isString("Model") ? doc.getString("Model").getValue() : null,
                     doc.isString("Icon") ? doc.getString("Icon").getValue() : null,
                     doc.isNumber("SampledAt") ? doc.getNumber("SampledAt").longValue() : 0);
         }
@@ -68,10 +71,22 @@ public record Genome(int version, boolean processed, double complexity, @Nullabl
         genes = List.copyOf(genes);
     }
 
-    /** A new raw sample whose Complexity is computed over all its genes. */
+    /** A new, identified raw sample whose Complexity is computed over all its genes. */
     @Nonnull
     public static Genome raw(@Nullable Source source, @Nonnull List<Gene> genes) {
-        return new Genome(FORMAT_VERSION, false, ComplexityCalculator.compute(genes), source, genes);
+        return raw(source, genes, true);
+    }
+
+    /** A new raw sample whose Complexity is computed over all its genes. */
+    @Nonnull
+    public static Genome raw(@Nullable Source source, @Nonnull List<Gene> genes, boolean identified) {
+        return new Genome(FORMAT_VERSION, false, identified, ComplexityCalculator.compute(genes), source, genes);
+    }
+
+    /** This genome, marked as identified. */
+    @Nonnull
+    public Genome asIdentified() {
+        return new Genome(version, processed, true, complexity, source, genes);
     }
 
     @Nonnull
@@ -81,6 +96,7 @@ public record Genome(int version, boolean processed, double complexity, @Nullabl
         BsonDocument doc = new BsonDocument()
                 .append("Version", new BsonInt32(version))
                 .append("Processed", new BsonBoolean(processed))
+                .append("Identified", new BsonBoolean(identified))
                 .append("Complexity", new BsonDouble(complexity));
         if (source != null) doc.append("Source", source.toBson());
         return doc.append("Genes", geneArray);
@@ -102,6 +118,7 @@ public record Genome(int version, boolean processed, double complexity, @Nullabl
         return new Genome(
                 FORMAT_VERSION,
                 doc.isBoolean("Processed") && doc.getBoolean("Processed").getValue(),
+                !doc.isBoolean("Identified") || doc.getBoolean("Identified").getValue(),
                 doc.isNumber("Complexity") ? doc.getNumber("Complexity").doubleValue() : ComplexityCalculator.compute(genes),
                 doc.isDocument("Source") ? Source.fromBson(doc.getDocument("Source")) : null,
                 genes);

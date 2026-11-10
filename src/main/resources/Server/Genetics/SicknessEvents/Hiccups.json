@@ -1,0 +1,10 @@
+{
+  "MinBand": "Mild",
+  "MaxBand": "Moderate",
+  "Weight": 8,
+  "Cooldown": 45,
+  "Message": "server.genetics.sickness.event.Hiccups",
+  "Actions": [
+    { "Type": "Impulse", "Up": 1.0, "Repeat": 4, "Interval": 1.2 }
+  ]
+}
