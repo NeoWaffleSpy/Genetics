@@ -27,9 +27,9 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 /**
- * The processing screen (design doc §7), opened from a Lab Station T2 holding an identified raw sample. Every gene
- * starts kept; the player drops the ones they don't want and sees the Complexity, tier and cost change. Processing
- * pays the cost and turns the sample in the station into genetic material.
+ * The processing screen (design doc §7), opened from a Lab Station holding a raw sample. It reveals the genes (this
+ * is how samples are identified); every gene starts ticked, the player unticks the ones they don't want and sees the
+ * Complexity, tier and cost change. Processing pays the cost and turns the sample into identified genetic material.
  */
 public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayload> {
     private static final String LAYOUT = "Genetics/Process.ui";
@@ -39,6 +39,7 @@ public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayloa
     private final ItemStack syringe;
     private final Genome sample;
     private final boolean[] keep;
+    private final boolean[] permanent;
     private boolean done;
 
     public ProcessPage(@Nonnull PlayerRef playerRef, @Nonnull Station station, @Nonnull ItemStack syringe, @Nonnull Genome sample) {
@@ -48,6 +49,7 @@ public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayloa
         this.sample = sample;
         this.keep = new boolean[sample.genes().size()];
         Arrays.fill(keep, true);
+        this.permanent = new boolean[sample.genes().size()];
     }
 
     @Override
@@ -56,11 +58,21 @@ public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayloa
         events.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "Back"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#Panel #CloseButton", new EventData().append("Action", "Close"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ProcessButton", new EventData().append("Action", "Process"), false);
-        commands.set("#SampleName.Text", sample.source() != null ? sample.source().mobName() + "'s Genes" : "Sample");
+        commands.set("#SampleName.Text", sample.title());
         for (int i = 0; i < sample.genes().size(); i++) {
             commands.append("#GeneList", ROW);
-            events.addEventBinding(CustomUIEventBindingType.Activating, "#GeneList[" + i + "] #Toggle",
-                    new EventData().append("Action", "Toggle").append("Gene", String.valueOf(i)), false);
+            String toggle = "#GeneList[" + i + "] #Toggle";
+            commands.set(toggle + ".Value", true);
+            events.addEventBinding(CustomUIEventBindingType.ValueChanged, toggle,
+                    new EventData().append("Action", "Toggle").append("Gene", String.valueOf(i)).append("@Checked", toggle + ".Value"), false);
+            boolean eligible = Processing.canMakePermanent(sample.genes().get(i));
+            commands.set("#GeneList[" + i + "] #PermanentBox.Visible", eligible);
+            if (eligible) {
+                String box = "#GeneList[" + i + "] #Permanent";
+                commands.set(box + ".Value", false);
+                events.addEventBinding(CustomUIEventBindingType.ValueChanged, box,
+                        new EventData().append("Action", "Permanent").append("Gene", String.valueOf(i)).append("@Checked", box + ".Value"), false);
+            }
         }
         render(commands, ref, store);
     }
@@ -72,7 +84,15 @@ public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayloa
             case "Toggle" -> {
                 int gene = parse(data.gene);
                 if (gene < 0 || gene >= keep.length) return;
-                keep[gene] = !keep[gene];
+                keep[gene] = data.checked != null ? data.checked : !keep[gene];
+                UICommandBuilder commands = new UICommandBuilder();
+                render(commands, ref, store);
+                sendUpdate(commands, false);
+            }
+            case "Permanent" -> {
+                int gene = parse(data.gene);
+                if (gene < 0 || gene >= permanent.length) return;
+                permanent[gene] = data.checked != null ? data.checked : !permanent[gene];
                 UICommandBuilder commands = new UICommandBuilder();
                 render(commands, ref, store);
                 sendUpdate(commands, false);
@@ -96,14 +116,15 @@ public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayloa
         for (int i = 0; i < sample.genes().size(); i++) {
             Gene gene = sample.genes().get(i);
             String row = "#GeneList[" + i + "] ";
-            commands.set(row + "#Toggle.Text", keep[i] ? "Keep" : "Drop");
+            boolean stable = permanent[i] && Processing.canMakePermanent(gene);
+            if (stable) gene = new Gene.Effect(((Gene.Effect) gene).effect(), true, 0);
             commands.set(row + "#Name.Text", GeneText.describe(gene, language));
             commands.set(row + "#Name.Style.TextColor", !keep[i] ? "#5c6470" : isDrawback(gene) ? "#e06666" : "#d0d7e0");
             double complexity = GeneText.complexity(gene);
             commands.set(row + "#Cost.Text", (complexity >= 0 ? "+" : "") + GeneText.number(round(complexity)) + " Complexity");
         }
 
-        Processing.Plan plan = Processing.plan(sample, keep, station.tier());
+        Processing.Plan plan = Processing.plan(sample, keep, permanent, station.tier());
         Genome result = plan.result();
         double capacity = GenomeCapacity.capacity(ref, store);
         commands.set("#Complexity.Text", "Complexity " + (result != null ? GeneText.number(result.complexity()) : "-")
@@ -123,7 +144,7 @@ public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayloa
     }
 
     private void process(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        Processing.Plan plan = Processing.plan(sample, keep, station.tier());
+        Processing.Plan plan = Processing.plan(sample, keep, permanent, station.tier());
         if (plan.result() == null || plan.blocked() != null) return;
         // Only process the syringe this screen was opened for, if it is still in the station.
         ItemStack current = station.container().getItemStack(Station.SAMPLE_SLOT);
@@ -139,6 +160,7 @@ public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayloa
         }
         done = true;
         station.container().setItemStackForSlot(Station.SAMPLE_SLOT, Syringes.fill(current, plan.result()));
+        com.genetics.journal.Journal.onIdentify(ref, store, plan.result());
         playerRef.sendMessage(Message.raw("Processed into genetic material: " + plan.result().genes().size() + " genes, Complexity "
                 + GeneText.number(plan.result().complexity()) + "."));
         station.reopen(ref, store, playerRef);
@@ -164,9 +186,11 @@ public class ProcessPage extends InteractiveCustomUIPage<ProcessPage.EventPayloa
         public static final BuilderCodec<EventPayload> CODEC = BuilderCodec.builder(EventPayload.class, EventPayload::new)
                 .append(new KeyedCodec<>("Action", Codec.STRING), (p, v) -> p.action = v, p -> p.action).add()
                 .append(new KeyedCodec<>("Gene", Codec.STRING), (p, v) -> p.gene = v, p -> p.gene).add()
+                .append(new KeyedCodec<>("@Checked", Codec.BOOLEAN), (p, v) -> p.checked = v, p -> p.checked).add()
                 .build();
 
         private String action;
         private String gene;
+        private Boolean checked;
     }
 }

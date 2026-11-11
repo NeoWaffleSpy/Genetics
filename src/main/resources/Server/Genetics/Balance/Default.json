@@ -33,11 +33,14 @@
     { "Id": "Naturalist", "Species": 8, "Recipes": [ "Genetics_Genome_Expansion_Moderate" ] }
   ],
   "Splicing": {
-    "BiasPer10Complexity": 0.05,
-    "BiasCap": 0.65,
-    "SoloGeneChance": 0.5,
+    "EffectReferenceDuration": 180,
     "MutationBaseChance": 0.02,
     "MutationPerComplexity": 0.0005
+  },
+  "Permanence": {
+    "MinDuration": 1800,
+    "Catalyst": "Genetics_Gene_Stabilizer",
+    "CatalystPerEffect": 1
   },
   "StationUpgrades": [
     { "Tier": 2, "Materials": [

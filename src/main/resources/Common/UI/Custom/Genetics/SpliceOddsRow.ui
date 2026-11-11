@@ -1,7 +1,18 @@
-// One gene's odds when splicing: its value and chance from A, from B, and the chance it is lost.
+$C = "../Common.ui";
+
+// One gene when splicing: a keep tickbox, its value in A, in B, and in the result (the two added together).
 Group {
   LayoutMode: Left;
-  Anchor: (Height: 24);
+  Anchor: (Height: 30);
+
+  Group {
+    LayoutMode: Middle;
+    Anchor: (Width: 34);
+
+    $C.@CheckBox #Toggle {
+      Value: true;
+    }
+  }
 
   Label #Gene {
     FlexWeight: 1;
@@ -18,8 +29,8 @@ Group {
     Style: (TextColor: #7ab8d1, HorizontalAlignment: End);
   }
 
-  Label #Lost {
-    Anchor: (Width: 60);
-    Style: (TextColor: #878e9c, HorizontalAlignment: End);
+  Label #Result {
+    Anchor: (Width: 110);
+    Style: (RenderBold: true, TextColor: #E8A93B, HorizontalAlignment: End);
   }
 }

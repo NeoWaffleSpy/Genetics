@@ -21,9 +21,10 @@ import java.util.List;
  * "Genetics:Genome": {
  *   "Version": 1,
  *   "Processed": false,                  raw sample (false) or genetic material (true)
- *   "Identified": true,                  false until identified at the Lab Station (genes hidden)
+ *   "Identified": true,                  false until processed at the Lab Station (genes hidden)
  *   "Complexity": 9.6,
  *   "Source": { "MobId": "Cow", "MobName": "Cow", "Model": "Cow", "Icon": "Icons/…", "SampledAt": 1762700000000 },
+ *                                        (+ "Spliced": true on a splice, which is then named after its tier)
  *   "Genes": [
  *     { "Type": "Stat",     "Stat": "Health", "Percent": 6.5 },
  *     { "Type": "Stat",     "Stat": "Stamina", "Percent": -4.0 },
@@ -43,7 +44,12 @@ public record Genome(int version, boolean processed, boolean identified, double 
     public static final int FORMAT_VERSION = 1;
 
     /** Where a sample came from. Kept so the Lab Station and later systems (sickness events) can name the mob. */
-    public record Source(@Nonnull String mobId, @Nonnull String mobName, @Nullable String model, @Nullable String icon, long sampledAt) {
+    public record Source(@Nonnull String mobId, @Nonnull String mobName, @Nullable String model, @Nullable String icon, long sampledAt,
+                         boolean spliced) {
+        public Source(@Nonnull String mobId, @Nonnull String mobName, @Nullable String model, @Nullable String icon, long sampledAt) {
+            this(mobId, mobName, model, icon, sampledAt, false);
+        }
+
         @Nonnull
         BsonDocument toBson() {
             BsonDocument doc = new BsonDocument()
@@ -51,6 +57,7 @@ public record Genome(int version, boolean processed, boolean identified, double 
                     .append("MobName", new BsonString(mobName));
             if (model != null) doc.append("Model", new BsonString(model));
             if (icon != null) doc.append("Icon", new BsonString(icon));
+            if (spliced) doc.append("Spliced", new BsonBoolean(true));
             return doc.append("SampledAt", new BsonInt64(sampledAt));
         }
 
@@ -63,7 +70,8 @@ public record Genome(int version, boolean processed, boolean identified, double 
                     doc.isString("MobName") ? doc.getString("MobName").getValue() : mobId,
                     doc.isString("Model") ? doc.getString("Model").getValue() : null,
                     doc.isString("Icon") ? doc.getString("Icon").getValue() : null,
-                    doc.isNumber("SampledAt") ? doc.getNumber("SampledAt").longValue() : 0);
+                    doc.isNumber("SampledAt") ? doc.getNumber("SampledAt").longValue() : 0,
+                    doc.isBoolean("Spliced") && doc.getBoolean("Spliced").getValue());
         }
     }
 
@@ -81,6 +89,27 @@ public record Genome(int version, boolean processed, boolean identified, double 
     @Nonnull
     public static Genome raw(@Nullable Source source, @Nonnull List<Gene> genes, boolean identified) {
         return new Genome(FORMAT_VERSION, false, identified, ComplexityCalculator.compute(genes), source, genes);
+    }
+
+    /**
+     * The genome's name: "Cow's Genes", or for a splice "Moderate Spliced Gene", named after the Complexity tier it
+     * reaches (so it follows the tier data).
+     */
+    @Nonnull
+    public String title() {
+        if (source != null && source.spliced()) {
+            com.genetics.tier.ComplexityTier tier = com.genetics.tier.Tiers.forComplexity(complexity);
+            return (tier != null ? tier.getName() + " " : "") + "Spliced Gene";
+        }
+        return (source != null ? source.mobName() : "Unknown") + "'s Genes";
+    }
+
+    /** The name shown on the syringe: the title once identified, else "Unidentified Cow Sample" / "Unidentified Spliced Sample". */
+    @Nonnull
+    public String displayName() {
+        if (identified) return title();
+        if (source != null && source.spliced()) return "Unidentified Spliced Sample";
+        return "Unidentified " + (source != null ? source.mobName() : "Unknown") + " Sample";
     }
 
     /** This genome, marked as identified. */

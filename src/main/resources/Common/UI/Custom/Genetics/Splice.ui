@@ -78,6 +78,10 @@ $C.@DecoratedContainer #Panel {
             LayoutMode: Left;
             Anchor: (Height: 26);
 
+            Group {
+              Anchor: (Width: 34);
+            }
+
             Label {
               Text: "Gene";
               FlexWeight: 1;
@@ -85,20 +89,20 @@ $C.@DecoratedContainer #Panel {
             }
 
             Label {
-              Text: "From A";
+              Text: "A";
               Anchor: (Width: 110);
               Style: (RenderBold: true, TextColor: #E8A93B, HorizontalAlignment: End);
             }
 
             Label {
-              Text: "From B";
+              Text: "B";
               Anchor: (Width: 110);
               Style: (RenderBold: true, TextColor: #E8A93B, HorizontalAlignment: End);
             }
 
             Label {
-              Text: "Lost";
-              Anchor: (Width: 60);
+              Text: "Result";
+              Anchor: (Width: 110);
               Style: (RenderBold: true, TextColor: #E8A93B, HorizontalAlignment: End);
             }
           }

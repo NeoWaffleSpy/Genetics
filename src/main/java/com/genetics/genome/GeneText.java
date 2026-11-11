@@ -55,7 +55,7 @@ public final class GeneText {
         return switch (gene) {
             case Gene.Stat stat -> Math.abs(stat.percent()) * com.genetics.codex.Codex.statWeight(stat.stat())
                     * (stat.isDrawback() ? -ComplexityCalculator.DRAWBACK_WEIGHT : 1);
-            case Gene.Effect effect -> com.genetics.codex.Codex.effectComplexity(effect.effect(), effect.permanent());
+            case Gene.Effect effect -> ComplexityCalculator.effect(effect);
             case Gene.Mutation mutation -> {
                 MutationEntry entry = Codex.mutation(mutation.mutation());
                 yield entry != null ? entry.getComplexity() : 0;

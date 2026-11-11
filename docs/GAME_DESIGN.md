@@ -40,7 +40,7 @@ paid for with rare resources.
 | **Complexity tier** | A band of Complexity values. Each tier has its own processing materials and acts as a progression gate. See §4. |
 | **Mutation** | A special gene that never appears on a source mob. Defined in the Mutation Codex. |
 | **Effect Codex / Mutation Codex** | Data files that give every effect and mutation its Complexity value (and, for mutations, its behavior). See §3.2 and §3.3. |
-| **Identification** | Revealing a sample's genes at the Lab Station. |
+| **Identification** | Revealing a sample's genes at the Lab Station. It is part of processing. |
 
 ## 3. Complexity (Decided)
 
@@ -53,7 +53,7 @@ tied to it later.
 | **Genetic sickness** | The higher the Complexity, the more sickness an injection causes (reduced for genetic material) | Phase 1 |
 | **Processing cost** | The Complexity tier sets which materials processing needs and how many (§4) | Phase 2 |
 | **Mutation chance when splicing** | Rises slightly with the two samples' combined Complexity | Phase 2 |
-| **Splice bias** | When two samples are spliced, the one with higher Complexity is slightly favoured | Phase 2 |
+| **Splice sum** | Splicing adds two samples together; the extra power is paid for in Complexity and capacity | Phase 2 |
 
 **Why it works:** a copy of a high-level player's genome is a raw sample with very high Complexity.
 Injecting it raw gives mostly bad results and heavy sickness. Making it useful means processing it, in a
@@ -317,8 +317,8 @@ can either read the continuous Complexity value through a `Scaling` rule, or get
 ## 5. Core loop
 
 ```
-Craft syringe -> sample a mob -> identify -> inject raw (gamble)                            Phase 1
-                                          -> process (cost by tier) -> genetic material -> inject (controlled)   Phase 2-3
+Craft syringe -> sample a mob -> inject raw, blind (gamble)                               Phase 1
+                               -> process (reveals genes, cost by tier) -> genetic material -> inject (controlled)   Phase 1-3
                                                                               |
                                               splice two genetic materials -> raw sample -> process again
       ^                                                                                                     |
@@ -328,7 +328,7 @@ Craft syringe -> sample a mob -> identify -> inject raw (gamble)                
 ## 6. Phase 1: Sampling & raw injection
 
 **Decided**
-- The player crafts Syringes, uses them on mobs, identifies the sample, and injects it.
+- The player crafts Syringes, uses them on mobs, and injects the sample, raw and blind or processed.
 - Injecting a raw sample gives **random stat modifiers** and a **temporary status effect** based on the
   source mob. The result is random and gets worse as Complexity rises. Permanent effects come later.
 - Only **one** genome is active at a time. A new injection **replaces** the previous stat modifiers and
@@ -390,11 +390,12 @@ Five changes, all in data except the Journal:
    still crafted, only the recipe is unlocked by exploring. This gives Phase 1 a clear goal and leads
    straight into Phase 2.
 
-**Proposal: identification**
-- A fresh sample shows as "Unidentified <Mob> Sample".
-- The Lab Station identifies it for a cheap reagent, which reveals its genes and Complexity. The current
-  Lab Station screen already shows this view.
-- Identification shows what the sample **could** give. The real outcome is rolled at injection.
+**Decided: identification is part of processing** (changed after playtesting: identifying and processing
+were two steps doing nearly the same thing)
+- A fresh sample shows as "Unidentified <Mob> Sample". A splice result shows as "Unidentified Spliced Sample".
+- Processing reveals the genes on its screen, and the result is identified genetic material. Processing
+  is available on a T1 Lab Station for Simple Complexity, and costs one Identification Reagent on top of
+  the tier materials.
 - You can inject an unidentified sample, as a blind gamble.
 
 **Proposal: syringe tiers gate which mobs can be sampled**
@@ -409,36 +410,51 @@ Five changes, all in data except the Journal:
 Stronger source mobs give stronger genes and so higher Complexity, which makes raw injection a worse
 gamble the further the player goes and pushes them toward Phase 2.
 
+**Decided: stronger mobs give rarer buffs.** Splicing makes small buffs easy to stack, so strength comes
+from the source instead: predators and mythic creatures roll bigger stat ranges and carry higher tiers of
+vanilla buffs (Bear: Regeneration T2; Sabertooth and Yeti: Meat Buff T2; Raptor: Stamina buff T2; Rex:
+Meat Buff T3). Higher tiers cost more Complexity in the Effect Codex.
+
 ## 7. Phase 2: Processing & splicing (steering the odds)
 
 **Decided**
-- **Processing** a raw sample: the player chooses which stats and effects to keep. Complexity is
-  calculated from what's kept, and the cost depends on the resulting Complexity tier (§4). The result is
-  **genetic material**.
+- **Processing** a raw sample: the screen reveals its genes (identification, §6) and the player ticks the
+  stats and effects to keep. Complexity is calculated from what's kept, and the cost depends on the
+  resulting Complexity tier (§4). The result is **genetic material**.
 - Genetic material **can't be processed again**, but it **can be spliced**.
-- **Splicing** always takes **two** samples. For **each stat**, one sample's value wins at random, with a
-  light bias toward the sample with the higher Complexity. The mutation chance rises slightly with the
-  two samples' combined Complexity.
+- **Splicing** always takes **two** samples and **adds them together** (changed after playtesting: random
+  per-stat picks gave no power over the best input, so Phase 2 had no reward). The same stat in both sums
+  its percentages (drawbacks subtract), the same temporary effect sums its timers, and a gene only one
+  input has carries over. Genome Capacity is what limits it: the sum's Complexity rises with it. The
+  mutation chance rises slightly with the two samples' combined Complexity.
+- The same buff at different tiers (Meat Buff T1 and T2) can't both be in a sample. The splice screen has
+  a tickbox per gene, and the player must untick one of each such pair before splicing.
+- A spliced sample is unidentified until processed, then named after its Complexity tier: "Simple Spliced
+  Gene", "Moderate Spliced Gene", and so on. It keeps the higher-Complexity input's mob for sickness events.
 - The result of a splice is a **raw** sample. It has to be processed before it can be spliced again (or
   injected in a controlled way). Every round of splicing therefore costs a processing step.
 - **Splicing cost** uses the Complexity tier system (§4). The tier is picked from the **average** of the
   two samples' Complexity.
 - Only **one mutation** can exist in a sample, or on the player, at a time.
+- **Permanent effects from temporary ones (duration threshold).** Splicing adds timers together; once a
+  temporary effect lasts at least `Permanence.MinDuration` (30:00 by default, ten 3:00 rolls), processing
+  offers a "Make permanent" tickbox for it. It then costs its permanent Complexity (Effect Codex) and one
+  **Gene Stabilizer** (a rare crafted catalyst: cyan crystals, concentrated Life Essence and reagents) on
+  top of the usual cost. Capacity is the real limit: permanent effects cost 40–220 Complexity.
 - **New mutations only come from splicing.** Processing never creates a mutation: it only keeps one that
   is already in the source sample.
 
 **Proposal: details**
 - Phase 2 is the Lab Station's tier 2 upgrade (vanilla benches already upgrade this way), so the player
   keeps a single genetics bench.
-- Splice bias: base 50/50, plus about 5% toward the higher-Complexity sample for every 10 points of
-  difference, capped at 65/35.
+- A temporary effect costs its Effect Codex Complexity up to `EffectReferenceDuration` (180 s), then
+  proportionally more: a 6:00 Regeneration costs twice a 3:00 one. A permanent effect in both inputs is
+  kept once.
 - Mutation chance on splice: `2% + 0.05% × combined Complexity`, so two Complexity 20 samples give 4% and
   two Complexity 80 samples give 10%. The mutation is drawn from the Mutation Codex by `Weight`, among
   mutations whose `MinTier` the result reaches.
-- When both inputs carry a mutation, the mutation is decided like a stat: one wins at random, with the
-  same bias.
-- Effects are decided like stats: each effect that appears in either input is kept from one side or the
-  other at random.
+- When both inputs carry a mutation, the higher-Complexity input's is kept. A new mutation is only rolled
+  when neither input has one.
 
 ## 8. Phase 3: Gene editing (choosing the outcome)
 
@@ -597,7 +613,7 @@ All of these live in data files or config rather than code:
 - Raw injection curve (C0) and what a failed gene turns into
 - Sickness per Complexity point (raw and processed), decay rate, band thresholds, event weights and cooldowns
 - Library: extraction and combination costs, fusion falloff, refine costs
-- Splice bias per Complexity difference and its cap; mutation base chance and Complexity factor
+- Splice effect reference duration; mutation base chance and Complexity factor
 - Roll counts and ranges per mob profile
 
 ## 12. Future ideas
@@ -634,8 +650,8 @@ where it stands after the author's answers.
 | --- | --- | --- |
 | E1 | **Phase 1 rewards feel small.** With vanilla stats only, early injections were barely noticeable. | **Proposal** in §6: bigger rolls, 2–5 minute effects, an early permanent utility effect, discovery moments, and Journal milestones that teach recipes. |
 | E2 | **The late-game spike had no source.** Splicing and processing never made a stat bigger than the best mob roll. | **Addressed** by the Genetic Library (§8.1): stat fusion and refining let stats grow, with Complexity and capacity still limiting them. |
-| E3 | **Mid game has long stretches of chance.** Every splice is random per stat, and every round needs a processing step. | **Open.** Recommendation: show each stat's odds in the Lab Station before splicing (e.g. "Health: 60% from A"). |
-| E4 | **Splicing rules had gaps.** | **Partly decided:** cost uses the tier of the two samples' average Complexity. **Open:** what happens to a gene that only one input has. Recommendation: it carries over with a 50% chance, plus the Complexity bias. |
+| E3 | **Mid game has long stretches of chance.** Every splice is random per stat, and every round needs a processing step. | **Addressed:** splicing is no longer random; it adds both inputs together, and the screen shows the result before paying. |
+| E4 | **Splicing rules had gaps.** | **Decided:** cost uses the tier of the two samples' average Complexity, and a gene only one input has always carries over. |
 
 ### 13.2 Exploits
 
@@ -666,9 +682,7 @@ where it stands after the author's answers.
    combined? And does the library belong to the player or to the Lab Station block?
 3. **Stat fusion:** adopt diminishing returns (100% / 50% / 25% / 12.5%) for the same stat?
 4. **Negative genes (§8.2):** start with them as Complexity reducers, as recommended?
-5. **E4:** does a gene that only one splice input has carry over with a 50% chance?
 6. **X3:** give each stat its own drawback weight?
-7. **E3:** show splice odds in the Lab Station?
 
 ## 15. Implementation status
 
@@ -684,8 +698,18 @@ where it stands after the author's answers.
 | Copying your genome | Done |
 | Genetic Sickness stat and debuffs | Done (stat, bands, decay, kept through death; shared Action system; 10 events across the three bands) |
 | Gene Journal, discovery notifications, milestone recipe unlocks | Done (journal shown with /genetics journal for now) |
-| Identification and reagent | Done |
+| Identification and reagent | Done (merged into processing; the reagent is part of every processing cost) |
 | Syringe tiers | Done (Crude, Copper, Thorium, Adamantite; tier from profile or max health) |
-| Phase 2 processing and splicing | Done (Lab Station T2 upgrade; processing screen to choose genes; splicing with per-gene odds shown (E3), solo genes carried at 50% plus the bias (E4); new mutations only when none is inherited) |
+| Phase 2 processing and splicing | Done (Lab Station T2 upgrade; processing screen to choose genes; additive splicing with the result shown before paying, spliced samples named after their tier; new mutations only when none is inherited) |
 | Mutations and behaviors | Done (MinTier required; behaviors OnLowHealth, OnDamaged, AtNight, Periodic, running the shared actions; 4 mutations) |
 | Phase 3 Genetic Library | Not started |
+
+## 16. TODO
+
+Planned work, noted 2026-11-12, in no particular order:
+
+- [ ] **More genetic profiles**, especially per faction: Abyss, Goblins, Trorks, Ferans and others.
+- [ ] **More mutations** with unique effects.
+- [ ] **UI rework** of the Lab Station, processing and splicing screens.
+- [ ] **Game feel**: processing time, animations, sounds and other feedback.
+- [ ] **Textures and models** for the mod's own items and blocks (the Lab Station, syringes and reagents use vanilla placeholders today).

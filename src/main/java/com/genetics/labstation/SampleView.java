@@ -28,10 +28,9 @@ final class SampleView {
     /**
      * @param used      Complexity of the viewer's active genome
      * @param capacity  the viewer's Genome Capacity
-     * @param reagents  how many Identification Reagents the viewer carries
      */
     static void write(@Nonnull UICommandBuilder commands, @Nullable Genome genome, @Nullable String language,
-                      double used, double capacity, int reagents) {
+                      double used, double capacity) {
         commands.clear("#StatList");
         commands.clear("#EffectList");
         commands.set("#EmptyLabel.Visible", genome == null);
@@ -44,7 +43,7 @@ final class SampleView {
 
         String mobName = genome.source() != null ? genome.source().mobName() : "Unknown";
         boolean identified = genome.identified();
-        commands.set("#MobName.Text", identified ? mobName + "'s Genes" : "Unidentified " + mobName + " Sample");
+        commands.set("#MobName.Text", genome.displayName());
         commands.set("#Kind.Text", genome.processed() ? "Genetic material" : "Raw sample");
         commands.set("#Capacity.Text", "Your capacity: " + number(used) + " / " + number(capacity));
         commands.set("#Genes.Visible", identified);
@@ -53,7 +52,6 @@ final class SampleView {
             commands.set("#Complexity.Text", "Complexity ?");
             commands.set("#CapacityWarning.Visible", false);
             commands.set("#CapacityOk.Visible", false);
-            commands.set("#ReagentCount.Text", "Identification Reagents carried: " + reagents);
             return;
         }
 
@@ -87,7 +85,7 @@ final class SampleView {
                     EntityEffect asset = EntityEffect.getAssetMap().getAsset(effect.effect());
                     String name = Translations.resolve(language, asset != null ? asset.getName() : null, prettify(effect.effect()));
                     String kind = effect.permanent() ? "Permanent" : "Temporary  ·  " + duration(effect.duration());
-                    double complexity = Codex.effectComplexity(effect.effect(), effect.permanent());
+                    double complexity = com.genetics.genome.ComplexityCalculator.effect(effect);
                     card(commands, cards++, name, kind + "  ·  +" + number(complexity) + " Complexity",
                             asset != null ? asset.getStatusEffectIcon() : null);
                 }

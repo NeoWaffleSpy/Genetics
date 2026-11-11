@@ -52,8 +52,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     static final String STORAGE_GRID = "#Storage";
     static final String HOTBAR_GRID = "#Hotbar";
     private static final short SAMPLE_SLOT = 0;
-    /** Item consumed to identify a sample. */
-    public static final String REAGENT_ID = "Genetics_Identification_Reagent";
     private static final List<String> GRIDS = List.of(SAMPLE_GRID, STORAGE_GRID, HOTBAR_GRID);
     /**
      * A drop arrives as two events, in this order: {@code Dropped} on the target grid (target slot, source slot,
@@ -99,7 +97,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder commands, @Nonnull UIEventBuilder events, @Nonnull Store<EntityStore> store) {
         commands.append(LAYOUT);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#Panel #CloseButton", new EventData().append("Action", "Close"), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#IdentifyButton", new EventData().append("Action", "Identify"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeButton", new EventData().append("Action", "Upgrade"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ProcessButton", new EventData().append("Action", "Process"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceButton", new EventData().append("Action", "Splice"), false);
@@ -127,11 +124,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             case "Close" -> {
                 if (!closed) close();
             }
-            case "Identify" -> identify(ref, store);
             case "Upgrade" -> {
                 String failure = LabStationBlock.upgrade(world, station.pos(), ref, store);
                 playerRef.sendMessage(Message.raw(failure != null ? failure : "Lab Station upgraded to tier " + station.tier()
-                        + ": you can now process and splice samples."));
+                        + ": you can now splice samples and process Moderate ones."));
                 refresh();
             }
             case "Process" -> openProcessing(ref, store, false);
@@ -271,7 +267,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         double used = active != null && active.getGenome() != null ? active.getGenome().complexity() : 0;
         Genome sample = Genome.read(container.getItemStack(SAMPLE_SLOT));
         SampleView.write(commands, sample, playerRef.getLanguage(),
-                used, GenomeCapacity.capacity(stats), countReagents(store, ref));
+                used, GenomeCapacity.capacity(stats));
         StationView.write(commands, station.tier(), sample, ref, store);
     }
 
@@ -279,7 +275,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     private void openProcessing(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, boolean splice) {
         ItemStack stack = container.getItemStack(SAMPLE_SLOT);
         Genome sample = Genome.read(stack);
-        String refusal = station.tier() < 2 ? "Upgrade the Lab Station to tier 2 first."
+        String refusal = splice && station.tier() < 2 ? "Upgrade the Lab Station to tier 2 to splice samples."
                 : splice ? Splicer.refusal(sample) : Processing.refusal(sample);
         if (refusal != null || stack == null || sample == null) {
             playerRef.sendMessage(Message.raw(refusal != null ? refusal : "Put a filled syringe in the slot."));
@@ -290,40 +286,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         player.getPageManager().openCustomPage(ref, store, splice
                 ? new SplicePage(playerRef, station, stack, sample)
                 : new ProcessPage(playerRef, station, stack, sample));
-    }
-
-    /**
-     * Identifies the sample in the slot for one Identification Reagent from the player's inventory (design doc §6):
-     * its genes and Complexity are revealed and recorded in the Gene Journal.
-     */
-    private void identify(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        ItemStack stack = container.getItemStack(SAMPLE_SLOT);
-        Genome genome = Genome.read(stack);
-        if (genome == null || genome.identified()) return;
-        for (int section : new int[]{HOTBAR_SECTION_ID, STORAGE_SECTION_ID}) {
-            ItemContainer inventory = playerContainer(store, ref, section);
-            if (inventory == null) continue;
-            for (short slot = 0; slot < inventory.getCapacity(); slot++) {
-                ItemStack candidate = inventory.getItemStack(slot);
-                if (isEmpty(candidate) || !REAGENT_ID.equals(candidate.getItemId())) continue;
-                if (!inventory.removeItemStackFromSlot(slot, 1).succeeded()) continue;
-                Genome identified = genome.asIdentified();
-                container.setItemStackForSlot(SAMPLE_SLOT, Syringes.fill(stack, identified));
-                Journal.onIdentify(ref, store, identified);
-                refresh();
-                return;
-            }
-        }
-        playerRef.sendMessage(Message.raw("You need an Identification Reagent to identify this sample."));
-    }
-
-    private static int countReagents(@Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref) {
-        int count = 0;
-        for (int section : new int[]{HOTBAR_SECTION_ID, STORAGE_SECTION_ID}) {
-            ItemContainer inventory = playerContainer(store, ref, section);
-            if (inventory != null) count += inventory.countItemStacks(stack -> REAGENT_ID.equals(stack.getItemId()));
-        }
-        return count;
     }
 
     /** Sends only the tooltip: re-sending the grids while the mouse moves could interrupt a drag. */

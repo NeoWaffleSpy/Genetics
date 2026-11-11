@@ -17,32 +17,38 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Splicing two genetic materials (design doc §7):
+ * Splicing two genetic materials (design doc §7). Nothing is random except the mutation roll; the result is the two
+ * inputs added together:
  * <ul>
- *   <li>Each gene is decided on its own. When both inputs have it (same stat, same effect), one input's value wins at
- *   random, slightly biased toward the input with the higher Complexity ({@link Balance.Splicing#biasA}).</li>
- *   <li>A gene only one input has carries over with {@code SoloGeneChance}, shifted by the same bias.</li>
- *   <li>Mutations are decided the same way (a sample holds at most one). If the result has none, a new one may be
- *   rolled: the chance rises with the two inputs' combined Complexity, and the mutation is drawn by Weight among those
- *   whose MinTier the result reaches.</li>
- *   <li>The result is a raw sample: it has to be processed before it can be spliced again.</li>
- *   <li>The cost uses the tier of the two inputs' average Complexity.</li>
+ *   <li>The same stat in both inputs: the percentages are added (a drawback subtracts).</li>
+ *   <li>The same temporary effect in both: the durations are added, and its Complexity grows with the duration
+ *   ({@link com.genetics.genome.ComplexityCalculator#effect}).</li>
+ *   <li>The same permanent effect in both: kept once.</li>
+ *   <li>A gene only one input has: kept as it is.</li>
+ *   <li>Mutations (a sample holds at most one): the same one is kept; two different ones keep the higher-Complexity
+ *   input's. If neither input has one, a new one may be rolled: the chance rises with the two inputs' combined
+ *   Complexity, and the mutation is drawn by Weight among those whose MinTier the result reaches.</li>
  * </ul>
+ * The player can untick any line to leave it out, and must leave out one of every pair of effects that are the same
+ * buff at different tiers (Meat Buff T1 and T2): a sample can't hold both. The result is an unidentified raw sample
+ * ("Unidentified Spliced Sample", then "Moderate Spliced Gene" once processed): it has to be processed before it can be
+ * injected in a controlled way or spliced again. The cost uses the tier of the two inputs' average Complexity.
  */
 public final class Splicer {
     private Splicer() {
     }
 
-    /** One gene's odds: its label, and the chance it comes from A, from B, or is lost. */
-    public record Odds(@Nonnull String key, @Nullable Gene fromA, @Nullable Gene fromB, double chanceA, double chanceB) {
-        public double chanceLost() {
-            return Math.max(0, 1 - chanceA - chanceB);
-        }
+    /** One gene: what A and B have (null if absent), what the result gets (null if nothing), and if the player keeps it. */
+    public record Line(@Nonnull String key, @Nullable Gene fromA, @Nullable Gene fromB, @Nullable Gene result, boolean kept) {
     }
 
-    /** What splicing would cost, and why it can't be done at this station (null if it can). */
-    public record Plan(@Nonnull List<Odds> odds, double mutationChance, @Nullable ComplexityTier tier, @Nonnull List<MaterialQuantity> cost,
-                       @Nullable String blocked) {
+    /**
+     * What splicing would give and cost. {@code blocked}: why it can't be done at this station; {@code conflict}: the
+     * same buff at two tiers is still kept (both null if it can be done). The mutation chance is 0 when a mutation is
+     * inherited.
+     */
+    public record Plan(@Nonnull List<Line> lines, @Nonnull Genome result, double mutationChance, @Nullable ComplexityTier tier,
+                       @Nonnull List<MaterialQuantity> cost, @Nullable String blocked, @Nullable String conflict) {
     }
 
     /** The spliced sample, and the id of a mutation rolled by this splice (null if none was). */
@@ -59,62 +65,91 @@ public final class Splicer {
 
     @Nonnull
     public static Plan plan(@Nonnull Genome a, @Nonnull Genome b, int stationTier) {
-        Balance.Splicing balance = Balance.get().splicing();
-        double biasA = balance.biasA(a.complexity(), b.complexity());
-        double solo = balance.getSoloGeneChance();
-        List<Odds> odds = new ArrayList<>();
+        return plan(a, b, stationTier, null);
+    }
+
+    /** @param keep which lines (in {@link Plan#lines} order) the player keeps; null keeps them all */
+    @Nonnull
+    public static Plan plan(@Nonnull Genome a, @Nonnull Genome b, int stationTier, @Nullable boolean[] keep) {
         Map<String, Gene> genesA = byKey(a);
         Map<String, Gene> genesB = byKey(b);
         Map<String, Boolean> keys = new LinkedHashMap<>();
         genesA.keySet().forEach(k -> keys.put(k, true));
         genesB.keySet().forEach(k -> keys.put(k, true));
+
+        boolean aLeads = a.complexity() >= b.complexity();
+        List<Line> lines = new ArrayList<>();
+        List<Gene> genes = new ArrayList<>();
+        boolean inherited = false;
+        int index = 0;
         for (String key : keys.keySet()) {
             Gene ga = genesA.get(key);
             Gene gb = genesB.get(key);
-            if (ga != null && gb != null) odds.add(new Odds(key, ga, gb, biasA, 1 - biasA));
-            else if (ga != null) odds.add(new Odds(key, ga, null, soloChance(solo, biasA), 0));
-            else odds.add(new Odds(key, null, gb, 0, soloChance(solo, 1 - biasA)));
+            Gene merged = merge(ga, gb, aLeads);
+            boolean kept = keep == null || index >= keep.length || keep[index];
+            index++;
+            lines.add(new Line(key, ga, gb, merged, kept));
+            if (!kept || merged == null) continue;
+            genes.add(merged);
+            if (merged instanceof Gene.Mutation) inherited = true;
         }
+        Genome result = Genome.raw(source(a, b), genes, false);
 
         double average = (a.complexity() + b.complexity()) / 2;
         ComplexityTier tier = Tiers.forComplexity(average);
         List<MaterialQuantity> cost = tier != null ? Tiers.cost(tier, average) : List.of();
         String blocked = tier != null && !Tiers.allows(stationTier, tier)
                 ? tier.getName() + " Complexity needs a Lab Station T" + tier.getStationTier() + "." : null;
-        return new Plan(odds, balance.mutationChance(a.complexity(), b.complexity()), tier, cost, blocked);
+        double mutationChance = inherited ? 0 : Balance.get().splicing().mutationChance(a.complexity(), b.complexity());
+        return new Plan(lines, result, mutationChance, tier, cost, blocked, conflict(genes));
+    }
+
+    /** "Untick Meat Buff T1 or Meat Buff T2: ..." for the first buff kept at two tiers, or null if there is none. */
+    @Nullable
+    private static String conflict(@Nonnull List<Gene> genes) {
+        Map<String, String> byFamily = new LinkedHashMap<>();
+        for (Gene gene : genes) {
+            if (!(gene instanceof Gene.Effect effect)) continue;
+            String other = byFamily.putIfAbsent(family(effect.effect()), effect.effect());
+            if (other != null && !other.equals(effect.effect())) {
+                return "Untick " + other.replace('_', ' ') + " or " + effect.effect().replace('_', ' ')
+                        + ": a sample can't hold the same buff at two tiers.";
+            }
+        }
+        return null;
+    }
+
+    /** The buff an effect is a tier of: "Meat_Buff_T2" -> "Meat_Buff". Effects without a tier suffix are their own family. */
+    @Nonnull
+    public static String family(@Nonnull String effectId) {
+        return effectId.replaceFirst("_T\\d+$", "");
     }
 
     @Nonnull
-    public static Result splice(@Nonnull Genome a, @Nonnull Genome b, @Nonnull Random random) {
-        Plan plan = plan(a, b, Integer.MAX_VALUE);
-        List<Gene> genes = new ArrayList<>();
-        Gene.Mutation mutation = null;
-        for (Odds odds : plan.odds()) {
-            double roll = random.nextDouble();
-            Gene picked = roll < odds.chanceA() ? odds.fromA() : roll < odds.chanceA() + odds.chanceB() ? odds.fromB() : null;
-            if (picked instanceof Gene.Mutation m) {
-                if (mutation == null) mutation = m;
-            } else if (picked != null) {
-                genes.add(picked);
-            }
-        }
+    public static Result splice(@Nonnull Genome a, @Nonnull Genome b, @Nullable boolean[] keep, @Nonnull Random random) {
+        Plan plan = plan(a, b, Integer.MAX_VALUE, keep);
+        if (plan.mutationChance() <= 0 || random.nextDouble() >= plan.mutationChance()) return new Result(plan.result(), null);
 
-        String rolled = null;
-        if (mutation == null && random.nextDouble() < plan.mutationChance()) {
-            ComplexityTier reached = Tiers.forComplexity(Genome.raw(null, genes).complexity());
-            MutationEntry entry = pickMutation(Tiers.rank(reached), random);
-            if (entry != null) {
-                mutation = new Gene.Mutation(entry.getId());
-                rolled = entry.getId();
-            }
-        }
-        if (mutation != null) genes.add(mutation);
-        return new Result(Genome.raw(source(a, b), genes, true), rolled);
+        MutationEntry entry = pickMutation(Tiers.rank(Tiers.forComplexity(plan.result().complexity())), random);
+        if (entry == null) return new Result(plan.result(), null);
+        List<Gene> genes = new ArrayList<>(plan.result().genes());
+        genes.add(new Gene.Mutation(entry.getId()));
+        return new Result(Genome.raw(plan.result().source(), genes, false), entry.getId());
     }
 
-    /** Chance for a gene only one input has to carry over: SoloGeneChance shifted by that input's bias. */
-    private static double soloChance(double solo, double bias) {
-        return Math.clamp(solo + (bias - 0.5), 0, 1);
+    /** One gene of the result, from what each input has (both are of the same kind, or null). */
+    @Nullable
+    private static Gene merge(@Nullable Gene a, @Nullable Gene b, boolean aLeads) {
+        if (a == null) return b;
+        if (b == null) return a;
+        return switch (a) {
+            case Gene.Stat sa -> {
+                double sum = Math.round((sa.percent() + ((Gene.Stat) b).percent()) * 10) / 10.0;
+                yield sum == 0 ? null : new Gene.Stat(sa.stat(), sum);
+            }
+            case Gene.Effect ea -> ea.permanent() ? ea : new Gene.Effect(ea.effect(), false, ea.duration() + ((Gene.Effect) b).duration());
+            case Gene.Mutation ignored -> aLeads ? a : b;
+        };
     }
 
     /** A random mutation by Weight, among those whose MinTier is at or below this tier rank. */
@@ -146,18 +181,20 @@ public final class Splicer {
                 case Gene.Effect effect -> "Effect:" + effect.effect() + (effect.permanent() ? ":Permanent" : ":Temporary");
                 case Gene.Mutation ignored -> "Mutation";
             };
-            out.putIfAbsent(key, gene);
+            out.merge(key, gene, (first, second) -> merge(first, second, true));
         }
         return out;
     }
 
-    /** The result keeps the higher-Complexity input's mob (for sickness events) and names both. */
+    /**
+     * The result keeps the higher-Complexity input's mob (sickness events name it) and is marked as spliced, so it is
+     * named after its tier.
+     */
     @Nullable
     private static Genome.Source source(@Nonnull Genome a, @Nonnull Genome b) {
         Genome.Source main = a.complexity() >= b.complexity() ? a.source() : b.source();
-        Genome.Source other = main == a.source() ? b.source() : a.source();
-        if (main == null) return other;
-        String name = other != null && !other.mobName().equals(main.mobName()) ? main.mobName() + "-" + other.mobName() + " Splice" : main.mobName();
-        return new Genome.Source(main.mobId(), name, main.model(), main.icon(), System.currentTimeMillis());
+        if (main == null) main = a.source() != null ? a.source() : b.source();
+        if (main == null) return new Genome.Source("Unknown", "Unknown", null, null, System.currentTimeMillis(), true);
+        return new Genome.Source(main.mobId(), main.mobName(), main.model(), main.icon(), System.currentTimeMillis(), true);
     }
 }

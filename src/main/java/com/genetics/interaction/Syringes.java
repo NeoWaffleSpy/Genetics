@@ -31,8 +31,7 @@ public final class Syringes {
     /** The syringe holding this genome, named after it: "Cow's Genes", or "Unidentified Cow Sample". */
     @Nonnull
     public static ItemStack fill(@Nonnull ItemStack syringe, @Nonnull Genome genome) {
-        String mob = genome.source() != null ? genome.source().mobName() : "Unknown";
-        String name = genome.identified() ? mob + "'s Genes" : "Unidentified " + mob + " Sample";
+        String name = genome.displayName();
         return genome.writeTo(syringe).withMetadata(ItemDisplayMetadata.KEYED_CODEC, new ItemDisplayMetadata(Message.raw(name), null));
     }
 

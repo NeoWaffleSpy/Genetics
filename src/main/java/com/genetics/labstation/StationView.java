@@ -38,12 +38,12 @@ final class StationView {
         boolean material = sample != null && sample.processed();
         commands.set("#ProcessButton.Visible", raw);
         commands.set("#SpliceButton.Visible", material);
-        commands.set("#ProcessButton.Disabled", tier < 2 || (raw && !sample.identified()));
+        commands.set("#ProcessButton.Disabled", false);
         commands.set("#SpliceButton.Disabled", tier < 2);
         String hint = sample == null ? ""
-                : tier < 2 ? "Upgrade the station to T2 to " + (material ? "splice" : "process") + " samples."
-                : raw && !sample.identified() ? "Identify the sample before processing it."
+                : raw && !sample.identified() ? "Process it to reveal its genes, choose which to keep and turn it into genetic material."
                 : raw ? "Choose which genes to keep and turn this sample into genetic material."
+                : tier < 2 ? "Upgrade the station to T2 to splice genetic material."
                 : "Splice it with another genetic material from your inventory.";
         commands.set("#ActionHint.Text", hint);
     }

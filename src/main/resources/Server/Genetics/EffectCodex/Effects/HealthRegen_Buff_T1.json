@@ -1,1 +1,4 @@
-{ "Temporary": 3, "Permanent": 25 }
+{
+  "Temporary": 3,
+  "Permanent": 100
+}

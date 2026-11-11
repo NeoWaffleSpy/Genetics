@@ -42,13 +42,13 @@ public final class Journal {
         if (sample.identified()) journal.recordGenes(sample);
         if (first) {
             notify(player, Message.raw("New genome: " + sample.source().mobName()),
-                    Message.raw("Gene Journal: " + journal.speciesCount() + " species. Identify it at a Lab Station."),
+                    Message.raw("Gene Journal: " + journal.speciesCount() + " species. Process it at a Lab Station."),
                     sample.source().icon());
         }
         checkMilestones(ref, accessor, player, journal);
     }
 
-    /** Records the genes of a sample that was just identified. */
+    /** Records the genes of a sample that was just identified (processed). */
     public static void onIdentify(@Nonnull Ref<EntityStore> ref, @Nonnull ComponentAccessor<EntityStore> accessor, @Nonnull Genome sample) {
         of(ref, accessor).recordGenes(sample);
     }

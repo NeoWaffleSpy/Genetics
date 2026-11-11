@@ -1,0 +1,33 @@
+{
+  "Roles": [
+    "Yeti"
+  ],
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 2,
+      "Min": 6,
+      "Max": 10
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 5,
+      "Max": 8
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Meat_Buff_T2",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.5,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "Sound": "SFX_Yeti_Alerted"
+}

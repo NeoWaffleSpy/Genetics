@@ -1,6 +1,6 @@
 {
   "MinComplexity": 0,
-  "StationTier": 2,
+  "StationTier": 1,
   "Costs": [
     {
       "ItemId": "Ingredient_Fibre",

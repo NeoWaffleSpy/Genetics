@@ -25,19 +25,27 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
   (mutations, then permanent effects, then stats) and pushes you into severe sickness. A **Genome Expansion** raises
   it for good (the first one, Moderate, to 45).
 - **Syringe tiers**: Crude, Copper, Thorium and Adamantite. Stronger mobs need better syringes.
-- **Identification**: every sample is "Unidentified" until identified at the Lab Station with an **Identification Reagent**. Unidentified samples can still be injected blind.
+- **Identification**: every sample is "Unidentified" until processed at the Lab Station (see below). Unidentified samples can still be injected blind.
+- **Stronger mobs, stronger genes**: predators and mythic creatures (bears, sabertooth, raptor, yeti, rex) roll bigger stats and higher-tier buffs (Meat Buff T2/T3, Regeneration T2, Stamina T2).
 - **Gene Journal**: every species sampled and gene identified. New species show a notification, and milestones
   (4 and 8 species) teach the Copper Syringe and Genome Expansion recipes. `/genetics journal` shows it.
 - **Lab Station** (`Server/Item/Items/Bench/Genetics_Lab_Station.json`): a one-slot station that only accepts
   syringes. Its custom screen (`Common/UI/Custom/Genetics/LabStation.ui`) shows the sample's source, Complexity,
   stat genes and effect genes, with drag & drop between the station and the inventory. Uses the Alchemy bench's
-  model as a placeholder. Its tier is saved on the block; **upgrading to T2** (copper, iron, Life Essence) unlocks:
-  - **Processing**: pick which genes of an identified raw sample to keep. Complexity is recalculated, and the cost
-    comes from its **Complexity tier** (Simple, Moderate, Complex, Advanced, Exotic). The result is **genetic
-    material**: injected exactly as it is, with less sickness, and never processed again.
-  - **Splicing**: combine the genetic material in the station with one from your inventory. Each gene comes from one
-    side at random, biased toward the higher Complexity; the screen shows every gene's odds. The cost uses the tier
-    of the average Complexity, and the result is a raw sample to process again.
+  model as a placeholder. Its tier is saved on the block.
+  - **Processing** (T1 for Simple Complexity, T2 for Moderate): reveals a raw sample's genes, which is how samples are
+    identified, and lets you tick the ones to keep. Complexity is recalculated, and the cost is one Identification
+    Reagent plus the materials of its **Complexity tier** (Simple, Moderate, Complex, Advanced, Exotic). The result
+    is **genetic material**: injected exactly as it is, with less sickness, and never processed again.
+  - **Make permanent**: a temporary effect spliced up to 30:00 or more can be made permanent while processing,
+    for its permanent Complexity and a **Gene Stabilizer** (crafted at the Workbench).
+  - **Upgrading to T2** (copper, iron, Life Essence) unlocks Moderate processing and splicing.
+  - **Splicing**: combine the genetic material in the station with one from your inventory. The two are added
+    together: shared stats sum their percentages, shared temporary effects sum their timers (and cost Complexity in
+    proportion), and genes only one side has carry over. The screen shows A, B and the result, with a tickbox per
+    gene; the same buff at two tiers (Meat Buff T1 and T2) can't both be kept. The cost uses the tier of the average
+    Complexity, and the result is an unidentified sample: processing reveals it, named after its tier ("Moderate
+    Spliced Gene").
   - **Mutations**: a splice may roll a new mutation (about 2–6%), drawn by weight among those its tier allows.
     Mutations carry stats, effects and **behaviors** (triggers such as low health, being hurt or nightfall that run
     the shared actions). `/genetics mutation <id>` gives you one for testing.
@@ -46,7 +54,7 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
   `Genetics_Nausea`, and one `Genetics_Sickness_*` effect per sickness band.
 - **Data** (`Server/Genetics/`): the Effect Codex (stat weights, effect Complexity), the Mutation Codex, the mob gene
   profiles, the Sickness Event Codex, the Complexity tiers (`ComplexityTiers/`), and `Balance/Default.json` (raw
-  injection odds, sickness rates and bands, splicing odds, station upgrades). All are asset types, so other packs can add or override entries; edits hot-reload.
+  injection odds, sickness rates and bands, splicing, station upgrades). All are asset types, so other packs can add or override entries; edits hot-reload.
 
 ## Layout
 

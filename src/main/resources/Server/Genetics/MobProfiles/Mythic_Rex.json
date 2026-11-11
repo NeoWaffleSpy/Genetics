@@ -1,0 +1,33 @@
+{
+  "Roles": [
+    "Rex_Cave"
+  ],
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 2,
+      "Min": 8,
+      "Max": 12
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 6,
+      "Max": 9
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Meat_Buff_T3",
+    "Duration": 180
+  },
+  "Sound": "SFX_Rex_Alerted",
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.6,
+      "Min": 10,
+      "Max": 15
+    }
+  ]
+}

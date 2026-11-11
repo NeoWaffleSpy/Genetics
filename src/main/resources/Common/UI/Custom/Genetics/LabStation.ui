@@ -175,24 +175,11 @@ $C.@DecoratedContainer #Panel {
             Visible: false;
 
             Label {
-              Text: "This sample hasn't been identified yet. Identify it to reveal its genes and Complexity, or inject it blind.";
+              Text: "This sample hasn't been analysed yet. Process it to reveal its genes and choose which to keep, or inject it blind.";
               Padding: (Bottom: 14);
               Style: (FontSize: 16, TextColor: #96a9be, Wrap: true);
             }
 
-            Label #ReagentCount {
-              Padding: (Bottom: 10);
-              Style: (RenderBold: true, TextColor: #E8A93B);
-            }
-
-            Group {
-              LayoutMode: Left;
-              Anchor: (Height: 48);
-
-              $C.@TextButton #IdentifyButton {
-                @Text = "Identify (1 reagent)";
-              }
-            }
           }
 
           Group #Genes {

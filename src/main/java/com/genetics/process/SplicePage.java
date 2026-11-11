@@ -4,7 +4,6 @@ import com.genetics.genome.Gene;
 import com.genetics.genome.GeneText;
 import com.genetics.genome.Genome;
 import com.genetics.interaction.Syringes;
-import com.genetics.journal.Journal;
 import com.genetics.tier.Materials;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -35,9 +34,10 @@ import static com.hypixel.hytale.server.core.inventory.InventoryComponent.STORAG
 
 /**
  * The splicing screen (design doc §7), opened from a Lab Station T2 holding genetic material (A). The player picks a
- * second genetic material (B) from their inventory and sees, for every gene, the chance it comes from A, from B, or
- * is lost, plus the mutation chance and the cost (from the tier of the two inputs' average Complexity). Splicing puts
- * the result, a raw sample, in A's syringe and empties B's.
+ * second genetic material (B) from their inventory and sees every gene in A, in B and in the result (the two added
+ * together), with a tickbox per gene to leave it out (required when the same buff is kept at two tiers), plus the
+ * mutation chance and the cost (from the tier of the two inputs' average Complexity). Splicing puts the result, an
+ * unidentified raw sample, in A's syringe and empties B's.
  */
 public class SplicePage extends InteractiveCustomUIPage<SplicePage.EventPayload> {
     private static final String LAYOUT = "Genetics/Splice.ui";
@@ -53,6 +53,7 @@ public class SplicePage extends InteractiveCustomUIPage<SplicePage.EventPayload>
     private final Genome a;
     private final List<Candidate> candidates = new ArrayList<>();
     private int picked = -1;
+    private boolean[] keep = new boolean[0];
     private boolean done;
 
     public SplicePage(@Nonnull PlayerRef playerRef, @Nonnull Station station, @Nonnull ItemStack syringeA, @Nonnull Genome a) {
@@ -90,6 +91,16 @@ public class SplicePage extends InteractiveCustomUIPage<SplicePage.EventPayload>
                 if (index < 0 || index >= candidates.size()) return;
                 picked = index;
                 UICommandBuilder commands = new UICommandBuilder();
+                UIEventBuilder events = new UIEventBuilder();
+                buildLines(commands, events);
+                render(commands, ref, store);
+                sendUpdate(commands, events, false);
+            }
+            case "Toggle" -> {
+                int line = parse(data.index);
+                if (line < 0 || line >= keep.length) return;
+                keep[line] = data.checked != null ? data.checked : !keep[line];
+                UICommandBuilder commands = new UICommandBuilder();
                 render(commands, ref, store);
                 sendUpdate(commands, false);
             }
@@ -117,36 +128,41 @@ public class SplicePage extends InteractiveCustomUIPage<SplicePage.EventPayload>
         commands.set("#SpliceButton.Disabled", b == null);
         if (b == null) return;
 
-        Splicer.Plan plan = Splicer.plan(a, b.genome(), station.tier());
+        Splicer.Plan plan = Splicer.plan(a, b.genome(), station.tier(), keep);
         String language = playerRef.getLanguage();
-        commands.clear("#OddsList");
-        for (int i = 0; i < plan.odds().size(); i++) {
-            Splicer.Odds odds = plan.odds().get(i);
+        for (int i = 0; i < plan.lines().size(); i++) {
+            Splicer.Line line = plan.lines().get(i);
             String row = "#OddsList[" + i + "] ";
-            commands.append("#OddsList", ODDS_ROW);
-            Gene any = odds.fromA() != null ? odds.fromA() : odds.fromB();
+            Gene any = line.fromA() != null ? line.fromA() : line.fromB();
             commands.set(row + "#Gene.Text", label(any, language));
-            commands.set(row + "#FromA.Text", side(odds.fromA(), odds.chanceA(), language));
-            commands.set(row + "#FromB.Text", side(odds.fromB(), odds.chanceB(), language));
-            commands.set(row + "#Lost.Text", odds.chanceLost() > 0.001 ? percent(odds.chanceLost()) : "-");
+            commands.set(row + "#Gene.Style.TextColor", line.kept() ? "#d0d7e0" : "#5c6470");
+            commands.set(row + "#FromA.Text", value(line.fromA(), language));
+            commands.set(row + "#FromB.Text", value(line.fromB(), language));
+            commands.set(row + "#Result.Text", line.kept() ? value(line.result(), language) : "dropped");
         }
-        commands.set("#Mutation.Text", "New mutation chance: " + percent(plan.mutationChance())
-                + (hasMutation(a) || hasMutation(b.genome()) ? " (only if no mutation is inherited)" : ""));
-        commands.set("#Tier.Text", "Average Complexity " + GeneText.number((a.complexity() + b.genome().complexity()) / 2)
-                + "  ·  Tier: " + (plan.tier() != null ? plan.tier().getName() : "-") + "  ·  Result is a raw sample");
-        String warning = plan.blocked();
+        Genome result = plan.result();
+        commands.set("#Mutation.Text", plan.mutationChance() > 0 ? "New mutation chance: " + percent(plan.mutationChance())
+                : "The mutation is inherited, so no new one can appear.");
+        commands.set("#Tier.Text", "Result: " + result.title() + "  ·  Complexity " + GeneText.number(result.complexity())
+                + "  ·  Cost tier: " + (plan.tier() != null ? plan.tier().getName() : "-"));
+        String warning = plan.blocked() != null ? plan.blocked() : plan.conflict();
+        double capacity = com.genetics.capacity.GenomeCapacity.capacity(ref, store);
+        if (warning == null && com.genetics.interaction.Injection.lastingComplexity(result) > capacity) {
+            warning = "The result is over your capacity (" + GeneText.number(capacity) + "): injecting it would degrade it and make you very sick.";
+        }
         if (warning == null && !Materials.canPay(ref, store, plan.cost())) warning = "You don't carry enough materials.";
         commands.set("#Warning.Visible", warning != null);
         if (warning != null) commands.set("#Warning.Text", warning);
         CostView.write(commands, "#CostList", plan.cost(), ref, store);
-        commands.set("#SpliceButton.Disabled", plan.blocked() != null || !Materials.canPay(ref, store, plan.cost()));
+        commands.set("#SpliceButton.Disabled", plan.blocked() != null || plan.conflict() != null || plan.result().genes().isEmpty()
+                || !Materials.canPay(ref, store, plan.cost()));
     }
 
     private void splice(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         if (picked < 0) return;
         Candidate b = candidates.get(picked);
-        Splicer.Plan plan = Splicer.plan(a, b.genome(), station.tier());
-        if (plan.blocked() != null) return;
+        Splicer.Plan plan = Splicer.plan(a, b.genome(), station.tier(), keep);
+        if (plan.blocked() != null || plan.conflict() != null || plan.result().genes().isEmpty()) return;
         // Both syringes must still be where they were when the screen opened.
         ItemStack currentA = station.container().getItemStack(Station.SAMPLE_SLOT);
         ItemStack currentB = b.container().getItemStack(b.slot());
@@ -161,18 +177,31 @@ public class SplicePage extends InteractiveCustomUIPage<SplicePage.EventPayload>
             return;
         }
         done = true;
-        Splicer.Result result = Splicer.splice(a, b.genome(), ThreadLocalRandom.current());
+        Splicer.Result result = Splicer.splice(a, b.genome(), keep, ThreadLocalRandom.current());
         b.container().setItemStackForSlot(b.slot(), Syringes.empty(currentB));
         station.container().setItemStackForSlot(Station.SAMPLE_SLOT, Syringes.fill(currentA, result.genome()));
-        Journal.onIdentify(ref, store, result.genome());
 
-        playerRef.sendMessage(Message.raw("Spliced into a raw sample: " + result.genome().genes().size() + " genes, Complexity "
-                + GeneText.number(result.genome().complexity()) + ". Process it before splicing it again."));
+        playerRef.sendMessage(Message.raw("Spliced into an unidentified sample. Process it to reveal the result."));
         if (result.newMutation() != null) {
-            playerRef.sendMessage(Message.raw("A new mutation appeared: " + GeneText.mutationName(result.newMutation(), playerRef.getLanguage()) + "!")
-                    .color("#c58cf0"));
+            playerRef.sendMessage(Message.raw("The splice reacted strangely... something new may have formed.").color("#c58cf0"));
         }
         station.reopen(ref, store, playerRef);
+    }
+
+    /** One row (with a ticked keep box) per gene line of the picked pair. */
+    private void buildLines(@Nonnull UICommandBuilder commands, @Nonnull UIEventBuilder events) {
+        commands.clear("#OddsList");
+        Candidate b = picked >= 0 ? candidates.get(picked) : null;
+        int count = b != null ? Splicer.plan(a, b.genome(), station.tier()).lines().size() : 0;
+        keep = new boolean[count];
+        java.util.Arrays.fill(keep, true);
+        for (int i = 0; i < count; i++) {
+            String toggle = "#OddsList[" + i + "] #Toggle";
+            commands.append("#OddsList", ODDS_ROW);
+            commands.set(toggle + ".Value", true);
+            events.addEventBinding(CustomUIEventBindingType.ValueChanged, toggle,
+                    new EventData().append("Action", "Toggle").append("Index", String.valueOf(i)).append("@Checked", toggle + ".Value"), false);
+        }
     }
 
     /** Genetic materials in the player's hotbar and storage. */
@@ -193,11 +222,7 @@ public class SplicePage extends InteractiveCustomUIPage<SplicePage.EventPayload>
 
     @Nonnull
     private static String name(@Nonnull Genome genome) {
-        return (genome.source() != null ? genome.source().mobName() : "Unknown") + "'s Genes  ·  Complexity " + GeneText.number(genome.complexity());
-    }
-
-    private static boolean hasMutation(@Nonnull Genome genome) {
-        return genome.genes().stream().anyMatch(g -> g instanceof Gene.Mutation);
+        return genome.title() + "  ·  Complexity " + GeneText.number(genome.complexity());
     }
 
     /** What the gene modifies, without its value: "Max Health", "Night Vision (permanent)", "Mutation". */
@@ -210,16 +235,15 @@ public class SplicePage extends InteractiveCustomUIPage<SplicePage.EventPayload>
         };
     }
 
-    /** One side's value and chance: "+6% 65%", or "-" if that side doesn't have the gene. */
+    /** A gene's value: "+6%", "2:00", "yes" for a permanent effect, the mutation's name, or "-" if absent. */
     @Nonnull
-    private static String side(@Nullable Gene gene, double chance, @Nullable String language) {
-        if (gene == null || chance <= 0) return "-";
-        String value = switch (gene) {
+    private static String value(@Nullable Gene gene, @Nullable String language) {
+        if (gene == null) return "-";
+        return switch (gene) {
             case Gene.Stat stat -> (stat.percent() > 0 ? "+" : "") + GeneText.number(stat.percent()) + "%";
             case Gene.Effect effect -> effect.permanent() ? "yes" : GeneText.duration(effect.duration());
             case Gene.Mutation mutation -> GeneText.mutationName(mutation.mutation(), language);
         };
-        return value + "  " + percent(chance);
     }
 
     @Nonnull
@@ -239,9 +263,11 @@ public class SplicePage extends InteractiveCustomUIPage<SplicePage.EventPayload>
         public static final BuilderCodec<EventPayload> CODEC = BuilderCodec.builder(EventPayload.class, EventPayload::new)
                 .append(new KeyedCodec<>("Action", Codec.STRING), (p, v) -> p.action = v, p -> p.action).add()
                 .append(new KeyedCodec<>("Index", Codec.STRING), (p, v) -> p.index = v, p -> p.index).add()
+                .append(new KeyedCodec<>("@Checked", Codec.BOOLEAN), (p, v) -> p.checked = v, p -> p.checked).add()
                 .build();
 
         private String action;
         private String index;
+        private Boolean checked;
     }
 }

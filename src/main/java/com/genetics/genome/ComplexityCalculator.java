@@ -32,7 +32,7 @@ public final class ComplexityCalculator {
                     if (stat.isDrawback()) drawbacks += value * DRAWBACK_WEIGHT;
                     else positive += value;
                 }
-                case Gene.Effect effect -> positive += Codex.effectComplexity(effect.effect(), effect.permanent());
+                case Gene.Effect effect -> positive += effect(effect);
                 case Gene.Mutation mutation -> {
                     MutationEntry entry = Codex.mutation(mutation.mutation());
                     if (entry != null) positive += entry.getComplexity();
@@ -41,6 +41,17 @@ public final class ComplexityCalculator {
         }
         double complexity = positive - Math.min(drawbacks, positive * DRAWBACK_CAP);
         return round(Math.max(MINIMUM, complexity));
+    }
+
+    /**
+     * A gene's effect Complexity. A temporary effect longer than the reference duration (only splicing makes those,
+     * by adding timers together) costs proportionally more: twice the duration, twice the Complexity.
+     */
+    public static double effect(@Nonnull Gene.Effect effect) {
+        double base = Codex.effectComplexity(effect.effect(), effect.permanent());
+        if (effect.permanent()) return base;
+        double reference = com.genetics.codex.Balance.get().splicing().getEffectReferenceDuration();
+        return reference > 0 ? base * Math.max(1, effect.duration() / reference) : base;
     }
 
     private static double round(double value) {
