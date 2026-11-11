@@ -1,0 +1,21 @@
+{
+  "MinComplexity": 46,
+  "StationTier": 3,
+  "Costs": [
+    {
+      "ItemId": "Ingredient_Bar_Thorium",
+      "Scaling": {
+        "Type": "Linear",
+        "Base": 2,
+        "PerPoint": 0.1
+      }
+    },
+    {
+      "ItemId": "Ingredient_Crystal_Cyan",
+      "Scaling": {
+        "Type": "Flat",
+        "Amount": 2
+      }
+    }
+  ]
+}

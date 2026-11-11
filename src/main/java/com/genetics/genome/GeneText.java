@@ -49,4 +49,17 @@ public final class GeneText {
     public static String number(double value) {
         return value == Math.rint(value) ? String.valueOf((long) value) : String.format(Locale.ROOT, "%.1f", value);
     }
+
+    /** How much Complexity one gene adds on its own (drawbacks subtract, at the drawback weight). */
+    public static double complexity(@Nonnull Gene gene) {
+        return switch (gene) {
+            case Gene.Stat stat -> Math.abs(stat.percent()) * com.genetics.codex.Codex.statWeight(stat.stat())
+                    * (stat.isDrawback() ? -ComplexityCalculator.DRAWBACK_WEIGHT : 1);
+            case Gene.Effect effect -> ComplexityCalculator.effect(effect);
+            case Gene.Mutation mutation -> {
+                MutationEntry entry = Codex.mutation(mutation.mutation());
+                yield entry != null ? entry.getComplexity() : 0;
+            }
+        };
+    }
 }

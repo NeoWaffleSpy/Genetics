@@ -1,0 +1,22 @@
+{
+  "MinComplexity": 21,
+  "StationTier": 2,
+  "Costs": [
+    {
+      "ItemId": "Ingredient_Bar_Copper",
+      "Scaling": {
+        "Type": "Linear",
+        "Base": 2,
+        "PerPoint": 0.2
+      }
+    },
+    {
+      "ItemId": "Ingredient_Life_Essence",
+      "Scaling": {
+        "Type": "Linear",
+        "Base": 2,
+        "PerPoint": 0.15
+      }
+    }
+  ]
+}

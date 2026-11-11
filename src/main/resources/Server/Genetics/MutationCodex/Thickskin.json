@@ -1,0 +1,24 @@
+{
+  "Name": "server.genetics.mutations.Thickskin.name",
+  "Complexity": 10,
+  "Stats": {
+    "Health": 5
+  },
+  "Effects": [],
+  "Behaviors": [
+    {
+      "Type": "OnDamaged",
+      "MinDamage": 3,
+      "Cooldown": 30,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "HealthRegen_Buff_T1",
+          "Duration": 8
+        }
+      ]
+    }
+  ],
+  "Weight": 10,
+  "MinTier": "Simple"
+}

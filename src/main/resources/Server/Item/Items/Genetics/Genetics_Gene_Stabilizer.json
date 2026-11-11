@@ -1,0 +1,62 @@
+{
+  "TranslationProperties": {
+    "Name": "server.genetics.items.Gene_Stabilizer.name",
+    "Description": "server.genetics.items.Gene_Stabilizer.description"
+  },
+  "Icon": "Icons/ItemsGenerated/Ingredient_Crystal_Fragments_Purple.png",
+  "Quality": "Rare",
+  "Categories": [
+    "Items.Ingredients"
+  ],
+  "Model": "Resources/Crystals/Crystal_Fragment.blockymodel",
+  "Texture": "Resources/Crystals/Crystal_Fragment_Textures/Purple.png",
+  "PlayerAnimationsId": "Item",
+  "IconProperties": {
+    "Scale": 0.75,
+    "Translation": [
+      -0.3,
+      0.3
+    ],
+    "Rotation": [
+      34.315,
+      29.815,
+      22.5
+    ]
+  },
+  "Recipe": {
+    "TimeSeconds": 3,
+    "KnowledgeRequired": false,
+    "OutputQuantity": 1,
+    "Input": [
+      {
+        "ItemId": "Ingredient_Crystal_Cyan",
+        "Quantity": 2
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 2
+      },
+      {
+        "ItemId": "Genetics_Identification_Reagent",
+        "Quantity": 4
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Id": "Workbench",
+        "Type": "Crafting",
+        "Categories": [
+          "Workbench_Crafting"
+        ]
+      }
+    ]
+  },
+  "Tags": {
+    "Type": [
+      "Ingredient"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Items_Gems",
+  "MaxStack": 25,
+  "DropOnDeath": true
+}

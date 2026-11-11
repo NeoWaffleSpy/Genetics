@@ -107,7 +107,7 @@ final class ItemTooltip {
     private static Message description(@Nonnull ItemStack stack, @Nonnull Item item, @Nullable String language) {
         Genome genome = Genome.read(stack);
         if (genome != null) {
-            if (!genome.identified()) return Message.raw("Unidentified sample. Identify it at a Lab Station to see its genes.");
+            if (!genome.identified()) return Message.raw("Unidentified sample. Process it at a Lab Station to see its genes.");
             return Message.raw((genome.processed() ? "Genetic material" : "Raw sample") + "  ·  Complexity " + GeneText.number(genome.complexity())
                     + "  ·  " + genome.genes().size() + (genome.genes().size() == 1 ? " gene" : " genes"));
         }

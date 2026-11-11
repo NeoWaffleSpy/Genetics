@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -46,9 +47,9 @@ public class GeneJournal implements Component<EntityStore> {
     }
 
     public static final BuilderCodec<GeneJournal> CODEC = BuilderCodec.builder(GeneJournal.class, GeneJournal::new)
-            .append(new KeyedCodec<>("Species", new MapCodec<>(Species.CODEC, HashMap::new)), (t, v) -> t.species = v, t -> t.species).add()
-            .append(new KeyedCodec<>("Genes", Codec.STRING_ARRAY), (t, v) -> t.genes = new LinkedHashSet<>(Set.of(v)), t -> t.genes.toArray(String[]::new)).add()
-            .append(new KeyedCodec<>("Milestones", Codec.STRING_ARRAY), (t, v) -> t.milestones = new LinkedHashSet<>(Set.of(v)), t -> t.milestones.toArray(String[]::new)).add()
+            .append(new KeyedCodec<>("Species", new MapCodec<>(Species.CODEC, HashMap::new)), (t, v) -> t.species = v != null ? new HashMap<>(v) : new HashMap<>(), t -> t.species).add()
+            .append(new KeyedCodec<>("Genes", Codec.STRING_ARRAY), (t, v) -> t.genes = new LinkedHashSet<>(Arrays.asList(v)), t -> t.genes.toArray(String[]::new)).add()
+            .append(new KeyedCodec<>("Milestones", Codec.STRING_ARRAY), (t, v) -> t.milestones = new LinkedHashSet<>(Arrays.asList(v)), t -> t.milestones.toArray(String[]::new)).add()
             .build();
 
     private static ComponentType<EntityStore, GeneJournal> componentType;

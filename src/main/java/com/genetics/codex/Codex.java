@@ -24,6 +24,7 @@ import java.util.function.Function;
  * Server/Genetics/MobProfiles/&lt;Profile&gt;.json         mob gene profiles   ({@link MobGeneProfile})
  * Server/Genetics/SicknessEvents/&lt;Event&gt;.json       sickness events     ({@link SicknessEvent})
  * Server/Genetics/Balance/Default.json              balancing levers    ({@link Balance})
+ * Server/Genetics/ComplexityTiers/&lt;Tier&gt;.json      Complexity tiers    ({@link com.genetics.tier.ComplexityTier})
  * </pre>
  */
 public final class Codex {
@@ -43,6 +44,8 @@ public final class Codex {
         registry.register(store(MobGeneProfile.class, MobGeneProfile.PATH, MobGeneProfile.CODEC, MobGeneProfile::getId));
         registry.register(store(SicknessEvent.class, SicknessEvent.PATH, SicknessEvent.CODEC, SicknessEvent::getId));
         registry.register(store(Balance.class, Balance.PATH, Balance.CODEC, Balance::getId));
+        registry.register(store(com.genetics.tier.ComplexityTier.class, com.genetics.tier.ComplexityTier.PATH,
+                com.genetics.tier.ComplexityTier.CODEC, com.genetics.tier.ComplexityTier::getId));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -114,7 +117,23 @@ public final class Codex {
             String where = "mutation " + mutation.getId();
             for (String stat : mutation.getStats().keySet()) problems += checkStat(stat, where);
             for (String effect : mutation.getEffects()) problems += checkEffect(effect, where);
+            if (mutation.getMinTier() == null) problems += warn(where + ": has no MinTier, so splicing will never roll it.");
+            else if (com.genetics.tier.Tiers.rank(mutation.getMinTier()) < 0) problems += warn(where + ": unknown MinTier '" + mutation.getMinTier() + "'.");
+            for (com.genetics.mutation.Behavior behavior : mutation.getBehaviors()) problems += checkActions(behavior.getActions(), where);
         }
+        for (com.genetics.tier.ComplexityTier tier : com.genetics.tier.Tiers.all()) {
+            for (com.genetics.tier.ComplexityTier.Cost cost : tier.getCosts()) {
+                String where = "Complexity tier " + tier.getId();
+                if (cost.getScaling() == null) problems += warn(where + ": a cost has no Scaling.");
+                if (cost.getItemId() != null && com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAsset(cost.getItemId()) == null) {
+                    problems += warn(where + ": unknown item '" + cost.getItemId() + "'.");
+                } else if (cost.getItemId() == null && (cost.getResourceTypeId() == null
+                        || com.hypixel.hytale.server.core.asset.type.item.config.ResourceType.getAssetMap().getAsset(cost.getResourceTypeId()) == null)) {
+                    problems += warn(where + ": a cost has no valid ItemId or ResourceTypeId.");
+                }
+            }
+        }
+        if (com.genetics.tier.Tiers.all().isEmpty()) problems += warn("No Complexity tiers: processing and splicing are unavailable.");
         for (MobGeneProfile profile : MobGeneProfile.getAssetMap().getAssetMap().values()) {
             String where = "mob profile " + profile.getId();
             for (MobGeneProfile.StatRoll roll : profile.getStatPool()) {
@@ -150,24 +169,31 @@ public final class Codex {
             String where = "sickness event " + event.getId();
             if (sickness.rank(event.getMinBand()) < 0) problems += warn(where + ": unknown MinBand '" + event.getMinBand() + "'.");
             if (event.getMaxBand() != null && sickness.rank(event.getMaxBand()) < 0) problems += warn(where + ": unknown MaxBand '" + event.getMaxBand() + "'.");
-            for (com.genetics.action.Action action : event.getActions()) {
-                if (action instanceof com.genetics.action.ApplyEffectAction apply) problems += checkEffect(apply.getId(), where);
-                if (action instanceof com.genetics.action.PlaySoundAction sound) problems += checkSound(sound.getId(), where);
-                if (action instanceof com.genetics.action.CameraShakeAction shake && com.hypixel.hytale.server.core.asset.type.camera.CameraEffect.getAssetMap().getAsset(String.valueOf(shake.getId())) == null) {
-                    problems += warn(where + ": unknown camera effect '" + shake.getId() + "'.");
-                }
-            }
+            problems += checkActions(event.getActions(), where);
         }
         if (StatEntry.getAssetMap().getAsset(DEFAULT_ID) == null) problems += warn("Effect Codex has no " + DEFAULT_ID + " stat entry.");
         if (EffectEntry.getAssetMap().getAsset(DEFAULT_ID) == null) problems += warn("Effect Codex has no " + DEFAULT_ID + " effect entry.");
 
-        LOGGER.atInfo().log("Genetics data loaded: %d stat weights, %d effects, %d mutations, %d mob profiles, %d sickness events, %d problem(s).",
+        LOGGER.atInfo().log("Genetics data loaded: %d stat weights, %d effects, %d mutations, %d mob profiles, %d sickness events, %d Complexity tiers, %d problem(s).",
                 StatEntry.getAssetMap().getAssetMap().size(),
                 EffectEntry.getAssetMap().getAssetMap().size(),
                 MutationEntry.getAssetMap().getAssetMap().size(),
                 MobGeneProfile.getAssetMap().getAssetMap().size(),
                 SicknessEvent.getAssetMap().getAssetMap().size(),
+                com.genetics.tier.ComplexityTier.getAssetMap().getAssetMap().size(),
                 problems);
+    }
+
+    private static int checkActions(@Nonnull com.genetics.action.Action[] actions, @Nonnull String where) {
+        int problems = 0;
+        for (com.genetics.action.Action action : actions) {
+            if (action instanceof com.genetics.action.ApplyEffectAction apply) problems += checkEffect(apply.getId(), where);
+            if (action instanceof com.genetics.action.PlaySoundAction sound) problems += checkSound(sound.getId(), where);
+            if (action instanceof com.genetics.action.CameraShakeAction shake && com.hypixel.hytale.server.core.asset.type.camera.CameraEffect.getAssetMap().getAsset(String.valueOf(shake.getId())) == null) {
+                problems += warn(where + ": unknown camera effect '" + shake.getId() + "'.");
+            }
+        }
+        return problems;
     }
 
     private static int checkStat(@Nullable String stat, @Nonnull String where) {

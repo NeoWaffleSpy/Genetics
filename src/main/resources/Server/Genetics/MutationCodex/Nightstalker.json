@@ -1,0 +1,21 @@
+{
+  "Name": "server.genetics.mutations.Nightstalker.name",
+  "Complexity": 12,
+  "Stats": {},
+  "Effects": [],
+  "Behaviors": [
+    {
+      "Type": "AtNight",
+      "Cooldown": 10,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Genetics_NightVision",
+          "Duration": 15
+        }
+      ]
+    }
+  ],
+  "Weight": 8,
+  "MinTier": "Simple"
+}

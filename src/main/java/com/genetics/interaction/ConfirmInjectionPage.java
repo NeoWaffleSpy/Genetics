@@ -49,7 +49,7 @@ public class ConfirmInjectionPage extends InteractiveCustomUIPage<ConfirmInjecti
         events.addEventBinding(CustomUIEventBindingType.Activating, "#InjectButton", new EventData().append("Action", "Inject"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "Cancel"), false);
 
-        String mob = sample.source() != null ? sample.source().mobName() + "'s genes" : "This sample";
+        String mob = sample.title();
         double carried = Injection.lastingComplexity(sample);
         float capacity = GenomeCapacity.capacity(ref, store);
         commands.set("#Numbers.Text", mob + ":  Complexity " + GeneText.number(carried) + "  /  your capacity " + GeneText.number(capacity));

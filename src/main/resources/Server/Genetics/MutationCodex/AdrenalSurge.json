@@ -1,0 +1,27 @@
+{
+  "Name": "server.genetics.mutations.AdrenalSurge.name",
+  "Complexity": 25,
+  "Stats": {},
+  "Effects": [],
+  "Behaviors": [
+    {
+      "Type": "OnLowHealth",
+      "Threshold": 0.3,
+      "Cooldown": 60,
+      "Message": "server.genetics.mutations.AdrenalSurge.trigger",
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Genetics_Speed",
+          "Duration": 8
+        },
+        {
+          "Type": "CameraShake",
+          "Id": "Impact_Light"
+        }
+      ]
+    }
+  ],
+  "Weight": 5,
+  "MinTier": "Moderate"
+}

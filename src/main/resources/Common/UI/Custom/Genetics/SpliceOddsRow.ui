@@ -1,0 +1,36 @@
+$C = "../Common.ui";
+
+// One gene when splicing: a keep tickbox, its value in A, in B, and in the result (the two added together).
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 30);
+
+  Group {
+    LayoutMode: Middle;
+    Anchor: (Width: 34);
+
+    $C.@CheckBox #Toggle {
+      Value: true;
+    }
+  }
+
+  Label #Gene {
+    FlexWeight: 1;
+    Style: (TextColor: #d0d7e0);
+  }
+
+  Label #FromA {
+    Anchor: (Width: 110);
+    Style: (TextColor: #8fd17a, HorizontalAlignment: End);
+  }
+
+  Label #FromB {
+    Anchor: (Width: 110);
+    Style: (TextColor: #7ab8d1, HorizontalAlignment: End);
+  }
+
+  Label #Result {
+    Anchor: (Width: 110);
+    Style: (RenderBold: true, TextColor: #E8A93B, HorizontalAlignment: End);
+  }
+}

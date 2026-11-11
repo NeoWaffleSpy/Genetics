@@ -1,6 +1,7 @@
 package com.genetics.labstation;
 
 import com.genetics.interaction.Syringes;
+import com.genetics.process.Station;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -71,7 +72,7 @@ public class OpenLabStationInteraction extends SimpleBlockInteraction {
         ItemContainer container = containerBlock.getItemContainer();
         container.setSlotFilter(FilterActionType.ADD, SAMPLE_SLOT, SYRINGES_ONLY);
 
-        player.getPageManager().openCustomPage(ref, store, new LabStationPage(playerRef, world, container));
+        player.getPageManager().openCustomPage(ref, store, new LabStationPage(playerRef, new Station(world, new Vector3i(pos), container)));
     }
 
     @Override

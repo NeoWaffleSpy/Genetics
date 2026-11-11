@@ -105,8 +105,7 @@ public final class Injection {
         Sickness.add(self, accessor, Sickness.fromInjection(sample));
         if (overflow > 0) overflowSickness(self, accessor, overflow);
 
-        String from = sample.source() != null ? sample.source().mobName() + "'s" : "the";
-        StringBuilder message = new StringBuilder("You injected " + from + " genes.");
+        StringBuilder message = new StringBuilder("You injected " + sample.title() + ".");
         message.append(report.isEmpty() ? " Nothing took hold." : " You gained: " + String.join(", ", report) + ".");
         if (!lost.isEmpty()) message.append(" Lost: ").append(String.join(", ", lost)).append(".");
         if (previous != null && !previous.genes().isEmpty()) message.append(" Your previous genome was replaced.");

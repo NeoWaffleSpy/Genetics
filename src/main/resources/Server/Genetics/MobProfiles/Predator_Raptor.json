@@ -1,0 +1,33 @@
+{
+  "Roles": [
+    "Raptor_Cave"
+  ],
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Stamina",
+      "Weight": 2,
+      "Min": 4,
+      "Max": 7
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 5
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "FruitVeggie_Buff_T2",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.4,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "Sound": "SFX_Raptor_Cave_Alerted"
+}

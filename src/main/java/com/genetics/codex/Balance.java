@@ -10,9 +10,11 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec;
+import com.hypixel.hytale.server.core.inventory.MaterialQuantity;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Balancing levers that aren't tied to a single stat, effect or mob (design doc §11): raw injection quality and
@@ -211,6 +213,79 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         @Nonnull public String[] getRecipes() { return recipes != null ? recipes : new String[0]; }
     }
 
+    /** Splicing (design doc §7): how added-up effects are costed, and the mutation roll. */
+    public static final class Splicing {
+        public static final BuilderCodec<Splicing> CODEC = BuilderCodec.builder(Splicing.class, Splicing::new)
+                .append(new KeyedCodec<>("EffectReferenceDuration", Codec.DOUBLE), (t, v) -> t.effectReferenceDuration = v, t -> t.effectReferenceDuration)
+                .documentation("Seconds a temporary effect lasts at its Effect Codex Complexity. Longer effects (splices add timers "
+                        + "together) cost proportionally more. 0 turns the scaling off.").add()
+                .append(new KeyedCodec<>("MutationBaseChance", Codec.DOUBLE), (t, v) -> t.mutationBaseChance = v, t -> t.mutationBaseChance)
+                .documentation("Chance of a new mutation, before Complexity.").add()
+                .append(new KeyedCodec<>("MutationPerComplexity", Codec.DOUBLE), (t, v) -> t.mutationPerComplexity = v, t -> t.mutationPerComplexity)
+                .documentation("Extra mutation chance per point of the two inputs' combined Complexity.").add()
+                .build();
+
+        private double effectReferenceDuration = 180;
+        private double mutationBaseChance = 0.02;
+        private double mutationPerComplexity = 0.0005;
+
+        public double getEffectReferenceDuration() { return effectReferenceDuration; }
+        public double getMutationBaseChance() { return mutationBaseChance; }
+        public double getMutationPerComplexity() { return mutationPerComplexity; }
+
+        /** Chance of a new mutation for two inputs of these Complexities. */
+        public double mutationChance(double complexityA, double complexityB) {
+            return Math.clamp(mutationBaseChance + mutationPerComplexity * (complexityA + complexityB), 0, 1);
+        }
+    }
+
+    /**
+     * Turning a temporary effect permanent while processing (design doc §7): allowed once its duration reaches
+     * MinDuration (only splicing stacks timers that long), for its permanent Complexity plus catalysts.
+     */
+    public static final class Permanence {
+        public static final BuilderCodec<Permanence> CODEC = BuilderCodec.builder(Permanence.class, Permanence::new)
+                .append(new KeyedCodec<>("MinDuration", Codec.DOUBLE), (t, v) -> t.minDuration = v, t -> t.minDuration)
+                .documentation("Seconds a temporary effect must last before processing can make it permanent.").add()
+                .append(new KeyedCodec<>("Catalyst", Codec.STRING), (t, v) -> t.catalyst = v, t -> t.catalyst)
+                .documentation("Item consumed per effect made permanent.").add()
+                .append(new KeyedCodec<>("CatalystPerEffect", Codec.INTEGER), (t, v) -> t.catalystPerEffect = v, t -> t.catalystPerEffect)
+                .documentation("How many catalysts each effect made permanent costs.").add()
+                .build();
+
+        private double minDuration = 1800;
+        private String catalyst = "Genetics_Gene_Stabilizer";
+        private int catalystPerEffect = 1;
+
+        public double getMinDuration() { return minDuration; }
+        @Nonnull public String getCatalyst() { return catalyst != null ? catalyst : "Genetics_Gene_Stabilizer"; }
+        public int getCatalystPerEffect() { return Math.max(0, catalystPerEffect); }
+    }
+
+    /** One Lab Station upgrade (design doc §7): the tier it reaches and what it costs. */
+    public static final class StationUpgrade {
+        public static final BuilderCodec<StationUpgrade> CODEC = BuilderCodec.builder(StationUpgrade.class, StationUpgrade::new)
+                .append(new KeyedCodec<>("Tier", Codec.INTEGER), (t, v) -> t.tier = v, t -> t.tier)
+                .documentation("Station tier reached by this upgrade (from the tier below).").add()
+                .append(new KeyedCodec<>("Materials", new ArrayCodec<>(MaterialQuantity.CODEC, MaterialQuantity[]::new)), (t, v) -> t.materials = v, t -> t.materials)
+                .documentation("Items taken from the player's inventory, like a vanilla bench upgrade.").add()
+                .build();
+
+        private int tier;
+        private MaterialQuantity[] materials = new MaterialQuantity[0];
+
+        StationUpgrade() {
+        }
+
+        StationUpgrade(int tier, MaterialQuantity... materials) {
+            this.tier = tier;
+            this.materials = materials;
+        }
+
+        public int getTier() { return tier; }
+        @Nonnull public List<MaterialQuantity> getMaterials() { return materials != null ? List.of(materials) : List.of(); }
+    }
+
     public static final AssetBuilderCodec<String, Balance> CODEC = AssetBuilderCodec.builder(
                     Balance.class, Balance::new, Codec.STRING, (t, k) -> t.id = k, t -> t.id, (t, d) -> t.data = d, t -> t.data)
             .append(new KeyedCodec<>("Injection", Injection.CODEC), (t, v) -> t.injection = v, t -> t.injection).add()
@@ -219,6 +294,10 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
             .append(new KeyedCodec<>("Syringes", Syringes.CODEC), (t, v) -> t.syringes = v, t -> t.syringes).add()
             .append(new KeyedCodec<>("JournalMilestones", new ArrayCodec<>(Milestone.CODEC, Milestone[]::new)), (t, v) -> t.milestones = v, t -> t.milestones)
             .documentation("Gene Journal milestones, in any order.").add()
+            .append(new KeyedCodec<>("Splicing", Splicing.CODEC), (t, v) -> t.splicing = v, t -> t.splicing).add()
+            .append(new KeyedCodec<>("Permanence", Permanence.CODEC), (t, v) -> t.permanence = v, t -> t.permanence).add()
+            .append(new KeyedCodec<>("StationUpgrades", new ArrayCodec<>(StationUpgrade.CODEC, StationUpgrade[]::new)), (t, v) -> t.stationUpgrades = v, t -> t.stationUpgrades)
+            .documentation("Lab Station upgrades, one per tier above 1.").add()
             .build();
 
     private static final Balance BUILT_IN = new Balance();
@@ -233,6 +312,14 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     private Milestone[] milestones = {
             new Milestone("FirstSteps", 4, "Genetics_Syringe_Copper"),
             new Milestone("Naturalist", 8, "Genetics_Genome_Expansion_Moderate"),
+    };
+    private Splicing splicing = new Splicing();
+    private Permanence permanence = new Permanence();
+    private StationUpgrade[] stationUpgrades = {
+            new StationUpgrade(2,
+                    new MaterialQuantity("Ingredient_Bar_Copper", null, null, 10, null),
+                    new MaterialQuantity("Ingredient_Bar_Iron", null, null, 5, null),
+                    new MaterialQuantity("Ingredient_Life_Essence", null, null, 10, null)),
     };
 
     private Balance() {
@@ -284,5 +371,23 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     @Nonnull
     public Milestone[] milestones() {
         return milestones != null ? milestones : BUILT_IN.milestones;
+    }
+
+    @Nonnull
+    public Splicing splicing() {
+        return splicing != null ? splicing : BUILT_IN.splicing;
+    }
+
+    @Nonnull
+    public Permanence permanence() {
+        return permanence != null ? permanence : BUILT_IN.permanence;
+    }
+
+    /** The upgrade that reaches this station tier, or null if there is none. */
+    @Nullable
+    public StationUpgrade stationUpgrade(int tier) {
+        StationUpgrade[] upgrades = stationUpgrades != null ? stationUpgrades : BUILT_IN.stationUpgrades;
+        for (StationUpgrade upgrade : upgrades) if (upgrade.getTier() == tier) return upgrade;
+        return null;
     }
 }

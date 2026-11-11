@@ -1,0 +1,33 @@
+{
+  "Roles": [
+    "Tiger_Sabertooth"
+  ],
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Stamina",
+      "Weight": 2,
+      "Min": 4,
+      "Max": 7
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Meat_Buff_T2",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Oxygen",
+      "Chance": 0.4,
+      "Min": 10,
+      "Max": 15
+    }
+  ],
+  "Sound": "SFX_Tiger_Sabertooth_Alerted"
+}

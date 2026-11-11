@@ -109,7 +109,7 @@ public class UseSyringeInteraction extends SimpleInstantInteraction {
         String mobName = genome.source() != null ? genome.source().mobName() : npc.getRoleName();
         user.sendMessage(Message.raw(genome.identified()
                 ? "Sampled " + mobName + "'s genes (" + genome.genes().size() + " genes, Complexity " + GeneText.number(genome.complexity()) + ")."
-                : "Drew an unidentified " + mobName + " sample. Identify it at a Lab Station to see its genes."));
+                : "Drew an unidentified " + mobName + " sample. Process it at a Lab Station to see its genes."));
     }
 
     /** The syringe tier a mob needs: its gene profile's SyringeTier, else one based on its max health. */

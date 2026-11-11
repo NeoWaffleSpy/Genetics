@@ -1,0 +1,21 @@
+{
+  "MinComplexity": 0,
+  "StationTier": 1,
+  "Costs": [
+    {
+      "ItemId": "Ingredient_Fibre",
+      "Scaling": {
+        "Type": "Flat",
+        "Amount": 2
+      }
+    },
+    {
+      "ItemId": "Ingredient_Life_Essence",
+      "Scaling": {
+        "Type": "Linear",
+        "Base": 1,
+        "PerPoint": 0.15
+      }
+    }
+  ]
+}
