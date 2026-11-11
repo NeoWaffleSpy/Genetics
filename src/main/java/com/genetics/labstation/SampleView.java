@@ -94,7 +94,7 @@ final class SampleView {
                 case Gene.Mutation mutation -> {
                     MutationEntry entry = Codex.mutation(mutation.mutation());
                     String name = Translations.resolve(language, entry != null ? entry.getName() : null, prettify(mutation.mutation()));
-                    String details = entry != null ? "Mutation  ·  +" + number(entry.getComplexity()) + " Complexity" : "Unknown mutation";
+                    String details = entry != null ? "Mutation  ·  +" + number(entry.getComplexity()) + " Complexity" + triggers(entry) : "Unknown mutation";
                     card(commands, cards++, name, details, null);
                 }
             }
@@ -110,6 +110,14 @@ final class SampleView {
         commands.set(card + " #Details.Text", details);
         commands.set(card + " #Icon.Visible", icon != null);
         if (icon != null) commands.set(card + " #Icon.AssetPath", icon);
+    }
+
+    /** "  ·  below 25% health, at night", or "" for a mutation without behaviors. */
+    @Nonnull
+    private static String triggers(@Nonnull MutationEntry entry) {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        for (com.genetics.mutation.Behavior behavior : entry.getBehaviors()) parts.add(behavior.describe());
+        return parts.isEmpty() ? "" : "  ·  " + String.join(", ", parts);
     }
 
     @Nonnull

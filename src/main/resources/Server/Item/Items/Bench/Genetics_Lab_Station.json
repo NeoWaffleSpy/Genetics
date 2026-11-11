@@ -47,6 +47,9 @@
       "Components": {
         "ItemContainerBlock": {
           "Capacity": 1
+        },
+        "Genetics_LabStation": {
+          "Tier": 1
         }
       }
     },

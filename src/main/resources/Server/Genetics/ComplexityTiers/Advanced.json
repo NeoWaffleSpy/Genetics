@@ -1,0 +1,21 @@
+{
+  "MinComplexity": 81,
+  "StationTier": 3,
+  "Costs": [
+    {
+      "ItemId": "Ingredient_Bar_Adamantite",
+      "Scaling": {
+        "Type": "Linear",
+        "Base": 2,
+        "PerPoint": 0.08
+      }
+    },
+    {
+      "ItemId": "Ingredient_Life_Essence_Concentrated",
+      "Scaling": {
+        "Type": "Flat",
+        "Amount": 2
+      }
+    }
+  ]
+}

@@ -31,11 +31,22 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
 - **Lab Station** (`Server/Item/Items/Bench/Genetics_Lab_Station.json`): a one-slot station that only accepts
   syringes. Its custom screen (`Common/UI/Custom/Genetics/LabStation.ui`) shows the sample's source, Complexity,
   stat genes and effect genes, with drag & drop between the station and the inventory. Uses the Alchemy bench's
-  model as a placeholder.
+  model as a placeholder. Its tier is saved on the block; **upgrading to T2** (copper, iron, Life Essence) unlocks:
+  - **Processing**: pick which genes of an identified raw sample to keep. Complexity is recalculated, and the cost
+    comes from its **Complexity tier** (Simple, Moderate, Complex, Advanced, Exotic). The result is **genetic
+    material**: injected exactly as it is, with less sickness, and never processed again.
+  - **Splicing**: combine the genetic material in the station with one from your inventory. Each gene comes from one
+    side at random, biased toward the higher Complexity; the screen shows every gene's odds. The cost uses the tier
+    of the average Complexity, and the result is a raw sample to process again.
+  - **Mutations**: a splice may roll a new mutation (about 2–6%), drawn by weight among those its tier allows.
+    Mutations carry stats, effects and **behaviors** (triggers such as low health, being hurt or nightfall that run
+    the shared actions). `/genetics mutation <id>` gives you one for testing.
+  Creative mode pays no material costs, like vanilla bench upgrades.
 - **Effects**: `Genetics_Speed` (+20% movement speed), `Genetics_NightVision` (a soft light around the player),
   `Genetics_Nausea`, and one `Genetics_Sickness_*` effect per sickness band.
 - **Data** (`Server/Genetics/`): the Effect Codex (stat weights, effect Complexity), the Mutation Codex, the mob gene
-  profiles, the Sickness Event Codex, and `Balance/Default.json` (raw injection odds, sickness rates and bands). All are asset types, so other packs can add or override entries; edits hot-reload.
+  profiles, the Sickness Event Codex, the Complexity tiers (`ComplexityTiers/`), and `Balance/Default.json` (raw
+  injection odds, sickness rates and bands, splicing odds, station upgrades). All are asset types, so other packs can add or override entries; edits hot-reload.
 
 ## Layout
 
@@ -48,7 +59,10 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
 | `src/main/java/com/genetics/effect/` | Behavior of custom effects |
 | `src/main/java/com/genetics/action/` | Shared actions (ApplyEffect, PlaySound, Impulse, …) used by data files |
 | `src/main/java/com/genetics/sickness/` | Genetic Sickness: stat helpers, state, bands, decay and events |
-| `src/main/java/com/genetics/labstation/` | Lab Station interaction and custom screen |
+| `src/main/java/com/genetics/labstation/` | Lab Station interaction, custom screen and tier |
+| `src/main/java/com/genetics/tier/` | Complexity tiers, cost Scaling rules, paying material costs |
+| `src/main/java/com/genetics/process/` | Processing and splicing, and their screens |
+| `src/main/java/com/genetics/mutation/` | Mutation behaviors and the system that runs them |
 | `src/main/resources/Server/` | Server assets (items, effects, translations, Genetics data) |
 | `src/main/resources/Common/UI/Custom/Genetics/` | Custom UI layouts |
 | `gradle.properties` | Mod metadata; `manifest.json` is generated from it on every build |

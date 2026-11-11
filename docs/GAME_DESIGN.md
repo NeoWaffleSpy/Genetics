@@ -676,7 +676,7 @@ where it stands after the author's answers.
 | --- | --- |
 | Syringe: sample a mob into item metadata | Done (genome format v1: genes, raw/processed flag, Complexity, source) |
 | Lab Station: one-slot screen showing stats and effects | Done |
-| Effect Codex, Mutation Codex, Complexity tiers (data + loaders) | Codices and mob profiles done; tiers not started |
+| Effect Codex, Mutation Codex, Complexity tiers (data + loaders) | Done (tiers with Flat, Linear and Exponential Scaling rules, station gate) |
 | Complexity calculation | Done (raw samples, with drawback limits) |
 | Genome Capacity stat, Genome Expansion, degradation | Done (stat, over-capacity check and degradation, warning screen, Moderate expansion) |
 | Mob gene profiles | Done (placeholder profiles for cow, rabbit, wolf, fish, frog, bat/owl, and a default) |
@@ -686,5 +686,6 @@ where it stands after the author's answers.
 | Gene Journal, discovery notifications, milestone recipe unlocks | Done (journal shown with /genetics journal for now) |
 | Identification and reagent | Done |
 | Syringe tiers | Done (Crude, Copper, Thorium, Adamantite; tier from profile or max health) |
-| Phase 2 processing and splicing | Not started |
+| Phase 2 processing and splicing | Done (Lab Station T2 upgrade; processing screen to choose genes; splicing with per-gene odds shown (E3), solo genes carried at 50% plus the bias (E4); new mutations only when none is inherited) |
+| Mutations and behaviors | Done (MinTier required; behaviors OnLowHealth, OnDamaged, AtNight, Periodic, running the shared actions; 4 mutations) |
 | Phase 3 Genetic Library | Not started |

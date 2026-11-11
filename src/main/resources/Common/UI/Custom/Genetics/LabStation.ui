@@ -59,8 +59,36 @@ $C.@DecoratedContainer #Panel {
         }
 
         AssetImage #MobIcon {
-          Anchor: (Width: 128, Height: 128, Top: 16);
+          Anchor: (Width: 96, Height: 96, Top: 8);
           Visible: false;
+        }
+
+        Group {
+          FlexWeight: 1;
+        }
+
+        // The station's tier and its upgrade (like a vanilla bench upgrade).
+        Label #StationTier {
+          Anchor: (Height: 24);
+          Style: (RenderBold: true, TextColor: #E8A93B);
+        }
+
+        Group #UpgradePanel {
+          LayoutMode: Top;
+          Visible: false;
+
+          Group #UpgradeCost {
+            LayoutMode: Top;
+          }
+
+          Group {
+            LayoutMode: Left;
+            Anchor: (Height: 34, Top: 4);
+
+            $C.@SmallSecondaryTextButton #UpgradeButton {
+              @Text = "Upgrade";
+            }
+          }
         }
       }
 
@@ -115,6 +143,29 @@ $C.@DecoratedContainer #Panel {
             Visible: false;
             Padding: (Bottom: 8);
             Style: (RenderBold: true, TextColor: #8fd17a);
+          }
+
+          // Process (raw samples) or Splice (genetic material), from Lab Station T2.
+          Group #Actions {
+            LayoutMode: Left;
+            Anchor: (Height: 40);
+            Padding: (Bottom: 6);
+
+            $C.@SmallSecondaryTextButton #ProcessButton {
+              @Text = "Process...";
+              Visible: false;
+            }
+
+            $C.@SmallSecondaryTextButton #SpliceButton {
+              @Text = "Splice...";
+              Visible: false;
+            }
+
+            Label #ActionHint {
+              FlexWeight: 1;
+              Padding: (Left: 10);
+              Style: (FontSize: 13, TextColor: #878e9c, VerticalAlignment: Center, Wrap: true);
+            }
           }
 
           // Shown instead of the genes while the sample is unidentified.

@@ -5,6 +5,12 @@ import com.genetics.genome.ActiveGenome;
 import com.genetics.genome.Genome;
 import com.genetics.interaction.Syringes;
 import com.genetics.journal.Journal;
+import com.genetics.process.ProcessPage;
+import com.genetics.process.Processing;
+import com.genetics.process.SplicePage;
+import com.genetics.process.Splicer;
+import com.genetics.process.Station;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.codec.Codec;
@@ -68,6 +74,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             CustomUIEventBindingType.SlotMouseExited
     );
 
+    private final Station station;
     private final World world;
     private final ItemContainer container;
     private final List<EventRegistration<?, ?>> listeners = new ArrayList<>();
@@ -81,10 +88,11 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     private int hoveredSlot = -1;
     private boolean closed;
 
-    public LabStationPage(@Nonnull PlayerRef playerRef, @Nonnull World world, @Nonnull ItemContainer container) {
+    public LabStationPage(@Nonnull PlayerRef playerRef, @Nonnull Station station) {
         super(playerRef, CustomPageLifetime.CanDismiss, EventPayload.CODEC);
-        this.world = world;
-        this.container = container;
+        this.station = station;
+        this.world = station.world();
+        this.container = station.container();
     }
 
     @Override
@@ -92,6 +100,9 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         commands.append(LAYOUT);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#Panel #CloseButton", new EventData().append("Action", "Close"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#IdentifyButton", new EventData().append("Action", "Identify"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeButton", new EventData().append("Action", "Upgrade"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#ProcessButton", new EventData().append("Action", "Process"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceButton", new EventData().append("Action", "Splice"), false);
         for (String grid : GRIDS) {
             for (CustomUIEventBindingType type : SLOT_EVENTS) {
                 events.addEventBinding(type, grid, new EventData().append("Action", type.name()).append("Grid", grid), false);
@@ -117,6 +128,14 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 if (!closed) close();
             }
             case "Identify" -> identify(ref, store);
+            case "Upgrade" -> {
+                String failure = LabStationBlock.upgrade(world, station.pos(), ref, store);
+                playerRef.sendMessage(Message.raw(failure != null ? failure : "Lab Station upgraded to tier " + station.tier()
+                        + ": you can now process and splice samples."));
+                refresh();
+            }
+            case "Process" -> openProcessing(ref, store, false);
+            case "Splice" -> openProcessing(ref, store, true);
             case "SlotClicking" -> lastClickedGrid = data.grid;
             case "SlotMouseEntered" -> {
                 hoveredGrid = data.grid;
@@ -250,8 +269,27 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         EntityStatMap stats = store.getComponent(ref, EntityStatMap.getComponentType());
         ActiveGenome active = store.getComponent(ref, ActiveGenome.getComponentType());
         double used = active != null && active.getGenome() != null ? active.getGenome().complexity() : 0;
-        SampleView.write(commands, Genome.read(container.getItemStack(SAMPLE_SLOT)), playerRef.getLanguage(),
+        Genome sample = Genome.read(container.getItemStack(SAMPLE_SLOT));
+        SampleView.write(commands, sample, playerRef.getLanguage(),
                 used, GenomeCapacity.capacity(stats), countReagents(store, ref));
+        StationView.write(commands, station.tier(), sample, ref, store);
+    }
+
+    /** Opens the processing or splicing screen for the sample in the slot, if the station and the sample allow it. */
+    private void openProcessing(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, boolean splice) {
+        ItemStack stack = container.getItemStack(SAMPLE_SLOT);
+        Genome sample = Genome.read(stack);
+        String refusal = station.tier() < 2 ? "Upgrade the Lab Station to tier 2 first."
+                : splice ? Splicer.refusal(sample) : Processing.refusal(sample);
+        if (refusal != null || stack == null || sample == null) {
+            playerRef.sendMessage(Message.raw(refusal != null ? refusal : "Put a filled syringe in the slot."));
+            return;
+        }
+        Player player = store.getComponent(ref, Player.getComponentType());
+        if (player == null) return;
+        player.getPageManager().openCustomPage(ref, store, splice
+                ? new SplicePage(playerRef, station, stack, sample)
+                : new ProcessPage(playerRef, station, stack, sample));
     }
 
     /**

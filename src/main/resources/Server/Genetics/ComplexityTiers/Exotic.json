@@ -1,0 +1,21 @@
+{
+  "MinComplexity": 131,
+  "StationTier": 3,
+  "Costs": [
+    {
+      "ItemId": "Ingredient_Bar_Mithril",
+      "Scaling": {
+        "Type": "Linear",
+        "Base": 3,
+        "PerPoint": 0.05
+      }
+    },
+    {
+      "ItemId": "Rock_Gem_Voidstone",
+      "Scaling": {
+        "Type": "Flat",
+        "Amount": 1
+      }
+    }
+  ]
+}

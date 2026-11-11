@@ -1,5 +1,9 @@
 package com.genetics;
 
+import com.genetics.labstation.LabStationBlock;
+import com.genetics.mutation.Behavior;
+import com.genetics.mutation.MutationSystem;
+import com.genetics.tier.Scaling;
 import com.genetics.action.Action;
 import com.genetics.codex.Codex;
 import com.genetics.command.GeneticsCommand;
@@ -33,6 +37,8 @@ public class GeneticsPlugin extends JavaPlugin {
     @Override
     protected void setup() {
         Action.registerBuiltIns();
+        Behavior.registerBuiltIns();
+        Scaling.registerBuiltIns();
         Codex.register(getAssetRegistry());
         getCodecRegistry(Interaction.CODEC)
                 .register(UseSyringeInteraction.ID, UseSyringeInteraction.class, UseSyringeInteraction.CODEC)
@@ -46,11 +52,14 @@ public class GeneticsPlugin extends JavaPlugin {
         MorphSystem.State.setComponentType(entities.registerComponent(MorphSystem.State.class, MorphSystem.State::new));
         SicknessState.setComponentType(entities.registerComponent(SicknessState.class, SicknessState.ID, SicknessState.CODEC));
         GeneJournal.setComponentType(entities.registerComponent(GeneJournal.class, GeneJournal.ID, GeneJournal.CODEC));
+        MutationSystem.State.setComponentType(entities.registerComponent(MutationSystem.State.class, MutationSystem.State::new));
+        LabStationBlock.setComponentType(getChunkStoreRegistry().registerComponent(LabStationBlock.class, LabStationBlock.ID, LabStationBlock.CODEC));
         entities.registerSystem(new GenomeMaintenanceSystem());
         entities.registerSystem(new SicknessSystem());
         getCommandRegistry().registerCommand(new GeneticsCommand());
         entities.registerSystem(new NightVisionSystem());
         entities.registerSystem(new MorphSystem());
+        entities.registerSystem(new MutationSystem());
         LOGGER.atInfo().log("Genetics set up.");
     }
 

@@ -1,0 +1,25 @@
+// One gene's odds when splicing: its value and chance from A, from B, and the chance it is lost.
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 24);
+
+  Label #Gene {
+    FlexWeight: 1;
+    Style: (TextColor: #d0d7e0);
+  }
+
+  Label #FromA {
+    Anchor: (Width: 110);
+    Style: (TextColor: #8fd17a, HorizontalAlignment: End);
+  }
+
+  Label #FromB {
+    Anchor: (Width: 110);
+    Style: (TextColor: #7ab8d1, HorizontalAlignment: End);
+  }
+
+  Label #Lost {
+    Anchor: (Width: 60);
+    Style: (TextColor: #878e9c, HorizontalAlignment: End);
+  }
+}

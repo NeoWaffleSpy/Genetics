@@ -2,7 +2,11 @@ package com.genetics.command;
 
 import com.genetics.capacity.GenomeCapacity;
 import com.genetics.codex.Balance;
+import com.genetics.codex.MutationEntry;
 import com.genetics.codex.SicknessEvent;
+import com.genetics.genome.ComplexityCalculator;
+import com.genetics.genome.Gene;
+import com.genetics.genome.GenomeApplier;
 import com.genetics.genome.GeneText;
 import com.genetics.journal.GeneJournal;
 import com.genetics.journal.Journal;
@@ -24,6 +28,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 
 /**
@@ -34,6 +40,8 @@ import java.util.TreeSet;
  * /genetics events             list the sickness event ids
  * /genetics capacity &lt;value&gt;   set your Genome Capacity (test tool; expansions only ever raise it)
  * /genetics journal            show your Gene Journal
+ * /genetics mutation &lt;id&gt;      give your active genome this mutation (replacing its mutation), "none" removes it
+ * /genetics mutations          list the mutation ids
  * </pre>
  */
 public class GeneticsCommand extends AbstractCommandCollection {
@@ -45,6 +53,8 @@ public class GeneticsCommand extends AbstractCommandCollection {
         addSubCommand(new ListEvents());
         addSubCommand(new SetCapacity());
         addSubCommand(new ShowJournal());
+        addSubCommand(new SetMutation());
+        addSubCommand(new ListMutations());
     }
 
     private static final class SetCapacity extends AbstractPlayerCommand {
@@ -62,6 +72,61 @@ public class GeneticsCommand extends AbstractCommandCollection {
             GenomeCapacity.setCapacity(ref, store, value.get(context));
             context.sendMessage(Message.raw("Genome Capacity: " + GeneText.number(before) + " -> " + GeneText.number(GenomeCapacity.capacity(ref, store)) + "."));
         }
+    }
+
+    private static final class SetMutation extends AbstractPlayerCommand {
+        private final RequiredArg<String> id = withRequiredArg("id", "server.genetics.commands.mutation.id.desc", ArgTypes.STRING);
+
+        SetMutation() {
+            super("mutation", "server.genetics.commands.mutation.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            String wanted = id.get(context);
+            MutationEntry entry = null;
+            for (MutationEntry candidate : MutationEntry.getAssetMap().getAssetMap().values()) {
+                if (candidate.getId().equalsIgnoreCase(wanted)) entry = candidate;
+            }
+            if (entry == null && !wanted.equalsIgnoreCase("none")) {
+                context.sendMessage(Message.raw("Unknown mutation '" + wanted + "'. Mutations: " + mutationList() + ", or none."));
+                return;
+            }
+            ActiveGenome active = store.getComponent(ref, ActiveGenome.getComponentType());
+            Genome previous = active != null ? active.getGenome() : null;
+            List<Gene> genes = new ArrayList<>();
+            if (previous != null) for (Gene gene : previous.genes()) if (!(gene instanceof Gene.Mutation)) genes.add(gene);
+            if (entry != null) genes.add(new Gene.Mutation(entry.getId()));
+            Genome next = new Genome(Genome.FORMAT_VERSION, true, true, ComplexityCalculator.compute(genes),
+                    previous != null ? previous.source() : null, genes);
+            if (active != null) active.setGenome(next);
+            else store.putComponent(ref, ActiveGenome.getComponentType(), new ActiveGenome(next));
+            GenomeApplier.replace(ref, store, previous, next);
+            GenomeCapacity.setUsed(store.getComponent(ref, EntityStatMap.getComponentType()), next.complexity());
+            context.sendMessage(Message.raw(entry != null ? "Your genome now carries the " + entry.getId() + " mutation." : "Removed your mutation."));
+        }
+    }
+
+    private static final class ListMutations extends AbstractPlayerCommand {
+        ListMutations() {
+            super("mutations", "server.genetics.commands.mutations.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            context.sendMessage(Message.raw("Mutations: " + mutationList() + "."));
+        }
+    }
+
+    @Nonnull
+    private static String mutationList() {
+        TreeSet<String> ids = new TreeSet<>();
+        for (MutationEntry entry : MutationEntry.getAssetMap().getAssetMap().values()) ids.add(entry.getId() + " (" + entry.getMinTier() + ")");
+        return String.join(", ", ids);
     }
 
     private static final class ShowJournal extends AbstractPlayerCommand {
