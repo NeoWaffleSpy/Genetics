@@ -1,0 +1,14 @@
+{
+  "Name": "Make Permanent",
+  "Branch": "Lab",
+  "Order": 2,
+  "Icon": "Effect",
+  "Cost": 15,
+  "Requires": [
+    "Splicing"
+  ],
+  "Features": [
+    "MakePermanent"
+  ],
+  "Description": "Processing can turn a temporary effect of 30:00 or more into a permanent one (uses a Gene Stabilizer)."
+}

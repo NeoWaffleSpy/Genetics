@@ -29,5 +29,6 @@
       "Max": 10
     }
   ],
-  "Sound": "SFX_Raptor_Cave_Alerted"
+  "Sound": "SFX_Raptor_Cave_Alerted",
+  "Zone": "Zone 4"
 }

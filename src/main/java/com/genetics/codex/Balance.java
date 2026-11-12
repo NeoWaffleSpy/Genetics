@@ -262,6 +262,34 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         public int getCatalystPerEffect() { return Math.max(0, catalystPerEffect); }
     }
 
+    /** Science (placeholder name) paid for Catalogue discoveries (design doc §9.4). */
+    public static final class Science {
+        public static final BuilderCodec<Science> CODEC = BuilderCodec.builder(Science.class, Science::new)
+                .append(new KeyedCodec<>("FirstSample", Codec.INTEGER), (t, v) -> t.firstSample = v, t -> t.firstSample)
+                .documentation("First sample of a species.").add()
+                .append(new KeyedCodec<>("NewGene", Codec.INTEGER), (t, v) -> t.newGene = v, t -> t.newGene)
+                .documentation("Each gene found on a species for the first time (revealed by processing).").add()
+                .append(new KeyedCodec<>("SpeciesComplete", Codec.INTEGER), (t, v) -> t.speciesComplete = v, t -> t.speciesComplete)
+                .documentation("Every gene a species can carry has been found.").add()
+                .append(new KeyedCodec<>("NewBuff", Codec.INTEGER), (t, v) -> t.newBuff = v, t -> t.newBuff)
+                .documentation("An effect found for the first time, on any species.").add()
+                .append(new KeyedCodec<>("NewMutation", Codec.INTEGER), (t, v) -> t.newMutation = v, t -> t.newMutation)
+                .documentation("A mutation found for the first time.").add()
+                .build();
+
+        private int firstSample = 3;
+        private int newGene = 1;
+        private int speciesComplete = 5;
+        private int newBuff = 2;
+        private int newMutation = 10;
+
+        public int getFirstSample() { return firstSample; }
+        public int getNewGene() { return newGene; }
+        public int getSpeciesComplete() { return speciesComplete; }
+        public int getNewBuff() { return newBuff; }
+        public int getNewMutation() { return newMutation; }
+    }
+
     /** One Lab Station upgrade (design doc §7): the tier it reaches and what it costs. */
     public static final class StationUpgrade {
         public static final BuilderCodec<StationUpgrade> CODEC = BuilderCodec.builder(StationUpgrade.class, StationUpgrade::new)
@@ -293,7 +321,9 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
             .append(new KeyedCodec<>("Capacity", Capacity.CODEC), (t, v) -> t.capacity = v, t -> t.capacity).add()
             .append(new KeyedCodec<>("Syringes", Syringes.CODEC), (t, v) -> t.syringes = v, t -> t.syringes).add()
             .append(new KeyedCodec<>("JournalMilestones", new ArrayCodec<>(Milestone.CODEC, Milestone[]::new)), (t, v) -> t.milestones = v, t -> t.milestones)
-            .documentation("Gene Journal milestones, in any order.").add()
+            .documentation("Legacy: Gene Journal milestones, replaced by Science and Research. Kept so old files still load.").add()
+            .append(new KeyedCodec<>("Science", Science.CODEC), (t, v) -> t.science = v, t -> t.science)
+            .documentation("Science paid for Catalogue discoveries.").add()
             .append(new KeyedCodec<>("Splicing", Splicing.CODEC), (t, v) -> t.splicing = v, t -> t.splicing).add()
             .append(new KeyedCodec<>("Permanence", Permanence.CODEC), (t, v) -> t.permanence = v, t -> t.permanence).add()
             .append(new KeyedCodec<>("StationUpgrades", new ArrayCodec<>(StationUpgrade.CODEC, StationUpgrade[]::new)), (t, v) -> t.stationUpgrades = v, t -> t.stationUpgrades)
@@ -309,10 +339,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     private Sickness sickness = new Sickness();
     private Capacity capacity = new Capacity();
     private Syringes syringes = new Syringes();
-    private Milestone[] milestones = {
-            new Milestone("FirstSteps", 4, "Genetics_Syringe_Copper"),
-            new Milestone("Naturalist", 8, "Genetics_Genome_Expansion_Moderate"),
-    };
+    private Milestone[] milestones = new Milestone[0];
+    private Science science = new Science();
     private Splicing splicing = new Splicing();
     private Permanence permanence = new Permanence();
     private StationUpgrade[] stationUpgrades = {
@@ -366,6 +394,11 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     @Nonnull
     public Syringes syringes() {
         return syringes != null ? syringes : BUILT_IN.syringes;
+    }
+
+    @Nonnull
+    public Science science() {
+        return science != null ? science : BUILT_IN.science;
     }
 
     @Nonnull

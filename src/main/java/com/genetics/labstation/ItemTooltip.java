@@ -27,21 +27,25 @@ final class ItemTooltip {
     /** Rarity skins that exist in {@code TooltipSkins.ui}; any other rarity uses Default. */
     private static final Set<String> SKIN_NAMES = Set.of("Default", "Common", "Uncommon", "Rare", "Epic", "Legendary", "Junk", "Technical");
 
-    private static final int LAYER_WIDTH = 820;
+    private static final int LAYER_WIDTH = 1000;
     private static final int TOOLTIP_WIDTH = 320;
     private static final int ARROW_WIDTH = 33;
     private static final int SLOT = 64;
     private static final int SLOT_STEP = 68;
     private static final int SLOTS_PER_ROW = 9;
-    /** Left edge of the inventory grids: (820 - 642) / 2 panel offset + 17 padding. */
-    private static final int GRID_X = 106;
+    /** Left edge of the inventory grids: (1000 - 642) / 2 panel offset + 17 padding. */
+    private static final int GRID_X = 196;
     /** Top edge of the storage grid's first row: 420 panel - 38 title - 17 padding. */
     private static final int STORAGE_TOP = 365;
     /** Top edge of the hotbar: storage top - 268 storage - 12 margin. */
     private static final int HOTBAR_TOP = 85;
-    /** The sample slot: 17 padding from the station panel's left, and its top edge (920 - 38 - 17 - 32 label). */
+    /**
+     * The sample slot: 17 padding from the station panel's left, and its top edge from the layer's bottom
+     * (960 - 38 title - 17 padding - 2 line - 38 tabs - 1 line - 8 gap - 20 label). Slot B is 94 to its right.
+     */
     private static final int SAMPLE_X = 17;
-    private static final int SAMPLE_TOP = 833;
+    private static final int SPLICE_X = SAMPLE_X + 94;
+    private static final int SAMPLE_TOP = 836;
     /** The tooltip's bottom sits this far above the slot's top edge; the arrow hangs into the gap. */
     private static final int GAP_ABOVE_SLOT = 6;
 
@@ -133,6 +137,11 @@ final class ItemTooltip {
             case LabStationPage.HOTBAR_GRID -> {
                 centerX = GRID_X + (slot % SLOTS_PER_ROW) * SLOT_STEP + SLOT / 2;
                 gap = HOTBAR_TOP + GAP_ABOVE_SLOT;
+            }
+            case LabStationPage.SPLICE_GRID -> {
+                centerX = SPLICE_X + SLOT + 12 + TOOLTIP_WIDTH / 2;
+                gap = SAMPLE_TOP - SLOT - 130;
+                arrow = false;
             }
             default -> {
                 centerX = SAMPLE_X + SLOT + 12 + TOOLTIP_WIDTH / 2;

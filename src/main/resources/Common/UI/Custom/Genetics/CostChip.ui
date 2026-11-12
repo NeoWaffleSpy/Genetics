@@ -1,0 +1,36 @@
+// One material of a cost: its icon, its name and "have / need" (red when the player doesn't carry enough).
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 44);
+  Padding: (Right: 8);
+
+  Group {
+    LayoutMode: Left;
+    Padding: (Left: 4, Right: 10);
+    Background: #ffffff(0.035);
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Width: 36);
+      Padding: (Top: 4);
+
+      ItemSlot #Icon {
+        Anchor: (Width: 36, Height: 36);
+        ShowQualityBackground: true;
+      }
+    }
+
+    Group {
+      LayoutMode: Top;
+      Padding: (Left: 8, Top: 5);
+
+      Label #Item {
+        Style: (FontSize: 12, TextColor: #a9b9c7);
+      }
+
+      Label #Amount {
+        Style: (FontSize: 15, RenderBold: true, TextColor: #8fd17a);
+      }
+    }
+  }
+}

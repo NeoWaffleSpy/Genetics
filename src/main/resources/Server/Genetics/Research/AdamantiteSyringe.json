@@ -1,0 +1,14 @@
+{
+  "Name": "Adamantite Syringe",
+  "Branch": "Syringes",
+  "Order": 3,
+  "Icon": "Syringe",
+  "Cost": 30,
+  "Requires": [
+    "ThoriumSyringe"
+  ],
+  "Recipes": [
+    "Genetics_Syringe_Adamantite"
+  ],
+  "Description": "Teaches the Adamantite Syringe recipe: samples the strongest creatures."
+}

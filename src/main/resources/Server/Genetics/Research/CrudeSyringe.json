@@ -1,0 +1,9 @@
+{
+  "Name": "Crude Syringe",
+  "Branch": "Syringes",
+  "Order": 0,
+  "Icon": "Syringe",
+  "Cost": 0,
+  "Starter": true,
+  "Description": "Samples passive Zone 1 creatures."
+}

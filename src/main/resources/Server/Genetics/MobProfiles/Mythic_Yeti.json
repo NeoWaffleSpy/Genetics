@@ -29,5 +29,6 @@
       "Max": 12
     }
   ],
-  "Sound": "SFX_Yeti_Alerted"
+  "Sound": "SFX_Yeti_Alerted",
+  "Zone": "Zone 3"
 }

@@ -1,0 +1,57 @@
+// One Catalogue entry (a creature, gene, buff or mutation). Clicking it shows its details.
+Group {
+  LayoutMode: Top;
+  Padding: (Bottom: 5);
+
+  Button #Button {
+    LayoutMode: Left;
+    Anchor: (Height: 52);
+    Padding: (Horizontal: 8);
+    Style: (
+      Default: (Background: #ffffff(0.035)),
+      Hovered: (Background: #3ec9a7(0.12)),
+      Pressed: (Background: #3ec9a7(0.2))
+    );
+
+    Group #Selected {
+      Anchor: (Width: 3);
+      Background: #3ec9a7;
+      Visible: false;
+    }
+
+    Group {
+      LayoutMode: Middle;
+      Anchor: (Width: 48);
+
+      AssetImage #Icon {
+        Anchor: (Width: 40, Height: 40);
+        Visible: false;
+      }
+
+      Group #IconUnknown { Anchor: (Width: 26, Height: 26); Background: "Icons/Unknown.png"; Visible: false; }
+      Group #IconStat { Anchor: (Width: 22, Height: 22); Background: "Icons/Stat.png"; Visible: false; }
+      Group #IconDrawback { Anchor: (Width: 22, Height: 22); Background: "Icons/Drawback.png"; Visible: false; }
+      Group #IconEffect { Anchor: (Width: 22, Height: 22); Background: "Icons/Effect.png"; Visible: false; }
+      Group #IconMutation { Anchor: (Width: 22, Height: 22); Background: "Icons/Mutation.png"; Visible: false; }
+    }
+
+    Group {
+      LayoutMode: Top;
+      FlexWeight: 1;
+      Padding: (Left: 8, Top: 7);
+
+      Label #Name {
+        Style: (FontSize: 15, RenderBold: true, TextColor: #eaf1f4);
+      }
+
+      Label #Meta {
+        Style: (FontSize: 12, TextColor: #a9b9c7);
+      }
+    }
+
+    Label #Count {
+      Anchor: (Width: 90);
+      Style: (FontSize: 14, RenderBold: true, TextColor: #8ff5dc, HorizontalAlignment: End, VerticalAlignment: Center);
+    }
+  }
+}

@@ -30,5 +30,6 @@
       "Max": 10
     }
   ],
-  "Sound": "SFX_Bear_Grizzly_Alerted"
+  "Sound": "SFX_Bear_Grizzly_Alerted",
+  "Zone": "Zone 1"
 }

@@ -25,7 +25,7 @@
   },
   "Recipe": {
     "TimeSeconds": 3,
-    "KnowledgeRequired": false,
+    "KnowledgeRequired": true,
     "OutputQuantity": 1,
     "Input": [
       {

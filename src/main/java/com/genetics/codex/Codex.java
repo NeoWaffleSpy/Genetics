@@ -46,6 +46,8 @@ public final class Codex {
         registry.register(store(Balance.class, Balance.PATH, Balance.CODEC, Balance::getId));
         registry.register(store(com.genetics.tier.ComplexityTier.class, com.genetics.tier.ComplexityTier.PATH,
                 com.genetics.tier.ComplexityTier.CODEC, com.genetics.tier.ComplexityTier::getId));
+        registry.register(store(com.genetics.research.ResearchNode.class, com.genetics.research.ResearchNode.PATH,
+                com.genetics.research.ResearchNode.CODEC, com.genetics.research.ResearchNode::getId));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -158,11 +160,16 @@ public final class Codex {
         if (EntityStatType.getAssetMap().getAsset(com.genetics.capacity.GenomeCapacity.STAT_ID) == null) {
             problems += warn("Missing the " + com.genetics.capacity.GenomeCapacity.STAT_ID + " entity stat.");
         }
-        for (Balance.Milestone milestone : Balance.get().milestones()) {
-            for (String recipe : milestone.getRecipes()) {
-                if (com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAsset(recipe) == null) {
-                    problems += warn("Journal milestone " + milestone.getId() + ": unknown item '" + recipe + "'.");
-                }
+        for (com.genetics.research.ResearchNode node : com.genetics.research.ResearchNode.getAssetMap().getAssetMap().values()) {
+            String where = "research node " + node.getId();
+            for (String required : node.getRequires()) {
+                if (com.genetics.research.ResearchNode.getAssetMap().getAsset(required) == null) problems += warn(where + ": unknown required node '" + required + "'.");
+            }
+            for (String recipe : node.getRecipes()) {
+                if (com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAsset(recipe) == null) problems += warn(where + ": unknown item '" + recipe + "'.");
+            }
+            for (String feature : node.getFeatures()) {
+                if (!com.genetics.research.Research.FEATURES.contains(feature)) problems += warn(where + ": unknown feature '" + feature + "'.");
             }
         }
         for (SicknessEvent event : SicknessEvent.getAssetMap().getAssetMap().values()) {
@@ -174,13 +181,14 @@ public final class Codex {
         if (StatEntry.getAssetMap().getAsset(DEFAULT_ID) == null) problems += warn("Effect Codex has no " + DEFAULT_ID + " stat entry.");
         if (EffectEntry.getAssetMap().getAsset(DEFAULT_ID) == null) problems += warn("Effect Codex has no " + DEFAULT_ID + " effect entry.");
 
-        LOGGER.atInfo().log("Genetics data loaded: %d stat weights, %d effects, %d mutations, %d mob profiles, %d sickness events, %d Complexity tiers, %d problem(s).",
+        LOGGER.atInfo().log("Genetics data loaded: %d stat weights, %d effects, %d mutations, %d mob profiles, %d sickness events, %d Complexity tiers, %d research nodes, %d problem(s).",
                 StatEntry.getAssetMap().getAssetMap().size(),
                 EffectEntry.getAssetMap().getAssetMap().size(),
                 MutationEntry.getAssetMap().getAssetMap().size(),
                 MobGeneProfile.getAssetMap().getAssetMap().size(),
                 SicknessEvent.getAssetMap().getAssetMap().size(),
                 com.genetics.tier.ComplexityTier.getAssetMap().getAssetMap().size(),
+                com.genetics.research.ResearchNode.getAssetMap().getAssetMap().size(),
                 problems);
     }
 

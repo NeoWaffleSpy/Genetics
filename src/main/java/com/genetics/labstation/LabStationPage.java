@@ -1,18 +1,11 @@
 package com.genetics.labstation;
 
-import com.genetics.capacity.GenomeCapacity;
-import com.genetics.genome.ActiveGenome;
 import com.genetics.genome.Genome;
 import com.genetics.interaction.Syringes;
+import com.genetics.journal.GeneJournal;
 import com.genetics.journal.Journal;
-import com.genetics.process.ProcessPage;
-import com.genetics.process.Processing;
-import com.genetics.process.SplicePage;
-import com.genetics.process.Splicer;
 import com.genetics.process.Station;
-import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.Message;
-import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.genetics.research.Research;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -21,11 +14,14 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.event.EventRegistration;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
+import com.hypixel.hytale.server.core.ui.Anchor;
 import com.hypixel.hytale.server.core.ui.ItemGridSlot;
+import com.hypixel.hytale.server.core.ui.Value;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
@@ -36,22 +32,25 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.hypixel.hytale.server.core.inventory.InventoryComponent.HOTBAR_SECTION_ID;
 import static com.hypixel.hytale.server.core.inventory.InventoryComponent.STORAGE_SECTION_ID;
 
 /**
- * Fully custom Lab Station screen: the station panel (sample slot and its analysis) in the middle, the player's
- * inventory at the bottom, all as server-filled grids.
- * Drag &amp; drop between the grids is applied server-side from the grid events the client reports.
+ * The Lab Station screen: one panel with four tabs (Process, Splice, Catalogue, Research), the sample rail and the
+ * player's inventory, all as server-filled grids. Drag &amp; drop between the grids is applied server-side from the
+ * grid events the client reports. Slot B of the Splice tab is virtual: it points at a syringe in the inventory,
+ * which stays where it is until the splice uses it.
  */
 public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.EventPayload> {
     private static final String LAYOUT = "Genetics/LabStation.ui";
     static final String SAMPLE_GRID = "#SampleSlot";
+    static final String SPLICE_GRID = "#SpliceSlot";
     static final String STORAGE_GRID = "#Storage";
     static final String HOTBAR_GRID = "#Hotbar";
-    private static final short SAMPLE_SLOT = 0;
+    static final short SAMPLE_SLOT = Station.SAMPLE_SLOT;
     private static final List<String> GRIDS = List.of(SAMPLE_GRID, STORAGE_GRID, HOTBAR_GRID);
     /**
      * A drop arrives as two events, in this order: {@code Dropped} on the target grid (target slot, source slot,
@@ -71,20 +70,41 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             CustomUIEventBindingType.SlotMouseEntered,
             CustomUIEventBindingType.SlotMouseExited
     );
+    private static final List<String> TABS = List.of("Process", "Splice", "Catalogue", "Research");
+    static final List<String> SUBS = List.of("Creatures", "Genes", "Buffs", "Mutations");
 
-    private final Station station;
+    final Station station;
     private final World world;
-    private final ItemContainer container;
+    final ItemContainer container;
     private final List<EventRegistration<?, ?>> listeners = new ArrayList<>();
     @Nullable
     private EventPayload pendingDrop;
     @Nullable
     private String lastClickedGrid;
-    /** Slot under the mouse, described by our own tooltip (the grids' built-in tooltips are turned off). */
     @Nullable
     private String hoveredGrid;
     private int hoveredSlot = -1;
     private boolean closed;
+    private boolean synced;
+
+    // ---- Tab state
+    String tab = "Process";
+    /** Keep / make-permanent choices for the sample in the station (reset when it changes). */
+    boolean[] keep = new boolean[0];
+    boolean[] permanent = new boolean[0];
+    /** Splice partner: a slot of the player's storage or hotbar, or none. */
+    @Nullable
+    ItemContainer bContainer;
+    short bSlot = -1;
+    boolean[] spliceKeep = new boolean[0];
+    String sub = "Creatures";
+    @Nullable
+    String catalogueSelected;
+    @Nullable
+    String researchSelected;
+    /** What the screen was built for: the sample and B (as genome JSON), to rebuild when they change. */
+    private String builtSample = "";
+    private String builtB = "";
 
     public LabStationPage(@Nonnull PlayerRef playerRef, @Nonnull Station station) {
         super(playerRef, CustomPageLifetime.CanDismiss, EventPayload.CODEC);
@@ -93,20 +113,65 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         this.container = station.container();
     }
 
+    @Nonnull
+    PlayerRef player() {
+        return playerRef;
+    }
+
+    // ---- Building
+
     @Override
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder commands, @Nonnull UIEventBuilder events, @Nonnull Store<EntityStore> store) {
+        if (!synced) {
+            synced = true;
+            Research.sync(ref, store);
+        }
+        validateB();
+        String sampleKey = keyOf(container.getItemStack(SAMPLE_SLOT));
+        if (!sampleKey.equals(builtSample)) {
+            Genome sample = sample();
+            keep = new boolean[sample != null ? sample.genes().size() : 0];
+            Arrays.fill(keep, true);
+            permanent = new boolean[keep.length];
+        }
+        String bKey = keyOf(bStack());
+        if (!sampleKey.equals(builtSample) || !bKey.equals(builtB)) spliceKeep = new boolean[0];
+        builtSample = sampleKey;
+        builtB = bKey;
+
         commands.append(LAYOUT);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#Panel #CloseButton", new EventData().append("Action", "Close"), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeButton", new EventData().append("Action", "Upgrade"), false);
+        for (String t : TABS) {
+            for (String state : List.of("On", "Off")) {
+                events.addEventBinding(CustomUIEventBindingType.Activating, "#Tab" + t + state, new EventData().append("Action", "Tab").append("Tab", t), false);
+            }
+        }
+        for (String s : SUBS) {
+            for (String state : List.of("On", "Off")) {
+                events.addEventBinding(CustomUIEventBindingType.Activating, "#Sub" + s + state, new EventData().append("Action", "Sub").append("Tab", s), false);
+            }
+        }
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ProcessButton", new EventData().append("Action", "Process"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceWithButton", new EventData().append("Action", "Tab").append("Tab", "Splice"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeButton", new EventData().append("Action", "Upgrade"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceButton", new EventData().append("Action", "Splice"), false);
-        for (String grid : GRIDS) {
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#ResearchButton", new EventData().append("Action", "Research"), false);
+        for (String grid : List.of(SAMPLE_GRID, SPLICE_GRID, STORAGE_GRID, HOTBAR_GRID)) {
             for (CustomUIEventBindingType type : SLOT_EVENTS) {
                 events.addEventBinding(type, grid, new EventData().append("Action", type.name()).append("Grid", grid), false);
             }
         }
 
-        render(commands, ref, store);
+        writeChrome(commands, store);
+        writeGrids(commands, ref, store);
+        writeTooltip(commands, ref, store);
+        switch (tab) {
+            case "Splice" -> SpliceTab.build(this, ref, store, commands, events);
+            case "Catalogue" -> CatalogueTab.build(this, ref, store, commands, events);
+            case "Research" -> ResearchTab.build(this, ref, store, commands, events);
+            default -> ProcessTab.build(this, ref, store, commands, events);
+        }
+        writeRail(commands, ref, store);
 
         if (listeners.isEmpty()) {
             listeners.add(container.registerChangeEvent(event -> world.execute(this::refresh)));
@@ -117,6 +182,66 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         }
     }
 
+    /** Tabs, panel size, Science and station tier. */
+    private void writeChrome(@Nonnull UICommandBuilder commands, @Nonnull Store<EntityStore> store) {
+        boolean bench = tab.equals("Process") || tab.equals("Splice");
+        for (String t : TABS) {
+            commands.set("#Tab" + t + "On.Visible", t.equals(tab));
+            commands.set("#Tab" + t + "Off.Visible", !t.equals(tab));
+            commands.set("#" + t + "Tab.Visible", t.equals(tab));
+        }
+        commands.set("#Rail.Visible", bench);
+        commands.set("#InventoryPanel.Visible", bench);
+        Anchor panel = new Anchor();
+        panel.setWidth(Value.of(1000));
+        panel.setHeight(Value.of(bench ? 540 : 900));
+        panel.setBottom(Value.of(bench ? 450 : 60));
+        commands.setObject("#Panel.Anchor", panel);
+        writeScience(commands, store);
+        commands.set("#StationTier.Text", "Station T" + station.tier());
+    }
+
+    void writeScience(@Nonnull UICommandBuilder commands, @Nonnull Store<EntityStore> store) {
+        Ref<EntityStore> ref = playerRef.getReference();
+        int science = ref != null ? Journal.of(ref, store).getScience() : 0;
+        commands.set("#Science.Text", science + " Science");
+    }
+
+    /** The left rail: slot labels, slot B, and the card of who the sample came from. */
+    private void writeRail(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        boolean splice = tab.equals("Splice");
+        commands.set("#SlotALabel.Text", splice ? "A" : "Sample");
+        commands.set("#SlotBLabel.Visible", splice);
+        commands.set("#PlusLabel.Visible", splice);
+        commands.set("#SpliceSlot.Visible", splice);
+        Genome a = sample();
+        Genome b = spliceB();
+        GeneJournal journal = Journal.of(ref, store);
+        String icon = a != null && a.source() != null && !a.source().spliced() ? a.source().icon() : null;
+        commands.set("#MobIcon.Visible", icon != null);
+        if (icon != null) commands.set("#MobIcon.AssetPath", icon);
+        if (splice) {
+            commands.set("#SpeciesName.Text", "Splice inputs");
+            commands.set("#SpeciesMeta.Text", "A  ·  " + (a != null ? a.title() + "  ·  Complexity " + com.genetics.genome.GeneText.number(a.complexity()) : "empty")
+                    + "\nB  ·  " + (b != null ? b.title() + "  ·  Complexity " + com.genetics.genome.GeneText.number(b.complexity()) : "drag genetic material here from your inventory"));
+        } else if (a == null) {
+            commands.set("#SpeciesName.Text", "No sample");
+            commands.set("#SpeciesMeta.Text", "Drag a filled syringe into the slot.");
+        } else if (a.source() == null || a.source().spliced()) {
+            commands.set("#SpeciesName.Text", a.source() != null ? "Spliced" : "Unknown");
+            commands.set("#SpeciesMeta.Text", a.source() != null ? "Mostly " + a.source().mobName() + " genes" : "");
+        } else {
+            String id = a.source().mobId();
+            GeneJournal.Species entry = journal.getSpecies().get(id);
+            int total = com.genetics.journal.Catalogue.possibleGenes(id).size();
+            commands.set("#SpeciesName.Text", a.source().mobName());
+            commands.set("#SpeciesMeta.Text", "Sampled " + (entry != null ? entry.getSamples() : 0) + " times  ·  "
+                    + journal.genesOf(id).size() + " / " + total + " genes known");
+        }
+    }
+
+    // ---- Events
+
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull EventPayload data) {
         if (data.action == null) return;
@@ -124,14 +249,72 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             case "Close" -> {
                 if (!closed) close();
             }
+            case "Tab" -> {
+                if (data.tab != null && TABS.contains(data.tab) && !data.tab.equals(tab)) {
+                    tab = data.tab;
+                    hoveredGrid = null;
+                    rebuild();
+                }
+            }
+            case "Sub" -> {
+                if (data.tab != null && SUBS.contains(data.tab) && !data.tab.equals(sub)) {
+                    sub = data.tab;
+                    catalogueSelected = null;
+                    rebuild();
+                }
+            }
+            case "Keep" -> {
+                int i = parse(data.index);
+                if (i >= 0 && i < keep.length) keep[i] = data.checked != null ? data.checked : !keep[i];
+                partial(ref, store);
+            }
+            case "Permanent" -> {
+                int i = parse(data.index);
+                if (i >= 0 && i < permanent.length) permanent[i] = data.checked != null ? data.checked : !permanent[i];
+                partial(ref, store);
+            }
+            case "SpliceKeep" -> {
+                int i = parse(data.index);
+                if (i >= 0 && i < spliceKeep.length) spliceKeep[i] = data.checked != null ? data.checked : !spliceKeep[i];
+                partial(ref, store);
+            }
+            case "Entry" -> {
+                if (data.node != null) {
+                    catalogueSelected = data.node;
+                    UICommandBuilder commands = new UICommandBuilder();
+                    CatalogueTab.select(this, ref, store, commands);
+                    sendUpdate(commands, false);
+                }
+            }
+            case "Node" -> {
+                if (data.node != null) {
+                    researchSelected = data.node;
+                    UICommandBuilder commands = new UICommandBuilder();
+                    ResearchTab.detail(this, ref, store, commands);
+                    sendUpdate(commands, false);
+                }
+            }
+            case "Process" -> {
+                String message = ProcessTab.process(this, ref, store);
+                if (message != null) playerRef.sendMessage(Message.raw(message));
+                rebuild();
+            }
+            case "Splice" -> {
+                String message = SpliceTab.splice(this, ref, store);
+                if (message != null) playerRef.sendMessage(Message.raw(message));
+                rebuild();
+            }
             case "Upgrade" -> {
                 String failure = LabStationBlock.upgrade(world, station.pos(), ref, store);
                 playerRef.sendMessage(Message.raw(failure != null ? failure : "Lab Station upgraded to tier " + station.tier()
-                        + ": you can now splice samples and process Moderate ones."));
-                refresh();
+                        + ": you can now splice and process Moderate samples."));
+                rebuild();
             }
-            case "Process" -> openProcessing(ref, store, false);
-            case "Splice" -> openProcessing(ref, store, true);
+            case "Research" -> {
+                String message = ResearchTab.research(this, ref, store);
+                if (message != null) playerRef.sendMessage(Message.raw(message));
+                rebuild();
+            }
             case "SlotClicking" -> lastClickedGrid = data.grid;
             case "SlotMouseEntered" -> {
                 hoveredGrid = data.grid;
@@ -149,7 +332,12 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             case "SlotMouseDragCompleted" -> {
                 EventPayload drop = pendingDrop;
                 pendingDrop = null;
-                if (drop != null && drop.slotIndex != null && data.slotIndex != null) {
+                if (drop == null || drop.slotIndex == null || data.slotIndex == null) return;
+                if (SPLICE_GRID.equals(drop.grid)) {
+                    setB(containerFor(store, ref, data.grid), data.slotIndex);
+                } else if (SPLICE_GRID.equals(data.grid)) {
+                    clearB();
+                } else {
                     move(containerFor(store, ref, data.grid), data.slotIndex, containerFor(store, ref, drop.grid), drop.slotIndex,
                             drop.itemStackId, drop.itemStackQuantity);
                 }
@@ -159,9 +347,14 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 // instead, so treat it as a drop too (inventories accept either button).
                 if (data.clickMouseButton != null && !data.clickMouseButton.equals(data.dragPressedMouseButton)
                         && data.slotIndex != null && data.dragSourceSlotId != null) {
-                    String sourceGrid = findDragSource(store, ref, data.dragSourceSlotId, data.dragItemStackId);
-                    move(containerFor(store, ref, sourceGrid), data.dragSourceSlotId, containerFor(store, ref, data.grid), data.slotIndex,
-                            data.dragItemStackId, data.dragItemStackQuantity);
+                    if (SPLICE_GRID.equals(lastClickedGrid)) {
+                        clearB();
+                    } else {
+                        String sourceGrid = findDragSource(store, ref, data.dragSourceSlotId, data.dragItemStackId);
+                        if (SPLICE_GRID.equals(data.grid)) setB(containerFor(store, ref, sourceGrid), data.dragSourceSlotId);
+                        else move(containerFor(store, ref, sourceGrid), data.dragSourceSlotId, containerFor(store, ref, data.grid), data.slotIndex,
+                                data.dragItemStackId, data.dragItemStackQuantity);
+                    }
                     // The client only ends a drag on a same-button drop, so it would keep showing the dragged item
                     // until the next input. Rebuilding the page recreates the grids, which ends the drag.
                     rebuild();
@@ -171,6 +364,66 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             }
         }
     }
+
+    // ---- Slot B (virtual)
+
+    /** Points slot B at a syringe of genetic material in the player's inventory. */
+    private void setB(@Nullable ItemContainer from, int slot) {
+        if (from == null || from == container || slot < 0 || slot >= from.getCapacity()) {
+            rebuild();
+            return;
+        }
+        Genome genome = Genome.read(from.getItemStack((short) slot));
+        if (genome == null || !genome.processed()) {
+            playerRef.sendMessage(Message.raw("Only genetic material (a processed sample) can go in slot B."));
+            rebuild();
+            return;
+        }
+        bContainer = from;
+        bSlot = (short) slot;
+        rebuild();
+    }
+
+    private void clearB() {
+        bContainer = null;
+        bSlot = -1;
+        rebuild();
+    }
+
+    /** Forgets slot B if its syringe moved or stopped being genetic material. */
+    private void validateB() {
+        if (bContainer == null) return;
+        Genome genome = Genome.read(bStack());
+        if (genome == null || !genome.processed()) {
+            bContainer = null;
+            bSlot = -1;
+        }
+    }
+
+    @Nullable
+    ItemStack bStack() {
+        if (bContainer == null || bSlot < 0 || bSlot >= bContainer.getCapacity()) return null;
+        ItemStack stack = bContainer.getItemStack(bSlot);
+        return isEmpty(stack) ? null : stack;
+    }
+
+    @Nullable
+    Genome spliceB() {
+        return Genome.read(bStack());
+    }
+
+    @Nullable
+    ItemStack sampleStack() {
+        ItemStack stack = container.getItemStack(SAMPLE_SLOT);
+        return isEmpty(stack) ? null : stack;
+    }
+
+    @Nullable
+    Genome sample() {
+        return Genome.read(sampleStack());
+    }
+
+    // ---- Drag & drop between real grids
 
     /**
      * The put-down event names the drag's source slot but not its grid: pick the grid whose slot holds the dragged
@@ -237,7 +490,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         };
     }
 
-    private static boolean isEmpty(@Nullable ItemStack stack) {
+    static boolean isEmpty(@Nullable ItemStack stack) {
         return stack == null || stack.isEmpty();
     }
 
@@ -249,43 +502,35 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         listeners.clear();
     }
 
+    // ---- Updates
+
+    /** Re-sends what changes without rebuilding; rebuilds instead if the sample or slot B changed. */
     private void refresh() {
         if (closed) return;
         Ref<EntityStore> ref = playerRef.getReference();
         if (ref == null) return;
-        UICommandBuilder commands = new UICommandBuilder();
-        render(commands, ref, ref.getStore());
-        sendUpdate(commands, false);
-    }
-
-    /** Grids and the analysis of the sample in the slot. */
-    private void render(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        writeGrids(commands, ref, store);
-        writeTooltip(commands, ref, store);
-        EntityStatMap stats = store.getComponent(ref, EntityStatMap.getComponentType());
-        ActiveGenome active = store.getComponent(ref, ActiveGenome.getComponentType());
-        double used = active != null && active.getGenome() != null ? active.getGenome().complexity() : 0;
-        Genome sample = Genome.read(container.getItemStack(SAMPLE_SLOT));
-        SampleView.write(commands, sample, playerRef.getLanguage(),
-                used, GenomeCapacity.capacity(stats));
-        StationView.write(commands, station.tier(), sample, ref, store);
-    }
-
-    /** Opens the processing or splicing screen for the sample in the slot, if the station and the sample allow it. */
-    private void openProcessing(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, boolean splice) {
-        ItemStack stack = container.getItemStack(SAMPLE_SLOT);
-        Genome sample = Genome.read(stack);
-        String refusal = splice && station.tier() < 2 ? "Upgrade the Lab Station to tier 2 to splice samples."
-                : splice ? Splicer.refusal(sample) : Processing.refusal(sample);
-        if (refusal != null || stack == null || sample == null) {
-            playerRef.sendMessage(Message.raw(refusal != null ? refusal : "Put a filled syringe in the slot."));
+        validateB();
+        if (!keyOf(container.getItemStack(SAMPLE_SLOT)).equals(builtSample) || !keyOf(bStack()).equals(builtB)) {
+            rebuild();
             return;
         }
-        Player player = store.getComponent(ref, Player.getComponentType());
-        if (player == null) return;
-        player.getPageManager().openCustomPage(ref, store, splice
-                ? new SplicePage(playerRef, station, stack, sample)
-                : new ProcessPage(playerRef, station, stack, sample));
+        partial(ref, ref.getStore());
+    }
+
+    /** Grids, tooltip, Science and the open tab's texts (no rows added or removed). */
+    private void partial(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        if (closed) return;
+        UICommandBuilder commands = new UICommandBuilder();
+        writeGrids(commands, ref, store);
+        writeTooltip(commands, ref, store);
+        writeScience(commands, store);
+        switch (tab) {
+            case "Process" -> ProcessTab.update(this, ref, store, commands);
+            case "Splice" -> SpliceTab.update(this, ref, store, commands);
+            default -> {
+            }
+        }
+        sendUpdate(commands, false);
     }
 
     /** Sends only the tooltip: re-sending the grids while the mouse moves could interrupt a drag. */
@@ -298,10 +543,15 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
 
     /** Shows {@link ItemTooltip} for the hovered slot, or hides it. */
     private void writeTooltip(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        ItemContainer hovered = containerFor(store, ref, hoveredGrid);
-        ItemStack stack = hovered != null && hoveredSlot >= 0 && hoveredSlot < hovered.getCapacity()
-                ? hovered.getItemStack((short) hoveredSlot) : null;
-        if (isEmpty(stack) || hoveredGrid == null) {
+        ItemStack stack;
+        if (SPLICE_GRID.equals(hoveredGrid)) {
+            stack = bStack();
+        } else {
+            ItemContainer hovered = containerFor(store, ref, hoveredGrid);
+            stack = hovered != null && hoveredSlot >= 0 && hoveredSlot < hovered.getCapacity() ? hovered.getItemStack((short) hoveredSlot) : null;
+        }
+        boolean bench = tab.equals("Process") || tab.equals("Splice");
+        if (!bench || isEmpty(stack) || hoveredGrid == null) {
             commands.set("#TooltipLayer.Visible", false);
             return;
         }
@@ -310,6 +560,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
 
     private void writeGrids(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         commands.set(SAMPLE_GRID + ".Slots", slotsOf(container));
+        ItemStack b = bStack();
+        ItemGridSlot bSlotView = b != null ? new ItemGridSlot(new ItemStack(b.getItemId(), b.getQuantity())) : new ItemGridSlot();
+        bSlotView.setActivatable(true);
+        commands.set(SPLICE_GRID + ".Slots", new ItemGridSlot[]{bSlotView});
         ItemContainer storage = playerContainer(store, ref, STORAGE_SECTION_ID);
         ItemContainer hotbar = playerContainer(store, ref, HOTBAR_SECTION_ID);
         if (storage != null) commands.set(STORAGE_GRID + ".Slots", slotsOf(storage));
@@ -329,16 +583,36 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     }
 
     @Nullable
-    private static ItemContainer playerContainer(@Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref, int sectionId) {
+    static ItemContainer playerContainer(@Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref, int sectionId) {
         InventoryComponent component = store.getComponent(ref, InventoryComponent.getComponentTypeById(sectionId));
         return component != null ? component.getInventory() : null;
     }
 
-    /** Data sent back by the page: our {@code Action}/{@code Grid} keys plus the client's drag fields. */
+    /** Identity of a stack for change detection: item and genome. */
+    @Nonnull
+    private static String keyOf(@Nullable ItemStack stack) {
+        if (isEmpty(stack)) return "";
+        Genome genome = Genome.read(stack);
+        return stack.getItemId() + "|" + (genome != null ? genome.toBson().toJson() : "");
+    }
+
+    static int parse(@Nullable String value) {
+        try {
+            return value != null ? Integer.parseInt(value.trim()) : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    /** Data sent back by the page: our keys plus the client's drag fields. */
     public static class EventPayload {
         public static final BuilderCodec<EventPayload> CODEC = BuilderCodec.builder(EventPayload.class, EventPayload::new)
                 .append(new KeyedCodec<>("Action", Codec.STRING), (p, v) -> p.action = v, p -> p.action).add()
                 .append(new KeyedCodec<>("Grid", Codec.STRING), (p, v) -> p.grid = v, p -> p.grid).add()
+                .append(new KeyedCodec<>("Tab", Codec.STRING), (p, v) -> p.tab = v, p -> p.tab).add()
+                .append(new KeyedCodec<>("Index", Codec.STRING), (p, v) -> p.index = v, p -> p.index).add()
+                .append(new KeyedCodec<>("Node", Codec.STRING), (p, v) -> p.node = v, p -> p.node).add()
+                .append(new KeyedCodec<>("@Checked", Codec.BOOLEAN), (p, v) -> p.checked = v, p -> p.checked).add()
                 .append(new KeyedCodec<>("SlotIndex", Codec.INTEGER), (p, v) -> p.slotIndex = v, p -> p.slotIndex).add()
                 .append(new KeyedCodec<>("ItemStackId", Codec.STRING), (p, v) -> p.itemStackId = v, p -> p.itemStackId).add()
                 .append(new KeyedCodec<>("ItemStackQuantity", Codec.INTEGER), (p, v) -> p.itemStackQuantity = v, p -> p.itemStackQuantity).add()
@@ -351,6 +625,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
 
         private String action;
         private String grid;
+        private String tab;
+        private String index;
+        private String node;
+        private Boolean checked;
         private Integer slotIndex;
         private String itemStackId;
         private Integer itemStackQuantity;

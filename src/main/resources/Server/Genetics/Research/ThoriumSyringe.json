@@ -1,0 +1,14 @@
+{
+  "Name": "Thorium Syringe",
+  "Branch": "Syringes",
+  "Order": 2,
+  "Icon": "Syringe",
+  "Cost": 15,
+  "Requires": [
+    "CopperSyringe"
+  ],
+  "Recipes": [
+    "Genetics_Syringe_Thorium"
+  ],
+  "Description": "Teaches the Thorium Syringe recipe."
+}

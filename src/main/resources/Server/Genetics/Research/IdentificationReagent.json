@@ -1,0 +1,9 @@
+{
+  "Name": "Identification Reagent",
+  "Branch": "Reagents",
+  "Order": 0,
+  "Icon": "Effect",
+  "Cost": 0,
+  "Starter": true,
+  "Description": "The reagent every processing uses. Crafted at the Workbench."
+}

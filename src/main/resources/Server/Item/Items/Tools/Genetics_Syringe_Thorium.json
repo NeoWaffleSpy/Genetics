@@ -13,7 +13,7 @@
   "PlayerAnimationsId": "Pickaxe",
   "Recipe": {
     "TimeSeconds": 1,
-    "KnowledgeRequired": false,
+    "KnowledgeRequired": true,
     "Input": [
       { "ItemId": "Ingredient_Bar_Thorium", "Quantity": 3 },
       { "ItemId": "Ingredient_Bar_Iron", "Quantity": 2 },

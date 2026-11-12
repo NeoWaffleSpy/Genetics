@@ -1,0 +1,9 @@
+{
+  "Name": "Processing",
+  "Branch": "Lab",
+  "Order": 0,
+  "Icon": "Helix",
+  "Cost": 0,
+  "Starter": true,
+  "Description": "Process raw samples at the Lab Station: reveal their genes and choose which to keep."
+}

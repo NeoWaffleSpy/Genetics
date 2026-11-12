@@ -39,7 +39,10 @@ import java.util.TreeSet;
  * /genetics event &lt;id&gt;         fire a sickness event on yourself now (ignores bands and cooldowns)
  * /genetics events             list the sickness event ids
  * /genetics capacity &lt;value&gt;   set your Genome Capacity (test tool; expansions only ever raise it)
- * /genetics journal            show your Gene Journal
+ * /genetics journal            show your Catalogue (species, genes, Science, research)
+ * /genetics science &lt;amount&gt;   add Science (negative removes it)
+ * /genetics research &lt;id&gt;      research a node for free; "all" researches every node, "reset" forgets them
+ * /genetics nodes              list the research node ids
  * /genetics mutation &lt;id&gt;      give your active genome this mutation (replacing its mutation), "none" removes it
  * /genetics mutations          list the mutation ids
  * </pre>
@@ -53,6 +56,9 @@ public class GeneticsCommand extends AbstractCommandCollection {
         addSubCommand(new ListEvents());
         addSubCommand(new SetCapacity());
         addSubCommand(new ShowJournal());
+        addSubCommand(new AddScience());
+        addSubCommand(new GrantResearch());
+        addSubCommand(new ListNodes());
         addSubCommand(new SetMutation());
         addSubCommand(new ListMutations());
     }
@@ -141,13 +147,81 @@ public class GeneticsCommand extends AbstractCommandCollection {
             GeneJournal journal = Journal.of(ref, store);
             TreeSet<String> names = new TreeSet<>();
             journal.getSpecies().values().forEach(entry -> names.add(entry.getName() + " x" + entry.getSamples()));
-            context.sendMessage(Message.raw("Gene Journal: " + journal.speciesCount() + " species, " + journal.geneCount() + " genes identified."));
+            context.sendMessage(Message.raw("Catalogue: " + journal.speciesCount() + " species, " + journal.getBuffs().size() + " buffs, "
+                    + journal.getMutations().size() + " mutations, " + journal.getScience() + " Science."));
             if (!names.isEmpty()) context.sendMessage(Message.raw("Species: " + String.join(", ", names) + "."));
-            Balance.Milestone next = Journal.nextMilestone(journal);
-            context.sendMessage(Message.raw(next != null
-                    ? "Next milestone at " + next.getSpecies() + " species (" + (next.getSpecies() - journal.speciesCount()) + " to go)."
-                    : "All milestones reached."));
+            context.sendMessage(Message.raw("Researched: " + (journal.getResearched().isEmpty() ? "starters only" : String.join(", ", journal.getResearched())) + "."));
         }
+    }
+
+    private static final class AddScience extends AbstractPlayerCommand {
+        private final RequiredArg<Integer> amount = withRequiredArg("amount", "server.genetics.commands.science.amount.desc", ArgTypes.INTEGER);
+
+        AddScience() {
+            super("science", "server.genetics.commands.science.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            GeneJournal journal = Journal.of(ref, store);
+            journal.addScience(amount.get(context));
+            context.sendMessage(Message.raw("Science: " + journal.getScience() + "."));
+        }
+    }
+
+    private static final class GrantResearch extends AbstractPlayerCommand {
+        private final RequiredArg<String> id = withRequiredArg("id", "server.genetics.commands.research.id.desc", ArgTypes.STRING);
+
+        GrantResearch() {
+            super("research", "server.genetics.commands.research.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            String value = id.get(context);
+            GeneJournal journal = Journal.of(ref, store);
+            if (value.equalsIgnoreCase("reset")) {
+                journal.resetResearch();
+                context.sendMessage(Message.raw("Research reset (learned recipes are kept)."));
+                return;
+            }
+            if (value.equalsIgnoreCase("all")) {
+                for (com.genetics.research.ResearchNode node : com.genetics.research.Research.all()) com.genetics.research.Research.grant(ref, store, node);
+                context.sendMessage(Message.raw("Every research node is researched."));
+                return;
+            }
+            com.genetics.research.ResearchNode node = com.genetics.research.ResearchNode.getAssetMap().getAsset(value);
+            if (node == null) {
+                context.sendMessage(Message.raw("Unknown node '" + value + "'. Nodes: " + nodeList()));
+                return;
+            }
+            com.genetics.research.Research.grant(ref, store, node);
+            context.sendMessage(Message.raw("Researched " + node.getName() + "."));
+        }
+    }
+
+    private static final class ListNodes extends AbstractPlayerCommand {
+        ListNodes() {
+            super("nodes", "server.genetics.commands.nodes.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            context.sendMessage(Message.raw("Research nodes: " + nodeList()));
+        }
+    }
+
+    @Nonnull
+    private static String nodeList() {
+        List<String> ids = new ArrayList<>();
+        for (com.genetics.research.ResearchNode node : com.genetics.research.Research.all()) ids.add(node.getId());
+        return String.join(", ", ids);
     }
 
     private static final class SetSickness extends AbstractPlayerCommand {

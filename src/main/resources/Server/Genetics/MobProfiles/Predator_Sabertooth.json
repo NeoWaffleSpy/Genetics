@@ -29,5 +29,6 @@
       "Max": 15
     }
   ],
-  "Sound": "SFX_Tiger_Sabertooth_Alerted"
+  "Sound": "SFX_Tiger_Sabertooth_Alerted",
+  "Zone": "Zone 3"
 }

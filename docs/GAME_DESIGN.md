@@ -41,6 +41,9 @@ paid for with rare resources.
 | **Mutation** | A special gene that never appears on a source mob. Defined in the Mutation Codex. |
 | **Effect Codex / Mutation Codex** | Data files that give every effect and mutation its Complexity value (and, for mutations, its behavior). See §3.2 and §3.3. |
 | **Identification** | Revealing a sample's genes at the Lab Station. It is part of processing. |
+| **Catalogue** | The per-player record of every creature, gene, buff and mutation discovered (formerly the Gene Journal). A tab of the Lab Station. See §9.4. |
+| **Science** (placeholder name) | Points earned from Catalogue discoveries and spent in Research. See §9.4. |
+| **Research** | The tech tree, a tab of the Lab Station, that unlocks reagents, Lab features, syringes and Genome Expansions with Science. See §9.5. |
 
 ## 3. Complexity (Decided)
 
@@ -304,11 +307,11 @@ tier, or both:
 | `TierResolver` | Complexity → tier. |
 | `Scaling` (interface) with `Flat`, `Linear`, `Exponential` | Turns a Complexity value into an amount. Registered by `Type` name, the same way the mod already registers interaction types, so new rules can be added later. |
 | `CostCalculator` | Tier + Complexity + mutation count → list of item costs. |
-| `Gate` (interface), first one `StationTierGate` | Says whether a tier is allowed. More gates can be added later (e.g. a discovered-in-Journal gate) without changing the tier format. |
+| `Gate` (interface), first one `StationTierGate` | Says whether a tier is allowed. More gates can be added later (e.g. a researched-node gate, §9.5) without changing the tier format. |
 | `GenomeCapacity` (entity stat asset) | The capacity itself: max = capacity, value = Complexity of the active genome. Works on any entity. |
 | `GeneticSickness` (entity stat asset) | Current sickness, decaying over time. Works on any entity. |
 | `ActiveGenome` (entity component) | Stores the active genome. Usable on any entity, so mobs can carry genomes later. Persists through death. |
-| `GeneJournal` (player component) | Stores discovered mobs, genes and mutations. |
+| `GeneJournal` (player component), to become the Catalogue | Stores discovered mobs, genes and mutations, Science and researched nodes (§9.4, §9.5). |
 | `CapacityCheck` + `DegradeStrategy` (interface) | Compares a genome with the player's capacity and, if it's over, degrades it. The removal order from §3.4 is the first strategy, so the order can be changed without touching injection code. |
 
 Anything else that should scale with Complexity later (sickness, raw injection quality, processing time)
@@ -371,7 +374,7 @@ names need checking against the vanilla list):
 **Proposal: making Phase 1 feel rewarding** (review item E1)
 
 Phase 1 is where players decide whether the mod is worth their time, so its rewards must be noticeable.
-Five changes, all in data except the Journal:
+Five changes, all in data except the Catalogue:
 
 1. **Bigger rolls.** Capacity already caps the total, so single genes can be large: up to +10–20% on one
    stat in Zone 1. At a weight of 0.8, a +20% Health gene costs 16 of the starting 20 capacity, so the
@@ -382,13 +385,13 @@ Five changes, all in data except the Journal:
 3. **An early permanent change.** A few Zone 1 species carry one weak permanent utility effect (Complexity
    8–12, e.g. night vision from a cave creature). It fits in the starting capacity with a small stat gene,
    so the first "my body changed" moment comes early.
-4. **Discovery moments.** The first sample of each species adds a Gene Journal entry and shows a
-   notification with progress ("New genome: Cow, Zone 1 3/12").
-5. **Journal milestones teach recipes.** Sampling enough species in a zone teaches a recipe, using
-   vanilla's recipe knowledge (`KnowledgeRequired` in item recipes). For example, 6 Zone 1 species teach
-   the Lab Station T2 upgrade, and a full zone teaches that tier's Genome Expansion recipe. Expansions are
-   still crafted, only the recipe is unlocked by exploring. This gives Phase 1 a clear goal and leads
-   straight into Phase 2.
+4. **Discovery moments.** The first sample of each species adds a Catalogue entry, shows a
+   notification with progress ("New genome: Cow, Zone 1 3/12") and pays Science (§9.4).
+5. **Discoveries fund Research** (Decided 2026-11-12, replacing Journal milestones). Instead of fixed
+   milestones (e.g. 4 species teach the Copper Syringe), every discovery pays Science, and the player
+   chooses what to unlock in the Research tree (§9.5). Unlocks still use vanilla's recipe knowledge
+   (`KnowledgeRequired`), and the items are still crafted from materials. This gives Phase 1 a clear goal,
+   lets the player pick their own order, and leads straight into Phase 2.
 
 **Decided: identification is part of processing** (changed after playtesting: identifying and processing
 were two steps doing nearly the same thing)
@@ -477,7 +480,7 @@ way to create new mutations), but once a gene is in the library, the player no l
   consumed, and the gene is added to the library with its exact value. The cost uses the Complexity tier
   of that gene alone.
 - **Library entries are reusable.** An entry is knowledge, not an item: once extracted, it can be used in
-  any number of combinations. This makes extraction a collection goal, like the Journal, and the cost of
+  any number of combinations. This makes extraction a collection goal, like the Catalogue, and the cost of
   each combination is what limits power.
 - **Combine.** Pick genes from the library into a new genome and pay for it. The result is genetic
   material: injectable, and spliceable. The cost uses the Complexity tier of the result, times the
@@ -488,7 +491,7 @@ way to create new mutations), but once a gene is in the library, the player no l
   of every copy, so fused stats get expensive fast and capacity still limits them.
 - **Refine.** A library entry can be upgraded to a higher value with rare reagents, past its mob's
   normal range, at a cost that grows with each step. This is an extra late-game resource sink.
-- **Storage.** The library belongs to the player (a `GeneLibrary` component, like the Journal), so it's
+- **Storage.** The library belongs to the player (a `GeneLibrary` component, like the Catalogue), so it's
   never lost with a block. Players share genes by giving each other genetic material to extract.
 
 ### 8.2 Negative genes in the library (Open, ideas below)
@@ -586,20 +589,69 @@ mutations and sickness events.
 
 Death doesn't affect the active genome.
 
-### 9.4 Gene Journal (Proposal)
+### 9.4 Catalogue and Science (Decided; numbers are Proposal)
 
-A per-player log of every mob sampled and every gene and mutation discovered. It's a collection goal,
-and its milestones teach recipes (§6). (Called a Journal so it isn't confused with the Codices, which are
-data files.)
+The **Catalogue** (formerly the Gene Journal) is the per-player record of everything discovered. It is a
+tab of the Lab Station, with four sub-tabs, each with a found / total count:
+
+| Sub-tab | Shows |
+| --- | --- |
+| Creatures | Species grouped by zone. Unknown species stay "???" but show their zone. A species shows its gene ranges, how many genes are still missing (counted, not revealed) and the Science it has paid. |
+| Genes | Every stat gene found, with the species that carry it and the best roll seen. |
+| Buffs | Every effect found (temporary and permanent), with its tiers and sources. |
+| Mutations | Every mutation obtained, with its behaviors. Unknown mutations show only their tier. |
+
+A gene counts as discovered when it is **revealed by processing** (identification is part of processing,
+§6), not when the sample is drawn. Drawing the first sample of a species is discovered at sampling time.
+(Called a Catalogue so it isn't confused with the Codices, which are data files.)
+
+**Science** (placeholder name) is earned from discoveries and spent in Research (§9.5). It is a per-player
+counter, saved with the Catalogue. Placeholder rewards:
+
+| Discovery | Science |
+| --- | --- |
+| First sample of a species | +3 |
+| Each new gene of a species | +1 |
+| Every gene of a species found (species complete) | +5 |
+| New buff (first time any species shows it) | +2 |
+| New mutation | +10 |
+
+The rewards live in the Balance file, like the old milestones did. Repeating a discovery pays nothing, so
+Science can't be farmed by sampling the same mob.
+
+### 9.5 Research (Decided; tree contents are Proposal)
+
+**Research** is a tech tree, the last tab of the Lab Station, that replaces the Journal milestones. Each
+node costs Science and has prerequisites; researching it unlocks a recipe (through vanilla recipe
+knowledge) or a Lab feature. **Research is a gate, not a substitute for gathering:** the unlocked item or
+station upgrade still costs its materials.
+
+| Branch | Nodes, in order (placeholder costs) |
+| --- | --- |
+| Lab | Processing (starter) → Splicing (10, unlocks the Splice tab and the Lab Station T2 upgrade) → Make Permanent (needs Splicing) → Lab Station T3 |
+| Reagents | Identification Reagent (starter) → Gene Stabilizer (needs Make Permanent) → Mutagen (idea: raises the mutation chance of one splice; needs Splicing) |
+| Syringes | Crude (starter) → Copper → Thorium (15) → Adamantite |
+| Genome | Expansion · Moderate (8) → Expansion · Complex → Expansion · Advanced |
+
+- Starter nodes are researched from the beginning, so the first loop (sample, process, inject raw) needs
+  no Science.
+- A node shows as Researched, Available (affordable or not, with its price) or Locked (with what it needs).
+  Cross-branch prerequisites are allowed (Gene Stabilizer needs Make Permanent).
+- More branches can be added later (Phase 3 Library features, faction-specific reagents), since the tree
+  is data.
+- **Data:** a `ResearchNode` asset type (`Server/Genetics/Research/`) with `Branch`, `Cost`, `Requires`
+  (node ids), and what it `Unlocks` (recipe ids and/or feature flags such as `Splicing`,
+  `MakePermanent`, `StationTier3`). Researched nodes are stored on the player with the Catalogue.
+- **Migration:** players who already reached a Journal milestone get its node researched for free.
 
 ## 10. Progression & gating summary (Proposal)
 
 | Phase | Unlocked by | Main resources | Player gets |
 | --- | --- | --- | --- |
-| 1 | Workbench → Syringe and Lab Station T1 (Zone 1) | Basic materials, ID reagent | Raw injection of low-Complexity Zone 1 samples, copying; capacity 20 |
-| 1+ | Better syringes (ore tiers) | Ores, glass | Stronger mobs, first permanent effects, riskier raw injections |
-| 2 | Lab Station T2 | Simple and Moderate tier materials | Processing, splicing, single mutation; capacity up to 45 |
-| 3 | Lab Station T3 | Complex, Advanced and Exotic tier materials | Genetic Library: extract, combine, fuse and refine genes; multiple mutations; capacity up to 200 |
+| 1 | Workbench → Syringe and Lab Station T1 (Zone 1) | Basic materials, ID reagent | Raw injection, Simple processing, copying; capacity 20 |
+| 1+ | Research: better syringes (ore tiers) | Science, ores, glass | Stronger mobs, first permanent effects, riskier raw injections |
+| 2 | Research: Splicing, then the Lab Station T2 upgrade | Science, Simple and Moderate tier materials | Moderate processing, splicing, making effects permanent, single mutation; capacity up to 45 |
+| 3 | Research: Lab Station T3 | Science, Complex, Advanced and Exotic tier materials | Genetic Library: extract, combine, fuse and refine genes; multiple mutations; capacity up to 200 |
 
 ## 11. Balancing levers
 
@@ -615,6 +667,7 @@ All of these live in data files or config rather than code:
 - Library: extraction and combination costs, fusion falloff, refine costs
 - Splice effect reference duration; mutation base chance and Complexity factor
 - Roll counts and ranges per mob profile
+- Science rewards per discovery; Research node costs and prerequisites
 
 ## 12. Future ideas
 
@@ -640,7 +693,7 @@ where it stands after the author's answers.
 - **Each phase changes how the player plays.** Phase 1 is a gamble, Phase 2 is choosing and combining,
   Phase 3 is building exactly what you want from the Genetic Library. That's three different activities,
   not one activity with bigger numbers.
-- **There are clear goals at every stage:** the next syringe tier, Journal milestones, the next Lab
+- **There are clear goals at every stage:** the next syringe tier, the next Research node, the next Lab
   Station tier, the next Genome Expansion, the next mutation, the next library entry.
 - **The design can grow.** The Codices, tiers and mob profiles are all data, so content can be added
   without code.
@@ -648,7 +701,7 @@ where it stands after the author's answers.
 
 | # | Risk | Status |
 | --- | --- | --- |
-| E1 | **Phase 1 rewards feel small.** With vanilla stats only, early injections were barely noticeable. | **Proposal** in §6: bigger rolls, 2–5 minute effects, an early permanent utility effect, discovery moments, and Journal milestones that teach recipes. |
+| E1 | **Phase 1 rewards feel small.** With vanilla stats only, early injections were barely noticeable. | **Proposal** in §6: bigger rolls, 2–5 minute effects, an early permanent utility effect, discovery moments, and discoveries that pay Science for the Research tree (decided, §9.4–9.5). |
 | E2 | **The late-game spike had no source.** Splicing and processing never made a stat bigger than the best mob roll. | **Addressed** by the Genetic Library (§8.1): stat fusion and refining let stats grow, with Complexity and capacity still limiting them. |
 | E3 | **Mid game has long stretches of chance.** Every splice is random per stat, and every round needs a processing step. | **Addressed:** splicing is no longer random; it adds both inputs together, and the screen shows the result before paying. |
 | E4 | **Splicing rules had gaps.** | **Decided:** cost uses the tier of the two samples' average Complexity, and a gene only one input has always carries over. |
@@ -677,11 +730,13 @@ where it stands after the author's answers.
 
 ## 14. Open questions
 
-1. **E1:** adopt the five Phase 1 changes in §6, in particular Journal milestones teaching recipes?
+1. **E1:** adopt the remaining Phase 1 changes in §6 (bigger rolls, longer temporary effects, early
+   permanent effects)? The discovery change is decided: discoveries pay Science (§9.4).
 2. **Genetic Library (§8.1):** are library entries reusable knowledge (as proposed), or consumed when
    combined? And does the library belong to the player or to the Lab Station block?
 3. **Stat fusion:** adopt diminishing returns (100% / 50% / 25% / 12.5%) for the same stat?
 4. **Negative genes (§8.2):** start with them as Complexity reducers, as recommended?
+5. **Science:** final name ("Science" is a placeholder), and the reward and cost numbers in §9.4 / §9.5.
 6. **X3:** give each stat its own drawback weight?
 
 ## 15. Implementation status
@@ -697,7 +752,9 @@ where it stands after the author's answers.
 | Raw self-injection and active genome | Done (quality roll, override rule, kept through death, syringe emptied) |
 | Copying your genome | Done |
 | Genetic Sickness stat and debuffs | Done (stat, bands, decay, kept through death; shared Action system; 10 events across the three bands) |
-| Gene Journal, discovery notifications, milestone recipe unlocks | Done (journal shown with /genetics journal for now) |
+| Gene Journal, discovery notifications, milestone recipe unlocks | Replaced by the Catalogue, Science and Research |
+| Catalogue tab, Science and Research tree | Done (Catalogue with four sub-tabs, Science rewards, Research nodes as data with recipe and feature unlocks, milestone migration) |
+| Lab Station UI rework | Done (one tabbed panel: Process, Splice, Catalogue, Research; slot B for splicing; capacity gauge; Genetics look) |
 | Identification and reagent | Done (merged into processing; the reagent is part of every processing cost) |
 | Syringe tiers | Done (Crude, Copper, Thorium, Adamantite; tier from profile or max health) |
 | Phase 2 processing and splicing | Done (Lab Station T2 upgrade; processing screen to choose genes; additive splicing with the result shown before paying, spliced samples named after their tier; new mutations only when none is inherited) |
@@ -710,6 +767,9 @@ Planned work, noted 2026-11-12, in no particular order:
 
 - [ ] **More genetic profiles**, especially per faction: Abyss, Goblins, Trorks, Ferans and others.
 - [ ] **More mutations** with unique effects.
-- [ ] **UI rework** of the Lab Station, processing and splicing screens.
+- [x] **UI rework** of the Lab Station: one panel with Process, Splice, Catalogue and Research tabs, and the
+      Genetics visual identity (lab teal, helix ornament), from the Hytale-UI Figma proposal. Still to do:
+      real textures for the panels and buttons (today flat colours).
+- [x] **Catalogue, Science and Research** (§9.4, §9.5), replacing the Journal milestones.
 - [ ] **Game feel**: processing time, animations, sounds and other feedback.
 - [ ] **Textures and models** for the mod's own items and blocks (the Lab Station, syringes and reagents use vanilla placeholders today).
