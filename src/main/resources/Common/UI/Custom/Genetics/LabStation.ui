@@ -1,5 +1,11 @@
 $C = "../Common.ui";
 
+// The Lab Station (design doc §7, §9.4, §9.5): one panel with four tabs. Process and Splice keep the sample rail
+// and the inventory on screen; Catalogue and Research hide the inventory and the panel grows (LabStationPage
+// changes #Panel.Anchor).
+// Genetics look: vanilla panels and fonts, plus the lab teal (#3ec9a7) for the header line, the active tab and the
+// main action of each tab; amber (#f0b54a) only means Complexity or Science.
+
 @SlotStyle = (
   SlotSize: 64,
   SlotIconSize: 56,
@@ -12,37 +18,215 @@ $C = "../Common.ui";
   Background: (Color: #25262c);
 };
 
+@SectionStyle = (FontSize: 12, RenderBold: true, RenderUppercase: true, TextColor: #a9b9c7, FontName: "Secondary", VerticalAlignment: Center);
+
+@TabLabelOn = (FontSize: 13, RenderBold: true, RenderUppercase: true, TextColor: #8ff5dc, FontName: "Secondary", HorizontalAlignment: Center, VerticalAlignment: Center);
+@TabLabelOff = (FontSize: 13, RenderBold: true, RenderUppercase: true, TextColor: #a9b9c7, FontName: "Secondary", HorizontalAlignment: Center, VerticalAlignment: Center);
+@TabLabelDisabled = (FontSize: 13, RenderBold: true, RenderUppercase: true, TextColor: #4f5d6b, FontName: "Secondary", HorizontalAlignment: Center, VerticalAlignment: Center);
+
+@TabOnStyle = TextButtonStyle(
+  Default: (Background: #3ec9a7(0.16), LabelStyle: @TabLabelOn),
+  Hovered: (Background: #3ec9a7(0.22), LabelStyle: @TabLabelOn),
+  Pressed: (Background: #3ec9a7(0.28), LabelStyle: @TabLabelOn),
+  Disabled: (Background: #3ec9a7(0.16), LabelStyle: @TabLabelOn)
+);
+
+@TabOffStyle = TextButtonStyle(
+  Default: (Background: #000000(0), LabelStyle: @TabLabelOff),
+  Hovered: (Background: #ffffff(0.05), LabelStyle: @TabLabelOff),
+  Pressed: (Background: #ffffff(0.09), LabelStyle: @TabLabelOff),
+  Disabled: (Background: #000000(0), LabelStyle: @TabLabelDisabled)
+);
+
+@PrimaryLabel = (FontSize: 16, RenderBold: true, RenderUppercase: true, TextColor: #eaf1f4, HorizontalAlignment: Center, VerticalAlignment: Center);
+@PrimaryLabelDisabled = (FontSize: 16, RenderBold: true, RenderUppercase: true, TextColor: #6b7179, HorizontalAlignment: Center, VerticalAlignment: Center);
+
+// The one main action of a tab: lab teal.
+@PrimaryStyle = TextButtonStyle(
+  Default: (Background: #23806e, LabelStyle: @PrimaryLabel),
+  Hovered: (Background: #2b9a85, LabelStyle: @PrimaryLabel),
+  Pressed: (Background: #1d6b5c, LabelStyle: @PrimaryLabel),
+  Disabled: (Background: #2c2f36, LabelStyle: @PrimaryLabelDisabled)
+);
+
+@SecondaryLabel = (FontSize: 15, RenderBold: true, RenderUppercase: true, TextColor: #bdcbd3, HorizontalAlignment: Center, VerticalAlignment: Center);
+
+@SecondaryStyle = TextButtonStyle(
+  Default: (Background: #22344d, LabelStyle: @SecondaryLabel),
+  Hovered: (Background: #2a4060, LabelStyle: @SecondaryLabel),
+  Pressed: (Background: #1c2b40, LabelStyle: @SecondaryLabel),
+  Disabled: (Background: #2c2f36, LabelStyle: @PrimaryLabelDisabled)
+);
+
+@SubLabelOn = (FontSize: 13, RenderBold: true, TextColor: #8ff5dc, HorizontalAlignment: Center, VerticalAlignment: Center);
+@SubLabelOff = (FontSize: 13, RenderBold: true, TextColor: #a9b9c7, HorizontalAlignment: Center, VerticalAlignment: Center);
+
+@SubOnStyle = TextButtonStyle(
+  Default: (Background: #3ec9a7(0.16), LabelStyle: @SubLabelOn),
+  Hovered: (Background: #3ec9a7(0.22), LabelStyle: @SubLabelOn),
+  Pressed: (Background: #3ec9a7(0.28), LabelStyle: @SubLabelOn)
+);
+
+@SubOffStyle = TextButtonStyle(
+  Default: (Background: #ffffff(0.04), LabelStyle: @SubLabelOff),
+  Hovered: (Background: #ffffff(0.08), LabelStyle: @SubLabelOff),
+  Pressed: (Background: #ffffff(0.12), LabelStyle: @SubLabelOff)
+);
+
 $C.@PageOverlay {}
 
-// Middle: the station, its sample slot and the analysis of the sample.
 $C.@DecoratedContainer #Panel {
   @CloseButton = true;
-  Anchor: (Width: 820, Height: 470, Bottom: 480);
+  Anchor: (Width: 1000, Height: 530, Bottom: 466);
 
   #Title {
     Group {
+      LayoutMode: Left;
+
+      Group {
+        FlexWeight: 1;
+      }
+
+      Group {
+        LayoutMode: Top;
+        Anchor: (Width: 20);
+        Padding: (Top: 2);
+
+        Group {
+          Anchor: (Width: 20, Height: 20);
+          Background: "Icons/Helix.png";
+        }
+      }
+
       $C.@Title {
         @Text = "Lab Station";
+      }
+
+      Group {
+        LayoutMode: Top;
+        Anchor: (Width: 20);
+        Padding: (Top: 2);
+
+        Group {
+          Anchor: (Width: 20, Height: 20);
+          Background: "Icons/Helix.png";
+        }
+      }
+
+      Group {
+        FlexWeight: 1;
       }
     }
   }
 
   #Content {
     Group {
+      Anchor: (Height: 2);
+      Background: #3ec9a7;
+    }
+
+    // Tabs, Science and the station tier.
+    Group #ModeBar {
+      LayoutMode: Left;
+      Anchor: (Height: 38);
+
+      TextButton #TabProcessOn { Style: @TabOnStyle; Text: "Process"; Anchor: (Width: 124); }
+      TextButton #TabProcessOff { Style: @TabOffStyle; Text: "Process"; Anchor: (Width: 124); Visible: false; }
+      TextButton #TabSpliceOn { Style: @TabOnStyle; Text: "Splice"; Anchor: (Width: 124); Visible: false; }
+      TextButton #TabSpliceOff { Style: @TabOffStyle; Text: "Splice"; Anchor: (Width: 124); }
+      TextButton #TabCatalogueOn { Style: @TabOnStyle; Text: "Catalogue"; Anchor: (Width: 124); Visible: false; }
+      TextButton #TabCatalogueOff { Style: @TabOffStyle; Text: "Catalogue"; Anchor: (Width: 124); }
+      TextButton #TabResearchOn { Style: @TabOnStyle; Text: "Research"; Anchor: (Width: 124); Visible: false; }
+      TextButton #TabResearchOff { Style: @TabOffStyle; Text: "Research"; Anchor: (Width: 124); }
+
+      Group {
+        FlexWeight: 1;
+      }
+
+      Group {
+        LayoutMode: Top;
+        Padding: (Top: 6);
+
+        Group #SciencePill {
+          LayoutMode: Left;
+          Anchor: (Height: 26);
+          Padding: (Left: 8, Right: 10);
+          Background: #f0b54a(0.16);
+
+          Group {
+            LayoutMode: Top;
+            Anchor: (Width: 16);
+            Padding: (Top: 5);
+
+            Group {
+              Anchor: (Width: 16, Height: 16);
+              Background: "Icons/Science.png";
+            }
+          }
+
+          Label #Science {
+            Padding: (Left: 6);
+            Style: (FontSize: 13, RenderBold: true, RenderUppercase: true, TextColor: #f0b54a, FontName: "Secondary", VerticalAlignment: Center);
+          }
+        }
+      }
+
+      Group {
+        Anchor: (Width: 8);
+      }
+
+      Group {
+        LayoutMode: Top;
+        Padding: (Top: 6);
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 26);
+          Padding: (Horizontal: 10);
+          Background: #3ec9a7(0.16);
+
+          Label #StationTier {
+            Style: (FontSize: 13, RenderBold: true, RenderUppercase: true, TextColor: #8ff5dc, FontName: "Secondary", VerticalAlignment: Center);
+          }
+        }
+      }
+    }
+
+    Group {
+      Anchor: (Height: 1);
+      Background: #273748;
+    }
+
+    Group {
+      Anchor: (Height: 8);
+    }
+
+    Group #Body {
       LayoutMode: Left;
       FlexWeight: 1;
 
-      // Left: the slot and the sampled mob's portrait.
-      Group {
+      // Process and Splice: the station's slot (A), the splice partner (B) and who the sample came from.
+      Group #Rail {
         LayoutMode: Top;
-        Anchor: (Width: 150);
+        Anchor: (Width: 190);
+        Padding: (Right: 14);
 
-        // Fixed heights: LabStationPage places the tooltip from these sizes.
-        Label {
-          Text: "Sample";
-          Anchor: (Height: 32);
-          Padding: (Bottom: 8);
-          Style: (RenderBold: true, TextColor: #E8A93B);
+        // Fixed sizes: ItemTooltip places the slots' tooltips from them.
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 20);
+
+          Label #SlotALabel {
+            Text: "Sample";
+            Anchor: (Width: 94);
+            Style: @SectionStyle;
+          }
+
+          Label #SlotBLabel {
+            Text: "B";
+            Visible: false;
+            Style: @SectionStyle;
+          }
         }
 
         Group {
@@ -56,179 +240,625 @@ $C.@DecoratedContainer #Panel {
             InfoDisplay: None;
             Style: @SlotStyle;
           }
-        }
 
-        AssetImage #MobIcon {
-          Anchor: (Width: 96, Height: 96, Top: 8);
-          Visible: false;
+          Label #PlusLabel {
+            Text: "+";
+            Anchor: (Width: 30);
+            Visible: false;
+            Style: (FontSize: 24, RenderBold: true, TextColor: #3ec9a7, HorizontalAlignment: Center, VerticalAlignment: Center);
+          }
+
+          ItemGrid #SpliceSlot {
+            Anchor: (Width: 64, Height: 64);
+            SlotsPerRow: 1;
+            AreItemsDraggable: true;
+            InfoDisplay: None;
+            Visible: false;
+            Style: @SlotStyle;
+          }
         }
 
         Group {
-          FlexWeight: 1;
+          Anchor: (Height: 10);
         }
 
-        // The station's tier and its upgrade (like a vanilla bench upgrade).
-        Label #StationTier {
-          Anchor: (Height: 24);
-          Style: (RenderBold: true, TextColor: #E8A93B);
-        }
-
-        Group #UpgradePanel {
+        Group #SpeciesCard {
           LayoutMode: Top;
-          Visible: false;
+          FlexWeight: 1;
+          Padding: (Full: 10);
+          Background: #111a24;
+          OutlineColor: #273748;
+          OutlineSize: 1;
 
-          Group #UpgradeCost {
+          AssetImage #MobIcon {
+            Anchor: (Width: 64, Height: 64);
+            Visible: false;
+          }
+
+          Label #SpeciesName {
+            Padding: (Top: 6);
+            Style: (FontSize: 16, RenderBold: true, TextColor: #eaf1f4, Wrap: true);
+          }
+
+          Label #SpeciesMeta {
+            Padding: (Top: 2);
+            Style: (FontSize: 12, TextColor: #a9b9c7, Wrap: true);
+          }
+        }
+      }
+
+      // ---- Process: reveal the genes (identification), tick the ones to keep, turn into genetic material.
+      Group #ProcessTab {
+        LayoutMode: Top;
+        FlexWeight: 1;
+
+        Group {
+          LayoutMode: Top;
+          FlexWeight: 1;
+          Padding: (Full: 12);
+          Background: #111a24;
+          OutlineColor: #273748;
+          OutlineSize: 1;
+
+          Label #ProcessEmpty {
+            Text: "Put a filled syringe in the slot: processing reveals its genes and lets you choose which to keep.";
+            Style: (FontSize: 16, TextColor: #66788a, Wrap: true);
+          }
+
+          Group #ProcessDetails {
             LayoutMode: Top;
+            FlexWeight: 1;
+            Visible: false;
+
+            Group {
+              LayoutMode: Left;
+              Anchor: (Height: 30);
+
+              Label #GenomeName {
+                Style: (FontSize: 22, RenderBold: true, TextColor: #eaf1f4, FontName: "Secondary", VerticalAlignment: Center);
+              }
+
+              Group {
+                Anchor: (Width: 12);
+              }
+
+              Group {
+                LayoutMode: Top;
+                Padding: (Top: 5);
+
+                Group {
+                  LayoutMode: Left;
+                  Anchor: (Height: 22);
+                  Padding: (Horizontal: 8);
+                  Background: #ffffff(0.06);
+
+                  Label #Kind {
+                    Style: @SectionStyle;
+                  }
+                }
+              }
+
+              Group {
+                FlexWeight: 1;
+              }
+
+              Label #NewGenes {
+                Style: (FontSize: 12, RenderBold: true, TextColor: #f0b54a, VerticalAlignment: Center);
+              }
+            }
+
+            Group {
+              LayoutMode: Top;
+              Padding: (Top: 8);
+
+              Group {
+                LayoutMode: Left;
+                Anchor: (Height: 18);
+
+                Label {
+                  Text: "Genome capacity";
+                  FlexWeight: 1;
+                  Style: @SectionStyle;
+                }
+
+                Label #PCapNumbers {
+                  Style: (FontSize: 14, RenderBold: true, TextColor: #eaf1f4, VerticalAlignment: Center);
+                }
+              }
+
+              Group #PCapTrack {
+                LayoutMode: Left;
+                Anchor: (Height: 10, Top: 4);
+                Background: #0b121a;
+                OutlineColor: #273748;
+                OutlineSize: 1;
+
+                Group #PCapFill {
+                  Anchor: (Width: 0);
+                  Background: #f0b54a;
+                }
+
+                Group #PCapOver {
+                  Anchor: (Width: 0);
+                  Background: #e86a6a;
+                }
+              }
+
+              Label #PCapLegend {
+                Padding: (Top: 4);
+                Style: (FontSize: 12, TextColor: #a9b9c7);
+              }
+            }
+
+            Label #GeneHeader {
+              Padding: (Top: 8, Bottom: 6);
+              Style: @SectionStyle;
+            }
+
+            Group #GeneList {
+              LayoutMode: TopScrolling;
+              FlexWeight: 1;
+              ScrollbarStyle: $C.@DefaultScrollbarStyle;
+            }
+          }
+        }
+
+        Label #ProcessReason {
+          Anchor: (Height: 24);
+          Padding: (Top: 6);
+          Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+        }
+
+        Group #ProcessBar {
+          LayoutMode: Left;
+          Anchor: (Height: 54);
+          Padding: (Top: 6);
+
+          Label #ProcessCostLabel {
+            Text: "Cost";
+            Padding: (Right: 10);
+            Style: @SectionStyle;
+          }
+
+          Group #ProcessCost {
+            LayoutMode: Left;
           }
 
           Group {
-            LayoutMode: Left;
-            Anchor: (Height: 34, Top: 4);
+            FlexWeight: 1;
+          }
 
-            $C.@SmallSecondaryTextButton #UpgradeButton {
-              @Text = "Upgrade";
+          Label #ProcessStatus {
+            Padding: (Right: 12);
+            Visible: false;
+            Style: (FontSize: 14, RenderBold: true, TextColor: #8fd17a, VerticalAlignment: Center);
+          }
+
+          TextButton #ProcessButton {
+            Style: @PrimaryStyle;
+            Text: "Process";
+            Anchor: (Width: 160, Height: 44);
+          }
+
+          TextButton #SpliceWithButton {
+            Style: @SecondaryStyle;
+            Text: "Splice with...";
+            Anchor: (Width: 180, Height: 44);
+            Visible: false;
+          }
+
+          TextButton #UpgradeStationButton {
+            Style: @SecondaryStyle;
+            Text: "Upgrade...";
+            Anchor: (Width: 160, Height: 44);
+            Visible: false;
+          }
+        }
+      }
+
+      // ---- Splice: A (station slot) + B (dragged from the inventory) added together.
+      Group #SpliceTab {
+        LayoutMode: Top;
+        FlexWeight: 1;
+        Visible: false;
+
+        Group {
+          LayoutMode: Top;
+          FlexWeight: 1;
+          Padding: (Full: 12);
+          Background: #111a24;
+          OutlineColor: #273748;
+          OutlineSize: 1;
+
+          Label #SpliceEmpty {
+            Style: (FontSize: 16, TextColor: #66788a, Wrap: true);
+          }
+
+          Group #SpliceUpgrade {
+            LayoutMode: Top;
+            Visible: false;
+
+            Label #SpliceUpgradeText {
+              Padding: (Top: 10);
+              Style: (FontSize: 14, TextColor: #a9b9c7, Wrap: true);
+            }
+
+            Group #UpgradeCost {
+              LayoutMode: Left;
+              Anchor: (Height: 46, Top: 10);
+            }
+
+            Group {
+              LayoutMode: Left;
+              Anchor: (Height: 44, Top: 10);
+
+              TextButton #UpgradeButton {
+                Style: @PrimaryStyle;
+                Text: "Upgrade to T2";
+                Anchor: (Width: 210);
+              }
+            }
+          }
+
+          Group #SpliceDetails {
+            LayoutMode: Top;
+            FlexWeight: 1;
+            Visible: false;
+
+            Group {
+              LayoutMode: Left;
+              Anchor: (Height: 30);
+
+              Label {
+                Text: "Splice preview";
+                Style: (FontSize: 22, RenderBold: true, TextColor: #eaf1f4, FontName: "Secondary", VerticalAlignment: Center);
+              }
+
+              Group {
+                Anchor: (Width: 12);
+              }
+
+              Group {
+                LayoutMode: Top;
+                Padding: (Top: 5);
+
+                Group {
+                  LayoutMode: Left;
+                  Anchor: (Height: 22);
+                  Padding: (Horizontal: 8);
+                  Background: #ffffff(0.06);
+
+                  Label {
+                    Text: "Unidentified result";
+                    Style: @SectionStyle;
+                  }
+                }
+              }
+
+              Group {
+                FlexWeight: 1;
+              }
+
+              Label #Mutation {
+                Style: (FontSize: 12, RenderBold: true, TextColor: #b78cf2, VerticalAlignment: Center);
+              }
+            }
+
+            Group {
+              LayoutMode: Top;
+              Padding: (Top: 8);
+
+              Group {
+                LayoutMode: Left;
+                Anchor: (Height: 18);
+
+                Label {
+                  Text: "Genome capacity";
+                  FlexWeight: 1;
+                  Style: @SectionStyle;
+                }
+
+                Label #SCapNumbers {
+                  Style: (FontSize: 14, RenderBold: true, TextColor: #eaf1f4, VerticalAlignment: Center);
+                }
+              }
+
+              Group #SCapTrack {
+                LayoutMode: Left;
+                Anchor: (Height: 10, Top: 4);
+                Background: #0b121a;
+                OutlineColor: #273748;
+                OutlineSize: 1;
+
+                Group #SCapFill {
+                  Anchor: (Width: 0);
+                  Background: #f0b54a;
+                }
+
+                Group #SCapOver {
+                  Anchor: (Width: 0);
+                  Background: #e86a6a;
+                }
+              }
+
+              Label #SCapLegend {
+                Padding: (Top: 4);
+                Style: (FontSize: 12, TextColor: #a9b9c7);
+              }
+            }
+
+            Group {
+              LayoutMode: Left;
+              Anchor: (Height: 28);
+              Padding: (Left: 10, Right: 10, Top: 8);
+
+              Group {
+                Anchor: (Width: 58);
+              }
+
+              Label {
+                Text: "Gene";
+                FlexWeight: 1;
+                Style: @SectionStyle;
+              }
+
+              Label {
+                Text: "A";
+                Anchor: (Width: 80);
+                Style: (FontSize: 12, RenderBold: true, RenderUppercase: true, TextColor: #a9b9c7, FontName: "Secondary", HorizontalAlignment: End, VerticalAlignment: Center);
+              }
+
+              Label {
+                Text: "B";
+                Anchor: (Width: 80);
+                Style: (FontSize: 12, RenderBold: true, RenderUppercase: true, TextColor: #a9b9c7, FontName: "Secondary", HorizontalAlignment: End, VerticalAlignment: Center);
+              }
+
+              Label {
+                Text: "Result";
+                Anchor: (Width: 100);
+                Style: (FontSize: 12, RenderBold: true, RenderUppercase: true, TextColor: #a9b9c7, FontName: "Secondary", HorizontalAlignment: End, VerticalAlignment: Center);
+              }
+            }
+
+            Group #SpliceList {
+              LayoutMode: TopScrolling;
+              FlexWeight: 1;
+              ScrollbarStyle: $C.@DefaultScrollbarStyle;
+            }
+          }
+        }
+
+        Label #SpliceReason {
+          Anchor: (Height: 24);
+          Padding: (Top: 6);
+          Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+        }
+
+        Group #SpliceBar {
+          LayoutMode: Left;
+          Anchor: (Height: 54);
+          Padding: (Top: 6);
+
+          Label #SpliceCostLabel {
+            Text: "Cost";
+            Padding: (Right: 10);
+            Style: @SectionStyle;
+          }
+
+          Group #SpliceCost {
+            LayoutMode: Left;
+          }
+
+          Group {
+            FlexWeight: 1;
+          }
+
+          TextButton #SpliceButton {
+            Style: @PrimaryStyle;
+            Text: "Splice";
+            Anchor: (Width: 160, Height: 44);
+          }
+        }
+      }
+
+      // ---- Catalogue: creatures, genes, buffs and mutations found.
+      Group #CatalogueTab {
+        LayoutMode: Top;
+        FlexWeight: 1;
+        Visible: false;
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 32);
+
+          TextButton #SubCreaturesOn { Style: @SubOnStyle; Text: "Creatures"; Anchor: (Width: 150); }
+          TextButton #SubCreaturesOff { Style: @SubOffStyle; Text: "Creatures"; Anchor: (Width: 150); Visible: false; }
+          Group { Anchor: (Width: 8); }
+          TextButton #SubGenesOn { Style: @SubOnStyle; Text: "Genes"; Anchor: (Width: 150); Visible: false; }
+          TextButton #SubGenesOff { Style: @SubOffStyle; Text: "Genes"; Anchor: (Width: 150); }
+          Group { Anchor: (Width: 8); }
+          TextButton #SubBuffsOn { Style: @SubOnStyle; Text: "Buffs"; Anchor: (Width: 150); Visible: false; }
+          TextButton #SubBuffsOff { Style: @SubOffStyle; Text: "Buffs"; Anchor: (Width: 150); }
+          Group { Anchor: (Width: 8); }
+          TextButton #SubMutationsOn { Style: @SubOnStyle; Text: "Mutations"; Anchor: (Width: 150); Visible: false; }
+          TextButton #SubMutationsOff { Style: @SubOffStyle; Text: "Mutations"; Anchor: (Width: 150); }
+
+          Group {
+            FlexWeight: 1;
+          }
+
+          Label #CatalogueProgress {
+            Style: (FontSize: 12, RenderBold: true, TextColor: #a9b9c7, VerticalAlignment: Center);
+          }
+        }
+
+        Group {
+          Anchor: (Height: 10);
+        }
+
+        Group {
+          LayoutMode: Left;
+          FlexWeight: 1;
+
+          Group #CatalogueList {
+            LayoutMode: TopScrolling;
+            FlexWeight: 1;
+            Padding: (Right: 12);
+            ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          }
+
+          Group {
+            LayoutMode: Top;
+            Anchor: (Width: 430);
+            Padding: (Full: 14);
+            Background: #111a24;
+            OutlineColor: #273748;
+            OutlineSize: 1;
+
+            AssetImage #DetailIcon {
+              Anchor: (Width: 64, Height: 64);
+              Visible: false;
+            }
+
+            Label #DetailName {
+              Padding: (Top: 4);
+              Style: (FontSize: 20, RenderBold: true, TextColor: #eaf1f4, FontName: "Secondary", Wrap: true);
+            }
+
+            Label #DetailMeta {
+              Padding: (Top: 2);
+              Style: (FontSize: 12, TextColor: #a9b9c7, Wrap: true);
+            }
+
+            Label #DetailGenesHeader {
+              Padding: (Top: 12, Bottom: 6);
+              Style: @SectionStyle;
+            }
+
+            Group #DetailGenes {
+              LayoutMode: TopScrolling;
+              FlexWeight: 1;
+              ScrollbarStyle: $C.@DefaultScrollbarStyle;
+            }
+
+            Label #DetailMissing {
+              Padding: (Top: 4);
+              Style: (FontSize: 12, TextColor: #66788a, Wrap: true);
+            }
+
+            Label #DetailScience {
+              Padding: (Top: 8);
+              Style: (FontSize: 12, RenderBold: true, TextColor: #f0b54a, Wrap: true);
             }
           }
         }
       }
 
-      // Right: the analysis.
-      Group {
+      // ---- Research: the tech tree, paid with Science.
+      Group #ResearchTab {
         LayoutMode: Top;
         FlexWeight: 1;
-        Padding: (Full: 14);
-        Background: #000000(0.2);
+        Visible: false;
 
-        Label #EmptyLabel {
-          Text: "Empty";
-          Style: (FontSize: 22, RenderBold: true, TextColor: #878e9c);
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 30);
+
+          Label {
+            Text: "Research";
+            Style: (FontSize: 22, RenderBold: true, TextColor: #eaf1f4, FontName: "Secondary", VerticalAlignment: Center);
+          }
+
+          Label {
+            Text: "Spend Science earned from the Catalogue. Each branch unlocks in order; some nodes need another branch first.";
+            FlexWeight: 1;
+            Padding: (Left: 14);
+            Style: (FontSize: 13, TextColor: #a9b9c7, VerticalAlignment: Center, Wrap: true);
+          }
         }
 
-        Group #Details {
-          LayoutMode: Top;
-          FlexWeight: 1;
-          Visible: false;
+        Group {
+          Anchor: (Height: 8);
+        }
 
-          Label #MobName {
-            Style: (FontSize: 24, RenderBold: true);
+        Group #ResearchTree {
+          LayoutMode: TopScrolling;
+          FlexWeight: 1;
+          Padding: (Full: 14);
+          Background: #111a24;
+          OutlineColor: #273748;
+          OutlineSize: 1;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        }
+
+        Group {
+          Anchor: (Height: 10);
+        }
+
+        Group #ResearchDetail {
+          LayoutMode: Left;
+          Anchor: (Height: 112);
+          Padding: (Full: 14);
+          Background: #172332;
+          OutlineColor: #f0b54a(0.6);
+          OutlineSize: 1;
+
+          Group {
+            LayoutMode: Middle;
+            Anchor: (Width: 56);
+            Background: #111a24;
+
+            Group #RDIconHelix { Anchor: (Width: 30, Height: 30); Background: "Icons/Helix.png"; Visible: false; }
+            Group #RDIconStat { Anchor: (Width: 30, Height: 30); Background: "Icons/Stat.png"; Visible: false; }
+            Group #RDIconEffect { Anchor: (Width: 30, Height: 30); Background: "Icons/Effect.png"; Visible: false; }
+            Group #RDIconMutation { Anchor: (Width: 30, Height: 30); Background: "Icons/Mutation.png"; Visible: false; }
+            Group #RDIconSyringe { Anchor: (Width: 30, Height: 30); Background: "Icons/Syringe.png"; Visible: false; }
           }
 
           Group {
-            LayoutMode: Left;
-            Anchor: (Height: 26);
-            Padding: (Bottom: 10);
-
-            Label #Kind {
-              Padding: (Right: 16);
-              Style: (RenderBold: true, TextColor: #96a9be);
-            }
-
-            Label #Complexity {
-              Padding: (Right: 16);
-              Style: (RenderBold: true, TextColor: #E8A93B);
-            }
-
-            Label #Capacity {
-              Style: (RenderBold: true, TextColor: #96a9be);
-            }
-          }
-
-          Label #CapacityWarning {
-            Visible: false;
-            Padding: (Bottom: 8);
-            Style: (RenderBold: true, TextColor: #e06666, Wrap: true);
-          }
-
-          Label #CapacityOk {
-            Visible: false;
-            Padding: (Bottom: 8);
-            Style: (RenderBold: true, TextColor: #8fd17a);
-          }
-
-          // Process (raw samples) or Splice (genetic material), from Lab Station T2.
-          Group #Actions {
-            LayoutMode: Left;
-            Anchor: (Height: 40);
-            Padding: (Bottom: 6);
-
-            $C.@SmallSecondaryTextButton #ProcessButton {
-              @Text = "Process...";
-              Visible: false;
-            }
-
-            $C.@SmallSecondaryTextButton #SpliceButton {
-              @Text = "Splice...";
-              Visible: false;
-            }
-
-            Label #ActionHint {
-              FlexWeight: 1;
-              Padding: (Left: 10);
-              Style: (FontSize: 13, TextColor: #878e9c, VerticalAlignment: Center, Wrap: true);
-            }
-          }
-
-          // Shown instead of the genes while the sample is unidentified.
-          Group #IdentifyPanel {
             LayoutMode: Top;
             FlexWeight: 1;
-            Visible: false;
+            Padding: (Left: 14);
 
-            Label {
-              Text: "This sample hasn't been analysed yet. Process it to reveal its genes and choose which to keep, or inject it blind.";
-              Padding: (Bottom: 14);
-              Style: (FontSize: 16, TextColor: #96a9be, Wrap: true);
+            Label #RDName {
+              Style: (FontSize: 18, RenderBold: true, TextColor: #eaf1f4);
             }
 
+            Label #RDDescription {
+              Style: (FontSize: 13, TextColor: #a9b9c7, Wrap: true);
+            }
+
+            Label #RDStatus {
+              Padding: (Top: 4);
+              Style: (FontSize: 12, RenderBold: true, TextColor: #66788a);
+            }
           }
 
-          Group #Genes {
-            LayoutMode: Left;
-            FlexWeight: 1;
+          Group {
+            LayoutMode: Top;
+            Padding: (Top: 10, Right: 12);
 
             Group {
-              LayoutMode: Top;
-              Anchor: (Width: 230);
-              Padding: (Right: 20);
+              LayoutMode: Left;
+              Anchor: (Height: 30);
+              Padding: (Horizontal: 10);
+              Background: #f0b54a(0.16);
 
-              Label {
-                Text: "Stat genes";
-                Padding: (Bottom: 6);
-                Style: (RenderBold: true, TextColor: #E8A93B);
-              }
-
-              Label #NoStats {
-                Text: "None";
-                Style: (TextColor: #878e9c);
-              }
-
-              Group #StatList {
-                LayoutMode: TopScrolling;
-                FlexWeight: 1;
-                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+              Label #RDCost {
+                Style: (FontSize: 14, RenderBold: true, TextColor: #f0b54a, VerticalAlignment: Center);
               }
             }
+          }
 
-            Group {
-              LayoutMode: Top;
-              FlexWeight: 1;
+          Group {
+            LayoutMode: Top;
+            Padding: (Top: 1);
 
-              Label {
-                Text: "Effect genes";
-                Padding: (Bottom: 6);
-                Style: (RenderBold: true, TextColor: #E8A93B);
-              }
-
-              Label #NoEffects {
-                Text: "None";
-                Style: (TextColor: #878e9c);
-              }
-
-              Group #EffectList {
-                LayoutMode: TopScrolling;
-                FlexWeight: 1;
-                ScrollbarStyle: $C.@DefaultScrollbarStyle;
-              }
+            TextButton #ResearchButton {
+              Style: @PrimaryStyle;
+              Text: "Research";
+              Anchor: (Width: 160, Height: 44);
             }
           }
         }
@@ -237,7 +867,7 @@ $C.@DecoratedContainer #Panel {
   }
 }
 
-// Bottom: the player's inventory.
+// Bottom: the player's inventory (Process and Splice tabs only).
 $C.@DecoratedContainer #InventoryPanel {
   // Content width = the grids' width (608 + 2 x 17 padding), so the slots' positions are known exactly.
   Anchor: (Width: 642, Height: 420, Bottom: 30);
@@ -272,10 +902,10 @@ $C.@DecoratedContainer #InventoryPanel {
 // Our own item tooltip, a copy of the game's (Interface/InGame/Tooltips/ItemTooltip.ui). The grids' built-in
 // tooltip is turned off (InfoDisplay: None) because it stayed on screen when the page closed under it; this one
 // belongs to the page, so it closes with it.
-// The layer covers both panels (bottom of the inventory to top of the station). LabStationPage places the tooltip
+// The layer covers both panels (bottom of the inventory to top of the station). ItemTooltip places the tooltip
 // in it: #TooltipGap (under the tooltip) is the distance from the layer's bottom, #TooltipIndent from its left.
 Group #TooltipLayer {
-  Anchor: (Width: 820, Height: 920, Bottom: 30);
+  Anchor: (Width: 1000, Height: 966, Bottom: 30);
   LayoutMode: Bottom;
   Visible: false;
 
@@ -338,8 +968,6 @@ Group #TooltipLayer {
     }
   }
 
-  // Below the tooltip: Bottom layout keeps the children's order and pushes the stack down, so this spacer
-  // lifts the tooltip off the layer's bottom.
   Group #TooltipGap {
     Anchor: (Height: 0);
   }

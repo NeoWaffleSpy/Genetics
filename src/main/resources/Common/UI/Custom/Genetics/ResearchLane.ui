@@ -1,0 +1,20 @@
+// One branch of the Research tree: its name, then its nodes from left to right.
+Group {
+  LayoutMode: Top;
+  Padding: (Bottom: 22);
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 64);
+
+    Label #Lane {
+      Anchor: (Width: 80);
+      Style: (FontSize: 12, RenderBold: true, RenderUppercase: true, TextColor: #a9b9c7, FontName: "Secondary", VerticalAlignment: Center);
+    }
+
+    Group #Nodes {
+      LayoutMode: Left;
+      FlexWeight: 1;
+    }
+  }
+}

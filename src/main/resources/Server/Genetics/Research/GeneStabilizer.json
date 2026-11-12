@@ -1,0 +1,15 @@
+{
+  "Name": "Gene Stabilizer",
+  "Branch": "Reagents",
+  "Order": 1,
+  "Icon": "Effect",
+  "Cost": 12,
+  "Requires": [
+    "IdentificationReagent",
+    "MakePermanent"
+  ],
+  "Recipes": [
+    "Genetics_Gene_Stabilizer"
+  ],
+  "Description": "Teaches the Gene Stabilizer recipe, the catalyst for making an effect permanent."
+}

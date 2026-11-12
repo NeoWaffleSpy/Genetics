@@ -112,8 +112,8 @@ public final class Splicer {
             if (!(gene instanceof Gene.Effect effect)) continue;
             String other = byFamily.putIfAbsent(family(effect.effect()), effect.effect());
             if (other != null && !other.equals(effect.effect())) {
-                return "Untick " + other.replace('_', ' ') + " or " + effect.effect().replace('_', ' ')
-                        + ": a sample can't hold the same buff at two tiers.";
+                return "Untick " + com.genetics.genome.GeneText.effectName(other, null) + " or "
+                        + com.genetics.genome.GeneText.effectName(effect.effect(), null) + ": a sample can't hold the same buff at two tiers.";
             }
         }
         return null;

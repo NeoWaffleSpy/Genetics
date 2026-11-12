@@ -1,0 +1,71 @@
+$C = "../Common.ui";
+
+// One gene, the same row everywhere: keep tickbox, type icon, name, "Make permanent" tickbox (temporary effects of
+// 30:00+), value and Complexity (amber).
+Group {
+  LayoutMode: Top;
+  Padding: (Bottom: 5);
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 36);
+    Padding: (Horizontal: 10);
+    Background: #ffffff(0.035);
+
+    Group #ToggleBox {
+      LayoutMode: Middle;
+      Anchor: (Width: 30);
+
+      $C.@CheckBox #Toggle {
+        Value: true;
+      }
+    }
+
+    Group {
+      LayoutMode: Middle;
+      Anchor: (Width: 28);
+
+      Group #IconStat { Anchor: (Width: 20, Height: 20); Background: "Icons/Stat.png"; }
+      Group #IconDrawback { Anchor: (Width: 20, Height: 20); Background: "Icons/Drawback.png"; Visible: false; }
+      Group #IconEffect { Anchor: (Width: 20, Height: 20); Background: "Icons/Effect.png"; Visible: false; }
+      Group #IconMutation { Anchor: (Width: 20, Height: 20); Background: "Icons/Mutation.png"; Visible: false; }
+    }
+
+    Label #Name {
+      FlexWeight: 1;
+      Padding: (Left: 6);
+      Style: (FontSize: 15, RenderBold: true, TextColor: #eaf1f4, VerticalAlignment: Center);
+    }
+
+    Group #PermanentBox {
+      LayoutMode: Left;
+      Anchor: (Width: 210);
+      Visible: false;
+
+      Group #PermanentCheck {
+        LayoutMode: Middle;
+        Anchor: (Width: 28);
+
+        $C.@CheckBox #Permanent {
+          Value: false;
+        }
+      }
+
+      Label #PermanentLabel {
+        Text: "Make permanent";
+        Style: (FontSize: 12, RenderBold: true, TextColor: #8ff5dc, VerticalAlignment: Center);
+      }
+    }
+
+    Label #Value {
+      Anchor: (Width: 120);
+      Padding: (Right: 12);
+      Style: (FontSize: 15, RenderBold: true, TextColor: #8fd17a, HorizontalAlignment: End, VerticalAlignment: Center);
+    }
+
+    Label #Complexity {
+      Anchor: (Width: 60);
+      Style: (FontSize: 15, RenderBold: true, TextColor: #f0b54a, HorizontalAlignment: End, VerticalAlignment: Center);
+    }
+  }
+}

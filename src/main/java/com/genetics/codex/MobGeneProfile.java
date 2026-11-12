@@ -129,6 +129,8 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
             .documentation("Sound event id of the mob's call, used by sickness events (PlaySourceMobSound).").add()
             .append(new KeyedCodec<>("SyringeTier", Codec.INTEGER), (t, v) -> t.syringeTier = v, t -> t.syringeTier)
             .documentation("Syringe tier needed to sample these mobs (1 = Crude). 0 or absent: based on the mob's max health.").add()
+            .append(new KeyedCodec<>("Zone", Codec.STRING), (t, v) -> t.zone = v, t -> t.zone)
+            .documentation("Where the species lives, shown in the Catalogue (e.g. \"Zone 1\"). Unknown species are grouped by it.").add()
             .build();
 
     private static AssetStore<String, MobGeneProfile, DefaultAssetMap<String, MobGeneProfile>> store;
@@ -144,6 +146,7 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
     private Drawback[] drawbacks = new Drawback[0];
     private String sound;
     private int syringeTier;
+    private String zone;
 
     private MobGeneProfile() {
     }
@@ -200,6 +203,11 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
     @javax.annotation.Nullable
     public String getSound() {
         return sound;
+    }
+
+    @javax.annotation.Nullable
+    public String getZone() {
+        return zone;
     }
 
     public Drawback[] getDrawbacks() {

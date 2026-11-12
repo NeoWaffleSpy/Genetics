@@ -21,7 +21,7 @@ public record Station(@Nonnull World world, @Nonnull Vector3i pos, @Nonnull Item
         return LabStationBlock.tierAt(world, pos);
     }
 
-    /** Opens the Lab Station screen again (used by the Back buttons and after processing or splicing). */
+    /** Opens the Lab Station screen again. */
     public void reopen(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef) {
         Player player = store.getComponent(ref, Player.getComponentType());
         if (player != null) player.getPageManager().openCustomPage(ref, store, new LabStationPage(playerRef, this));

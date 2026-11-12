@@ -1,0 +1,14 @@
+{
+  "Name": "Copper Syringe",
+  "Branch": "Syringes",
+  "Order": 1,
+  "Icon": "Syringe",
+  "Cost": 5,
+  "Requires": [
+    "CrudeSyringe"
+  ],
+  "Recipes": [
+    "Genetics_Syringe_Copper"
+  ],
+  "Description": "Teaches the Copper Syringe recipe: samples tougher creatures."
+}

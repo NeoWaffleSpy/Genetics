@@ -1,0 +1,14 @@
+{
+  "Name": "Splicing",
+  "Branch": "Lab",
+  "Order": 1,
+  "Icon": "Helix",
+  "Cost": 10,
+  "Requires": [
+    "Processing"
+  ],
+  "Features": [
+    "Splicing"
+  ],
+  "Description": "Unlocks the Splice tab and the Lab Station T2 upgrade (the upgrade itself still costs materials)."
+}

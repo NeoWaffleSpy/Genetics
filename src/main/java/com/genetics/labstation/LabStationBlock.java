@@ -85,6 +85,11 @@ public class LabStationBlock implements Component<ChunkStore> {
         int current = tierAt(world, pos);
         Balance.StationUpgrade upgrade = Balance.get().stationUpgrade(current + 1);
         if (current >= MAX_TIER || upgrade == null) return "This Lab Station is already at its highest tier.";
+        com.genetics.journal.GeneJournal journal = com.genetics.journal.Journal.of(player, accessor);
+        if (!com.genetics.research.Research.hasFeature(journal, com.genetics.research.Research.SPLICING)) {
+            com.genetics.research.ResearchNode node = com.genetics.research.Research.grantingNode(com.genetics.research.Research.SPLICING);
+            return "Research " + (node != null ? node.getName() : "Splicing") + " first.";
+        }
         Ref<ChunkStore> block = blockEntity(world, pos);
         if (block == null) return "This Lab Station can't be upgraded.";
         if (!Materials.pay(player, accessor, upgrade.getMaterials())) return "You don't have the materials for this upgrade.";

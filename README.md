@@ -27,20 +27,29 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
 - **Syringe tiers**: Crude, Copper, Thorium and Adamantite. Stronger mobs need better syringes.
 - **Identification**: every sample is "Unidentified" until processed at the Lab Station (see below). Unidentified samples can still be injected blind.
 - **Stronger mobs, stronger genes**: predators and mythic creatures (bears, sabertooth, raptor, yeti, rex) roll bigger stats and higher-tier buffs (Meat Buff T2/T3, Regeneration T2, Stamina T2).
-- **Gene Journal**: every species sampled and gene identified. New species show a notification, and milestones
-  (4 and 8 species) teach the Copper Syringe and Genome Expansion recipes. `/genetics journal` shows it.
+- **Catalogue and Science**: every creature, gene, buff and mutation you find. Discoveries pay **Science**
+  (placeholder name): first sample of a species +3, each new gene +1, a completed species +5, a new buff +2, a new
+  mutation +10 (`Balance/Default.json`). `/genetics journal` sums it up.
+- **Research**: a tech tree paid with Science (`Server/Genetics/Research/`, one file per node) in four branches: Lab
+  (Splicing, Make Permanent), Reagents (Gene Stabilizer), Syringes (Copper, Thorium, Adamantite) and Genome
+  (Moderate expansion). Nodes teach recipes and turn on Lab features; the items themselves still cost materials.
+  It replaces the old Journal milestones (players who had them keep the matching nodes).
 - **Lab Station** (`Server/Item/Items/Bench/Genetics_Lab_Station.json`): a one-slot station that only accepts
-  syringes. Its custom screen (`Common/UI/Custom/Genetics/LabStation.ui`) shows the sample's source, Complexity,
-  stat genes and effect genes, with drag & drop between the station and the inventory. Uses the Alchemy bench's
-  model as a placeholder. Its tier is saved on the block.
+  syringes. Its custom screen (`Common/UI/Custom/Genetics/LabStation.ui`) is one panel with four tabs, **Process,
+  Splice, Catalogue and Research**, in the mod's look (vanilla panels with a lab-teal accent and helix ornament).
+  Process and Splice keep the sample slot and the inventory on screen, with drag & drop between them. Uses the
+  Alchemy bench's model as a placeholder. Its tier is saved on the block.
   - **Processing** (T1 for Simple Complexity, T2 for Moderate): reveals a raw sample's genes, which is how samples are
     identified, and lets you tick the ones to keep. Complexity is recalculated, and the cost is one Identification
     Reagent plus the materials of its **Complexity tier** (Simple, Moderate, Complex, Advanced, Exotic). The result
     is **genetic material**: injected exactly as it is, with less sickness, and never processed again.
-  - **Make permanent**: a temporary effect spliced up to 30:00 or more can be made permanent while processing,
-    for its permanent Complexity and a **Gene Stabilizer** (crafted at the Workbench).
-  - **Upgrading to T2** (copper, iron, Life Essence) unlocks Moderate processing and splicing.
-  - **Splicing**: combine the genetic material in the station with one from your inventory. The two are added
+    A capacity gauge shows the result against your Genome Capacity, and genes you have never found are tagged NEW.
+  - **Make permanent** (researched): a temporary effect spliced up to 30:00 or more can be made permanent while
+    processing, for its permanent Complexity and a **Gene Stabilizer** (recipe researched, crafted at the Workbench).
+  - **Upgrading to T2** (copper, iron, Life Essence, once Splicing is researched) unlocks Moderate processing and
+    splicing. The Splice tab offers it.
+  - **Splicing** (researched, T2): genetic material A in the station plus B dragged from your inventory into the
+    second slot (B stays in your inventory until the splice uses it). The two are added
     together: shared stats sum their percentages, shared temporary effects sum their timers (and cost Complexity in
     proportion), and genes only one side has carry over. The screen shows A, B and the result, with a tickbox per
     gene; the same buff at two tiers (Meat Buff T1 and T2) can't both be kept. The cost uses the tier of the average
@@ -67,9 +76,11 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
 | `src/main/java/com/genetics/effect/` | Behavior of custom effects |
 | `src/main/java/com/genetics/action/` | Shared actions (ApplyEffect, PlaySound, Impulse, …) used by data files |
 | `src/main/java/com/genetics/sickness/` | Genetic Sickness: stat helpers, state, bands, decay and events |
-| `src/main/java/com/genetics/labstation/` | Lab Station interaction, custom screen and tier |
+| `src/main/java/com/genetics/labstation/` | Lab Station interaction, tier, and its tabbed screen (one class per tab) |
+| `src/main/java/com/genetics/journal/` | The Catalogue (saved as the Gene Journal) and Science rewards |
+| `src/main/java/com/genetics/research/` | Research nodes, buying them and the features they unlock |
 | `src/main/java/com/genetics/tier/` | Complexity tiers, cost Scaling rules, paying material costs |
-| `src/main/java/com/genetics/process/` | Processing and splicing, and their screens |
+| `src/main/java/com/genetics/process/` | Processing and splicing rules |
 | `src/main/java/com/genetics/mutation/` | Mutation behaviors and the system that runs them |
 | `src/main/resources/Server/` | Server assets (items, effects, translations, Genetics data) |
 | `src/main/resources/Common/UI/Custom/Genetics/` | Custom UI layouts |

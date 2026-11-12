@@ -1,0 +1,11 @@
+{
+  "Name": "Expansion · Moderate",
+  "Branch": "Genome",
+  "Order": 0,
+  "Icon": "Stat",
+  "Cost": 8,
+  "Recipes": [
+    "Genetics_Genome_Expansion_Moderate"
+  ],
+  "Description": "Teaches the Moderate Genome Expansion recipe (capacity 20 to 45)."
+}

@@ -1,0 +1,53 @@
+// One Research node, with the link from the previous node of its lane. Researched: teal accent; available: amber.
+Group {
+  LayoutMode: Left;
+  Anchor: (Width: 214, Height: 64);
+
+  Group {
+    LayoutMode: Middle;
+    Anchor: (Width: 16);
+
+    Group #LinkOn { Anchor: (Width: 16, Height: 2); Background: #3ec9a7; Visible: false; }
+    Group #LinkOff { Anchor: (Width: 16, Height: 2); Background: #273748; }
+  }
+
+  Button #Button {
+    LayoutMode: Left;
+    Anchor: (Width: 198, Height: 64);
+    Style: (
+      Default: (Background: #172332),
+      Hovered: (Background: #1e2d41),
+      Pressed: (Background: #24364d)
+    );
+
+    Group #AccentResearched { Anchor: (Width: 3); Background: #3ec9a7; Visible: false; }
+    Group #AccentAvailable { Anchor: (Width: 3); Background: #f0b54a; Visible: false; }
+    Group #AccentLocked { Anchor: (Width: 3); Background: #273748; Visible: false; }
+
+    Group {
+      LayoutMode: Middle;
+      Anchor: (Width: 40);
+
+      Group #IconHelix { Anchor: (Width: 24, Height: 24); Background: "Icons/Helix.png"; Visible: false; }
+      Group #IconStat { Anchor: (Width: 24, Height: 24); Background: "Icons/Stat.png"; Visible: false; }
+      Group #IconEffect { Anchor: (Width: 24, Height: 24); Background: "Icons/Effect.png"; Visible: false; }
+      Group #IconMutation { Anchor: (Width: 24, Height: 24); Background: "Icons/Mutation.png"; Visible: false; }
+      Group #IconSyringe { Anchor: (Width: 24, Height: 24); Background: "Icons/Syringe.png"; Visible: false; }
+      Group #IconLock { Anchor: (Width: 18, Height: 18); Background: "Icons/Lock.png"; Visible: false; }
+    }
+
+    Group {
+      LayoutMode: Top;
+      FlexWeight: 1;
+      Padding: (Top: 8, Right: 6);
+
+      Label #Name {
+        Style: (FontSize: 13, RenderBold: true, TextColor: #eaf1f4, Wrap: true);
+      }
+
+      Label #Status {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #66788a, Wrap: true);
+      }
+    }
+  }
+}
