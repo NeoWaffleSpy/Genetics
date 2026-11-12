@@ -1,4 +1,5 @@
 {
   "Temporary": 3,
-  "Permanent": 100
+  "Permanent": 100,
+  "Name": "server.genetics.effects.Regen_T1.name"
 }

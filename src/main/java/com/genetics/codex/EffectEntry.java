@@ -25,6 +25,8 @@ public final class EffectEntry implements JsonAssetWithMap<String, DefaultAssetM
             .documentation("Complexity of the effect as a temporary gene.").add()
             .append(new KeyedCodec<>("Permanent", Codec.DOUBLE), (t, v) -> t.permanent = v, t -> t.permanent)
             .documentation("Complexity of the effect as a permanent gene.").add()
+            .append(new KeyedCodec<>("Name", Codec.STRING), (t, v) -> t.name = v, t -> t.name)
+            .documentation("Short display name as a gene (translation key), e.g. \"Regen T1\". Overrides the effect's own name.").add()
             .build();
 
     private static AssetStore<String, EffectEntry, DefaultAssetMap<String, EffectEntry>> store;
@@ -33,6 +35,8 @@ public final class EffectEntry implements JsonAssetWithMap<String, DefaultAssetM
     private String id;
     private double temporary;
     private double permanent;
+    @javax.annotation.Nullable
+    private String name;
 
     private EffectEntry() {
     }
@@ -51,6 +55,12 @@ public final class EffectEntry implements JsonAssetWithMap<String, DefaultAssetM
     @Override
     public String getId() {
         return id;
+    }
+
+    /** Translation key of the gene's display name, or null to use the effect's own name. */
+    @javax.annotation.Nullable
+    public String getName() {
+        return name;
     }
 
     public double getComplexity(boolean permanent) {

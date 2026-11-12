@@ -1,4 +1,5 @@
 {
   "Temporary": 2,
-  "Permanent": 100
+  "Permanent": 100,
+  "Name": "server.genetics.effects.Fall_Immunity.name"
 }

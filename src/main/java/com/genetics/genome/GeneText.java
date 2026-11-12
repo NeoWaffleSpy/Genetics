@@ -24,8 +24,21 @@ public final class GeneText {
 
     @Nonnull
     public static String effectName(@Nonnull String effectId, @Nullable String language) {
+        com.genetics.codex.EffectEntry entry = com.genetics.codex.EffectEntry.getAssetMap().getAsset(effectId);
         EntityEffect asset = EntityEffect.getAssetMap().getAsset(effectId);
-        return Translations.resolve(language, asset != null ? asset.getName() : null, prettify(effectId));
+        String fallback = Translations.resolve(language, asset != null ? asset.getName() : null, cleanEffectId(effectId));
+        return Translations.resolve(language, entry != null ? entry.getName() : null, fallback);
+    }
+
+    /** "HealthRegen_Buff_T1" → "Health Regen T1": drops Buff/Food/Genetics words and splits words. */
+    @Nonnull
+    static String cleanEffectId(@Nonnull String effectId) {
+        java.util.List<String> words = new java.util.ArrayList<>();
+        for (String part : effectId.split("_")) {
+            if (part.isEmpty() || part.equals("Buff") || part.equals("Food") || part.equals("Genetics")) continue;
+            words.add(part.matches("T\\d+") ? part : part.replaceAll("(?<=[a-z])(?=[A-Z])", " "));
+        }
+        return words.isEmpty() ? prettify(effectId) : String.join(" ", words);
     }
 
     @Nonnull

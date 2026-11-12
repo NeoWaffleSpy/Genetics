@@ -93,12 +93,16 @@ final class ProcessTab {
             Gene shown = stable ? new Gene.Effect(((Gene.Effect) gene).effect(), true, 0) : gene;
             String name = Catalogue.name(Catalogue.key(gene), language) + (raw && Journal.isNew(journal, sample, gene) ? "  ·  NEW" : "");
             double complexity = GeneText.complexity(shown);
-            Widgets.geneRow(c, "#GeneList[" + i + "]", Catalogue.type(Catalogue.key(gene)), name, value(shown),
+            String row = "#GeneList[" + i + "]";
+            Widgets.geneRow(c, row, Catalogue.type(Catalogue.key(gene)), name, value(shown),
                     (complexity >= 0 ? "+" : "") + GeneText.number(Widgets.round(complexity)), keep, raw);
+            // Temporary effects wear off: they cost Complexity to process and inject, but don't use capacity.
+            if (keep && shown instanceof Gene.Effect effect && !effect.permanent()) c.set(row + " #Complexity.Style.TextColor", Widgets.TEXT);
         }
 
         if (!raw) {
-            Widgets.capacity(c, "P", Injection.lastingComplexity(sample), capacity, "This genome");
+            Widgets.capacity(c, "P", Injection.lastingComplexity(sample), capacity, "Lasting genes");
+            c.set("#PCapLegend.Text", legend(sample.genes(), Injection.lastingComplexity(sample), capacity));
             c.set("#NewGenes.Text", "");
             c.set("#GeneHeader.Text", "Genes  ·  " + sample.genes().size());
             c.set("#ProcessCostLabel.Visible", false);
@@ -116,7 +120,9 @@ final class ProcessTab {
 
         Processing.Plan plan = Processing.plan(sample, page.keep, permanent, page.station.tier());
         Genome result = plan.result();
-        Widgets.capacity(c, "P", result != null ? Injection.lastingComplexity(result) : 0, capacity, "Kept genes");
+        double lasting = result != null ? Injection.lastingComplexity(result) : 0;
+        Widgets.capacity(c, "P", lasting, capacity, "Lasting genes");
+        if (result != null) c.set("#PCapLegend.Text", legend(result.genes(), lasting, capacity));
         int science = Journal.scienceFor(journal, sample);
         c.set("#NewGenes.Text", science > 0 ? "+" + science + " Science when processed" : "");
         c.set("#GeneHeader.Text", "Tick the genes to keep  ·  " + kept + " / " + sample.genes().size());
@@ -153,6 +159,16 @@ final class ProcessTab {
         Journal.onIdentify(ref, store, page.player(), plan.result());
         return "Processed into genetic material: " + plan.result().genes().size() + " genes, Complexity "
                 + GeneText.number(plan.result().complexity()) + ".";
+    }
+
+    /** The gauge legend, with a note when temporary effects (which wear off) aren't counted. */
+    @Nonnull
+    private static String legend(@Nonnull java.util.List<Gene> genes, double lasting, double capacity) {
+        boolean temporary = genes.stream().anyMatch(g -> g instanceof Gene.Effect effect && !effect.permanent());
+        String base = "Lasting genes " + GeneText.number(Widgets.round(lasting))
+                + (lasting > capacity ? "     Over capacity " + GeneText.number(Widgets.round(lasting - capacity))
+                : "     Free " + GeneText.number(Widgets.round(capacity - lasting)));
+        return temporary ? base + "     Temporary effects wear off and don't use capacity" : base;
     }
 
     /** "Wolf Sample" / "Spliced Sample": the genes are shown, so it is no longer called unidentified here. */
