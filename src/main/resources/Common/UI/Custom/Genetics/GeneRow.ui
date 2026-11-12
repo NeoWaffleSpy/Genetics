@@ -39,10 +39,10 @@ Group {
 
     Group #PermanentBox {
       LayoutMode: Left;
-      Anchor: (Width: 150);
+      Anchor: (Width: 210);
       Visible: false;
 
-      Group {
+      Group #PermanentCheck {
         LayoutMode: Middle;
         Anchor: (Width: 28);
 
@@ -51,7 +51,7 @@ Group {
         }
       }
 
-      Label {
+      Label #PermanentLabel {
         Text: "Make permanent";
         Style: (FontSize: 12, RenderBold: true, TextColor: #8ff5dc, VerticalAlignment: Center);
       }

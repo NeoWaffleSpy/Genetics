@@ -403,10 +403,16 @@ $C.@DecoratedContainer #Panel {
           }
         }
 
+        Label #ProcessReason {
+          Anchor: (Height: 24);
+          Padding: (Top: 6);
+          Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+        }
+
         Group #ProcessBar {
           LayoutMode: Left;
-          Anchor: (Height: 58);
-          Padding: (Top: 10);
+          Anchor: (Height: 54);
+          Padding: (Top: 6);
 
           Label #ProcessCostLabel {
             Text: "Cost";
@@ -420,11 +426,6 @@ $C.@DecoratedContainer #Panel {
 
           Group {
             FlexWeight: 1;
-          }
-
-          Label #ProcessReason {
-            Padding: (Right: 12);
-            Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, VerticalAlignment: Center);
           }
 
           Label #ProcessStatus {
@@ -443,6 +444,13 @@ $C.@DecoratedContainer #Panel {
             Style: @SecondaryStyle;
             Text: "Splice with...";
             Anchor: (Width: 180, Height: 44);
+            Visible: false;
+          }
+
+          TextButton #UpgradeStationButton {
+            Style: @SecondaryStyle;
+            Text: "Upgrade...";
+            Anchor: (Width: 160, Height: 44);
             Visible: false;
           }
         }
@@ -621,10 +629,16 @@ $C.@DecoratedContainer #Panel {
           }
         }
 
+        Label #SpliceReason {
+          Anchor: (Height: 24);
+          Padding: (Top: 6);
+          Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+        }
+
         Group #SpliceBar {
           LayoutMode: Left;
-          Anchor: (Height: 58);
-          Padding: (Top: 10);
+          Anchor: (Height: 54);
+          Padding: (Top: 6);
 
           Label #SpliceCostLabel {
             Text: "Cost";
@@ -638,11 +652,6 @@ $C.@DecoratedContainer #Panel {
 
           Group {
             FlexWeight: 1;
-          }
-
-          Label #SpliceReason {
-            Padding: (Right: 12);
-            Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, VerticalAlignment: Center);
           }
 
           TextButton #SpliceButton {

@@ -154,6 +154,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ProcessButton", new EventData().append("Action", "Process"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceWithButton", new EventData().append("Action", "Tab").append("Tab", "Splice"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeButton", new EventData().append("Action", "Upgrade"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeStationButton", new EventData().append("Action", "Tab").append("Tab", "Splice"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceButton", new EventData().append("Action", "Splice"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ResearchButton", new EventData().append("Action", "Research"), false);
         for (String grid : List.of(SAMPLE_GRID, SPLICE_GRID, STORAGE_GRID, HOTBAR_GRID)) {

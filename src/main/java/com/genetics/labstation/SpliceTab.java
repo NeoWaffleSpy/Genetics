@@ -44,8 +44,8 @@ final class SpliceTab {
 
     @Nonnull
     private static Mode mode(@Nonnull LabStationPage page, @Nonnull GeneJournal journal) {
-        if (!Research.hasFeature(journal, Research.SPLICING)) return Mode.LOCKED;
         if (page.station.tier() < 2) return Mode.UPGRADE;
+        if (!Research.hasFeature(journal, Research.SPLICING)) return Mode.LOCKED;
         Genome a = page.sample();
         if (a == null || !a.processed()) return Mode.NO_A;
         if (page.spliceB() == null) return Mode.NO_B;
@@ -82,6 +82,7 @@ final class SpliceTab {
         c.set("#SpliceUpgrade.Visible", mode == Mode.UPGRADE);
         c.set("#SpliceDetails.Visible", mode == Mode.READY);
         c.set("#SpliceBar.Visible", mode == Mode.READY);
+        c.set("#SpliceReason.Visible", mode == Mode.READY);
         switch (mode) {
             case LOCKED -> {
                 ResearchNode node = Research.grantingNode(Research.SPLICING);
@@ -89,12 +90,18 @@ final class SpliceTab {
                         + " in the Research tab to add two genetic materials together.");
             }
             case UPGRADE -> {
-                c.set("#SpliceEmpty.Text", "Splicing needs a Lab Station T2.");
+                boolean researched = Research.hasFeature(journal, Research.SPLICING);
+                ResearchNode node = Research.grantingNode(Research.SPLICING);
+                String name = node != null ? node.getName() : "Splicing";
+                c.set("#SpliceEmpty.Text", "Lab Station T2: splicing, and processing Moderate samples.");
                 Balance.StationUpgrade upgrade = Balance.get().stationUpgrade(2);
                 List<MaterialQuantity> cost = upgrade != null ? upgrade.getMaterials() : List.of();
-                c.set("#SpliceUpgradeText.Text", "Upgrade this station with these materials (free in Creative):");
+                c.set("#SpliceUpgradeText.Text", researched
+                        ? "Upgrade this station with these materials (free in Creative):"
+                        : "First research " + name + " in the Research tab (" + (node != null ? node.getCost() : 0)
+                        + " Science, you have " + journal.getScience() + "). Then upgrade the station with these materials:");
                 Widgets.costs(c, "#UpgradeCost", cost, ref, store);
-                c.set("#UpgradeButton.Disabled", upgrade == null || !Materials.canPay(ref, store, cost));
+                c.set("#UpgradeButton.Disabled", !researched || upgrade == null || !Materials.canPay(ref, store, cost));
             }
             case NO_A -> c.set("#SpliceEmpty.Text", "Put genetic material (a processed sample) in slot A, then drag another one from your inventory into slot B.");
             case NO_B -> c.set("#SpliceEmpty.Text", "Drag another genetic material from your inventory into slot B. The two are added together: shared stats and timers add up, and genes only one side has carry over.");

@@ -11,6 +11,7 @@ import com.genetics.journal.GeneJournal;
 import com.genetics.journal.Journal;
 import com.genetics.process.Processing;
 import com.genetics.research.Research;
+import com.genetics.research.ResearchNode;
 import com.genetics.tier.Materials;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -47,11 +48,17 @@ final class ProcessTab {
                 c.set(row + " #Toggle.Value", page.keep[i]);
                 e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #Toggle",
                         new EventData().append("Action", "Keep").append("Index", String.valueOf(i)).append("@Checked", row + " #Toggle.Value"), false);
-                if (permanentAllowed && Processing.canMakePermanent(sample.genes().get(i))) {
-                    c.set(row + " #PermanentBox.Visible", true);
+                if (!Processing.canMakePermanent(sample.genes().get(i))) continue;
+                c.set(row + " #PermanentBox.Visible", true);
+                c.set(row + " #PermanentCheck.Visible", permanentAllowed);
+                if (permanentAllowed) {
                     c.set(row + " #Permanent.Value", page.permanent[i]);
                     e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #Permanent",
                             new EventData().append("Action", "Permanent").append("Index", String.valueOf(i)).append("@Checked", row + " #Permanent.Value"), false);
+                } else {
+                    ResearchNode node = Research.grantingNode(Research.MAKE_PERMANENT);
+                    c.set(row + " #PermanentLabel.Text", "Research " + (node != null ? node.getName() : "Make Permanent") + " to keep it");
+                    c.set(row + " #PermanentLabel.Style.TextColor", Widgets.FAINT);
                 }
             }
         }
@@ -64,6 +71,8 @@ final class ProcessTab {
         c.set("#ProcessEmpty.Visible", sample == null);
         c.set("#ProcessDetails.Visible", sample != null);
         c.set("#ProcessBar.Visible", sample != null);
+        c.set("#ProcessReason.Visible", sample != null);
+        c.set("#UpgradeStationButton.Visible", false);
         if (sample == null) return;
         GeneJournal journal = Journal.of(ref, store);
         String language = page.player().getLanguage();
@@ -118,8 +127,11 @@ final class ProcessTab {
         if (reason == null && !Materials.canPay(ref, store, plan.cost())) reason = "Missing materials";
         c.set("#ProcessReason.Text", reason != null ? reason : "");
         c.set("#ProcessStatus.Visible", false);
-        c.set("#ProcessButton.Visible", true);
+        // A tier the station can't handle: offer the upgrade instead of a dead Process button.
+        boolean needsStation = plan.tier() != null && plan.blocked() != null && page.station.tier() < plan.tier().getStationTier();
+        c.set("#ProcessButton.Visible", !needsStation);
         c.set("#ProcessButton.Disabled", reason != null || result == null);
+        c.set("#UpgradeStationButton.Visible", needsStation);
         c.set("#SpliceWithButton.Visible", false);
     }
 
