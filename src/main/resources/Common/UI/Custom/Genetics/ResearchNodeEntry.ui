@@ -1,19 +1,19 @@
 // One Research node, with the link from the previous node of its lane. Researched: teal accent; available: amber.
 Group {
   LayoutMode: Left;
-  Anchor: (Width: 210, Height: 64);
+  Anchor: (Width: 214, Height: 64);
 
   Group {
     LayoutMode: Middle;
-    Anchor: (Width: 22);
+    Anchor: (Width: 16);
 
-    Group #LinkOn { Anchor: (Width: 22, Height: 2); Background: #3ec9a7; Visible: false; }
-    Group #LinkOff { Anchor: (Width: 22, Height: 2); Background: #273748; }
+    Group #LinkOn { Anchor: (Width: 16, Height: 2); Background: #3ec9a7; Visible: false; }
+    Group #LinkOff { Anchor: (Width: 16, Height: 2); Background: #273748; }
   }
 
   Button #Button {
     LayoutMode: Left;
-    Anchor: (Width: 188, Height: 64);
+    Anchor: (Width: 198, Height: 64);
     Style: (
       Default: (Background: #172332),
       Hovered: (Background: #1e2d41),
@@ -26,7 +26,7 @@ Group {
 
     Group {
       LayoutMode: Middle;
-      Anchor: (Width: 46);
+      Anchor: (Width: 40);
 
       Group #IconHelix { Anchor: (Width: 24, Height: 24); Background: "Icons/Helix.png"; Visible: false; }
       Group #IconStat { Anchor: (Width: 24, Height: 24); Background: "Icons/Stat.png"; Visible: false; }
@@ -39,14 +39,14 @@ Group {
     Group {
       LayoutMode: Top;
       FlexWeight: 1;
-      Padding: (Top: 12, Right: 6);
+      Padding: (Top: 8, Right: 6);
 
       Label #Name {
-        Style: (FontSize: 14, RenderBold: true, TextColor: #eaf1f4);
+        Style: (FontSize: 13, RenderBold: true, TextColor: #eaf1f4, Wrap: true);
       }
 
       Label #Status {
-        Style: (FontSize: 12, RenderBold: true, TextColor: #66788a);
+        Style: (FontSize: 11, RenderBold: true, TextColor: #66788a, Wrap: true);
       }
     }
   }

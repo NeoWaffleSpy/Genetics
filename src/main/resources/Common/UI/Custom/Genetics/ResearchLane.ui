@@ -8,7 +8,7 @@ Group {
     Anchor: (Height: 64);
 
     Label #Lane {
-      Anchor: (Width: 92);
+      Anchor: (Width: 80);
       Style: (FontSize: 12, RenderBold: true, RenderUppercase: true, TextColor: #a9b9c7, FontName: "Secondary", VerticalAlignment: Center);
     }
 

@@ -205,8 +205,7 @@ final class CatalogueTab {
         int i = 0;
         for (String key : found) {
             String row = "#DetailGenes[" + i++ + "]";
-            c.append("#DetailGenes", Widgets.GENE_ROW);
-            Widgets.geneRow(c, row, Catalogue.type(key), Catalogue.name(key, language), Catalogue.range(profile, key), "", true, false);
+            detailRow(c, row, Catalogue.type(key), Catalogue.name(key, language), Catalogue.range(profile, key));
         }
         int missing = (int) possible.stream().filter(k -> !found.contains(k)).count();
         c.set("#DetailMissing.Text", missing == 0 ? "Every gene found." : missing + (missing == 1 ? " gene" : " genes") + " not found yet. Process more samples of it.");
@@ -233,9 +232,8 @@ final class CatalogueTab {
         int i = 0;
         for (String id : carriers) {
             String row = "#DetailGenes[" + i++ + "]";
-            c.append("#DetailGenes", Widgets.GENE_ROW);
             GeneJournal.Species species = journal.getSpecies().get(id);
-            Widgets.geneRow(c, row, entry.type(), species != null ? species.getName() : id, Catalogue.range(Codex.profileFor(id), key), "", true, false);
+            detailRow(c, row, entry.type(), species != null ? species.getName() : id, Catalogue.range(Codex.profileFor(id), key));
         }
         int more = possibleCarriers(key) - carriers.size();
         c.set("#DetailMissing.Text", more > 0 ? more + " more species can carry it." : "");
@@ -259,6 +257,14 @@ final class CatalogueTab {
         c.set("#DetailGenesHeader.Text", "What it does");
         c.set("#DetailMissing.Text", String.join("\n", parts));
         c.set("#DetailScience.Text", "");
+    }
+
+    private static void detailRow(@Nonnull UICommandBuilder c, @Nonnull String row, @Nonnull String type, @Nonnull String name, @Nonnull String value) {
+        c.append("#DetailGenes", Widgets.DETAIL_ROW);
+        Widgets.typeIcon(c, row, type);
+        c.set(row + " #Name.Text", name);
+        c.set(row + " #Value.Text", value);
+        c.set(row + " #Value.Style.TextColor", Widgets.valueColor(type));
     }
 
     // ---- Lookups

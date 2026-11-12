@@ -195,8 +195,8 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         commands.set("#InventoryPanel.Visible", bench);
         Anchor panel = new Anchor();
         panel.setWidth(Value.of(1000));
-        panel.setHeight(Value.of(bench ? 540 : 900));
-        panel.setBottom(Value.of(bench ? 450 : 60));
+        panel.setHeight(Value.of(bench ? 530 : 900));
+        panel.setBottom(Value.of(bench ? 466 : 60));
         commands.setObject("#Panel.Anchor", panel);
         writeScience(commands, store);
         commands.set("#StationTier.Text", "Station T" + station.tier());

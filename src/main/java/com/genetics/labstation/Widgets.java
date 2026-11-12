@@ -32,6 +32,7 @@ final class Widgets {
     static final List<String> TYPES = List.of("Stat", "Drawback", "Effect", "Mutation");
 
     /** Inner width of the capacity tracks in pixels (panel 1000 - 2 x 17 padding - 190 rail - 2 x 12 padding - 2 outline). */
+    static final String DETAIL_ROW = "Genetics/DetailRow.ui";
     private static final int TRACK = 750;
 
     private Widgets() {

@@ -41,11 +41,11 @@ final class ItemTooltip {
     private static final int HOTBAR_TOP = 85;
     /**
      * The sample slot: 17 padding from the station panel's left, and its top edge from the layer's bottom
-     * (960 - 38 title - 17 padding - 2 line - 38 tabs - 1 line - 8 gap - 20 label). Slot B is 94 to its right.
+     * (966 - 38 title - 17 padding - 2 line - 38 tabs - 1 line - 8 gap - 20 label). Slot B is 94 to its right.
      */
     private static final int SAMPLE_X = 17;
     private static final int SPLICE_X = SAMPLE_X + 94;
-    private static final int SAMPLE_TOP = 836;
+    private static final int SAMPLE_TOP = 842;
     /** The tooltip's bottom sits this far above the slot's top edge; the arrow hangs into the gap. */
     private static final int GAP_ABOVE_SLOT = 6;
 
