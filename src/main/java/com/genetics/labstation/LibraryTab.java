@@ -78,7 +78,7 @@ final class LibraryTab {
             boolean adjustable = Library.adjustable(gene);
             c.set(row + " #AmountBox.Visible", adjustable);
             c.set(row + " #Value.Visible", !adjustable);
-            if (adjustable) controls(page, c, row + " ", entry, true, true);
+            if (adjustable) controls(page, c, row, entry, true, true);
             e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #Use",
                     new EventData().append("Action", "LibraryUse").append("Node", entry.getId()).append("@Checked", row + " #Use.Value"), false);
             if (adjustable) {
@@ -216,7 +216,7 @@ final class LibraryTab {
             double value = fromSlider ? Math.round(max * Math.clamp(input, 0, 100) / 100.0 * 10) / 10.0 : Math.round(input * 10) / 10.0;
             boolean clamped = value < 0 || value > max;
             page.libraryAmount.put(id, Math.clamp(value, 0, max));
-            controls(page, c, "#LibraryList[" + i + "] ", entry, fromSlider || clamped, !fromSlider);
+            controls(page, c, "#LibraryList[" + i + "]", entry, fromSlider || clamped, !fromSlider);
             return;
         }
     }
