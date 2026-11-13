@@ -45,7 +45,8 @@
   },
   "Capacity": {
     "OverflowSicknessPerPoint": 2,
-    "OverflowBand": "Severe"
+    "OverflowBand": "Severe",
+    "HardCap": 10000
   },
   "Syringes": {
     "HealthThresholds": [
@@ -57,7 +58,8 @@
   "Splicing": {
     "EffectReferenceDuration": 180,
     "MutationBaseChance": 0.02,
-    "MutationPerComplexity": 0.0005
+    "MutationPerComplexity": 0.0005,
+    "MaxEffectDuration": 1800
   },
   "Permanence": {
     "MinDuration": 1800,

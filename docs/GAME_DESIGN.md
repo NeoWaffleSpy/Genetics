@@ -490,6 +490,10 @@ way to create new mutations), but once a gene is in the library, the player no l
   entry's best value (a slider, for stats and temporary effects; permanent effects and mutations are all
   or nothing). The result goes into an empty syringe in the station's slot, named "<Tier> Designed Gene",
   and its cost uses the Complexity tier of the result.
+- **Fine control.** Each amount has a slider and a number field (one decimal): percent for stats, minutes
+  for temporary effects.
+- **Timer cap.** A temporary effect never lasts more than 30:00 when timers add up (splicing, the Library),
+  so nobody builds a near-permanent buff for a temporary one's price (`Splicing.MaxEffectDuration`).
 - **Rules.** A bonus and a drawback of the same stat can't be combined; two tiers of the same buff
   conflict; a permanent effect replaces its temporary form.
 - **Several mutations.** Only the Library can put several mutations in one genome (up to 4); the material
@@ -640,7 +644,7 @@ station upgrade still costs its materials.
 | Lab | Processing (starter) → Splicing (10, unlocks the Splice tab and the Lab Station T2 upgrade) → Make Permanent (15) → Genetic Library (25, unlocks the Library tab and the T3 upgrade) |
 | Reagents | Identification Reagent (starter) → Gene Stabilizer (12, needs Make Permanent). The Gene Enhancer recipe comes with Genetic Library. Idea for later: Mutagen (raises the mutation chance of one splice) |
 | Syringes | Crude (starter) → Copper (5) → Thorium (15) → Adamantite (30) |
-| Genome | Expansion · Moderate (8, capacity 45) → Complex (15, 80) → Advanced (25, 130) → Exotic (40, 200) |
+| Genome | Expansion · Moderate (8, capacity 45) → Complex (15, 80) → Advanced (25, 130) → Exotic (40, 200) → Supreme (60: +50 per use, again and again up to `Capacity.HardCap`, 10 000; the first one lifts a capacity below 200 to 250) |
 
 - Starter nodes are researched from the beginning, so the first loop (sample, process, inject raw) needs
   no Science.

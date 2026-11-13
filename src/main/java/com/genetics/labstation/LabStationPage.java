@@ -105,7 +105,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     /** Library entries ticked into the combination. */
     final java.util.Set<String> libraryUse = new java.util.LinkedHashSet<>();
     /** Amount (0-100% of the best value) chosen per library entry. */
-    final java.util.Map<String, Integer> libraryAmount = new java.util.HashMap<>();
+    final java.util.Map<String, Double> libraryAmount = new java.util.HashMap<>();
     @Nullable
     String catalogueSelected;
     @Nullable
@@ -339,9 +339,13 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 if (message != null) playerRef.sendMessage(Message.raw(message));
                 rebuild();
             }
-            case "LibraryAmount" -> {
-                if (data.node != null && data.amount != null) libraryAmount.put(data.node, Math.clamp(Math.round(data.amount), 0, 100));
-                partial(ref, store);
+            case "LibraryAmount", "LibraryField" -> {
+                Double input = data.action.equals("LibraryAmount") ? (data.amount != null ? (double) data.amount : null) : data.field;
+                if (data.node == null || input == null) return;
+                UICommandBuilder commands = new UICommandBuilder();
+                LibraryTab.setAmount(this, ref, store, commands, data.node, input, data.action.equals("LibraryAmount"));
+                LibraryTab.update(this, ref, store, commands);
+                sendUpdate(commands, false);
             }
             case "Discard" -> {
                 if (data.node != null) playerRef.sendMessage(Message.raw(LibraryTab.discard(this, ref, store, data.node)));
@@ -663,6 +667,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 .append(new KeyedCodec<>("Node", Codec.STRING), (p, v) -> p.node = v, p -> p.node).add()
                 .append(new KeyedCodec<>("@Checked", Codec.BOOLEAN), (p, v) -> p.checked = v, p -> p.checked).add()
                 .append(new KeyedCodec<>("@Amount", Codec.FLOAT), (p, v) -> p.amount = v, p -> p.amount).add()
+                .append(new KeyedCodec<>("@Field", Codec.DOUBLE), (p, v) -> p.field = v, p -> p.field).add()
                 .append(new KeyedCodec<>("SlotIndex", Codec.INTEGER), (p, v) -> p.slotIndex = v, p -> p.slotIndex).add()
                 .append(new KeyedCodec<>("ItemStackId", Codec.STRING), (p, v) -> p.itemStackId = v, p -> p.itemStackId).add()
                 .append(new KeyedCodec<>("ItemStackQuantity", Codec.INTEGER), (p, v) -> p.itemStackQuantity = v, p -> p.itemStackQuantity).add()
@@ -680,6 +685,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         private String node;
         private Boolean checked;
         private Float amount;
+        private Double field;
         private Integer slotIndex;
         private String itemStackId;
         private Integer itemStackQuantity;

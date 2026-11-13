@@ -35,10 +35,16 @@ public class UseExpansionInteraction extends SimpleInstantInteraction {
                     UseExpansionInteraction.class, UseExpansionInteraction::new, SimpleInstantInteraction.CODEC)
             .documentation("Raises the user's Genome Capacity to Capacity, consuming the held item.")
             .append(new KeyedCodec<>("Capacity", Codec.DOUBLE), (t, v) -> t.capacity = v, t -> t.capacity)
-            .documentation("The user's new Genome Capacity.").add()
+            .documentation("The user's new Genome Capacity (one-time tiers).").add()
+            .append(new KeyedCodec<>("Increase", Codec.DOUBLE), (t, v) -> t.increase = v, t -> t.increase)
+            .documentation("Instead of Capacity: raise the capacity by this much each use, up to the HardCap in the Balance file.").add()
+            .append(new KeyedCodec<>("Floor", Codec.DOUBLE), (t, v) -> t.floor = v, t -> t.floor)
+            .documentation("With Increase: a capacity below this counts as this before the increase (so the first use reaches Floor + Increase).").add()
             .build();
 
     private double capacity;
+    private double increase;
+    private double floor;
 
     @Nonnull
     @Override
@@ -58,12 +64,16 @@ public class UseExpansionInteraction extends SimpleInstantInteraction {
         }
 
         float before = GenomeCapacity.capacity(self, buffer);
-        if (!GenomeCapacity.expandTo(self, buffer, capacity)) {
-            user.sendMessage(Message.raw("Your Genome Capacity is already " + GeneText.number(before)
-                    + ". This expansion would only raise it to " + GeneText.number(capacity) + "."));
+        double hardCap = com.genetics.codex.Balance.get().capacity().getHardCap();
+        double target = Math.min(hardCap, increase > 0 ? Math.max(before, floor) + increase : capacity);
+        if (!GenomeCapacity.expandTo(self, buffer, target)) {
+            user.sendMessage(Message.raw(before >= hardCap - 1e-6
+                    ? "Your Genome Capacity is already at its limit (" + GeneText.number(hardCap) + ")."
+                    : "Your Genome Capacity is already " + GeneText.number(before) + ". This expansion would only raise it to " + GeneText.number(target) + "."));
             context.getState().state = InteractionState.Failed;
             return;
         }
+        double after = target;
 
         ItemStack rest = held.getQuantity() > 1 ? held.withQuantity(held.getQuantity() - 1) : null;
         if (rest != null) {
@@ -72,12 +82,12 @@ public class UseExpansionInteraction extends SimpleInstantInteraction {
             context.getHeldItemContainer().removeItemStackFromSlot(context.getHeldItemSlot());
         }
         context.setHeldItem(rest);
-        user.sendMessage(Message.raw("Your body adapts. Genome Capacity: " + GeneText.number(before) + " -> " + GeneText.number(capacity) + ".")
+        user.sendMessage(Message.raw("Your body adapts. Genome Capacity: " + GeneText.number(before) + " -> " + GeneText.number(after) + ".")
                 .color("#8fd17a"));
     }
 
     @Override
     public String toString() {
-        return "UseExpansionInteraction{capacity=" + capacity + "}" + super.toString();
+        return "UseExpansionInteraction{capacity=" + capacity + ", increase=" + increase + ", floor=" + floor + "}" + super.toString();
     }
 }

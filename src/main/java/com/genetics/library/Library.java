@@ -85,8 +85,31 @@ public final class Library {
 
     // ---- Combine
 
-    /** One entry in a combination, at a fraction (0 to 1) of its best value. */
-    public record Use(@Nonnull GeneLibrary.Entry entry, double fraction) {
+    /**
+     * One entry in a combination at a chosen amount, in the entry's unit ({@link #unit}): percent for stats (the
+     * size, also for drawbacks), minutes for temporary effects; ignored for permanent effects and mutations.
+     */
+    public record Use(@Nonnull GeneLibrary.Entry entry, double amount) {
+    }
+
+    /** The unit amounts are chosen in: "%" for stats, "min" for temporary effects, "" otherwise. */
+    @Nonnull
+    public static String unit(@Nonnull Gene gene) {
+        return switch (gene) {
+            case Gene.Stat ignored -> "%";
+            case Gene.Effect effect -> effect.permanent() ? "" : "min";
+            case Gene.Mutation ignored -> "";
+        };
+    }
+
+    /** The most that can be chosen, in the entry's unit (temporary effects are capped at MaxEffectDuration). */
+    public static double maxAmount(@Nonnull Gene gene) {
+        return switch (gene) {
+            case Gene.Stat stat -> Math.abs(stat.percent());
+            case Gene.Effect effect -> effect.permanent() ? 0
+                    : Math.floor(Math.min(effect.duration(), Balance.get().splicing().getMaxEffectDuration()) / 6) / 10.0;
+            case Gene.Mutation ignored -> 0;
+        };
     }
 
     /** True if an entry's amount can be chosen (stats and temporary effects). */
@@ -94,18 +117,19 @@ public final class Library {
         return gene instanceof Gene.Stat || (gene instanceof Gene.Effect effect && !effect.permanent());
     }
 
-    /** The entry's gene at a fraction of its best value, or null if that rounds to nothing. */
+    /** The entry's gene at a chosen amount (clamped to 0..max, one decimal), or null if that is nothing. */
     @Nullable
-    public static Gene scaled(@Nonnull Gene gene, double fraction) {
-        double f = Math.clamp(fraction, 0, 1);
+    public static Gene scaled(@Nonnull Gene gene, double amount) {
+        double a = Math.clamp(Math.round(amount * 10) / 10.0, 0, maxAmount(gene));
         return switch (gene) {
             case Gene.Stat stat -> {
-                double value = Math.round(stat.percent() * f * 10) / 10.0;
-                yield value == 0 ? null : new Gene.Stat(stat.stat(), value, stat.cost() * f);
+                if (a == 0) yield null;
+                double value = stat.isDrawback() ? -a : a;
+                yield new Gene.Stat(stat.stat(), value, stat.cost() * a / Math.max(0.0001, Math.abs(stat.percent())));
             }
             case Gene.Effect effect -> {
                 if (effect.permanent()) yield effect;
-                double seconds = Math.round(effect.duration() * f);
+                double seconds = Math.round(a * 60);
                 yield seconds < 1 ? null : new Gene.Effect(effect.effect(), false, seconds);
             }
             case Gene.Mutation mutation -> mutation;
@@ -123,7 +147,7 @@ public final class Library {
         List<Gene> picked = new ArrayList<>();
         for (Use use : uses) {
             Gene gene = use.entry().getGene();
-            Gene scaled = gene != null ? scaled(gene, use.fraction()) : null;
+            Gene scaled = gene != null ? scaled(gene, use.amount()) : null;
             if (scaled != null) picked.add(scaled);
         }
         if (picked.isEmpty()) return new Plan(List.of(), null, 0, 1, null, List.of(), "Tick the genes to combine.");

@@ -1,0 +1,14 @@
+{
+  "Name": "Expansion · Supreme",
+  "Branch": "Genome",
+  "Order": 4,
+  "Icon": "Stat",
+  "Cost": 60,
+  "Requires": [
+    "ExpansionExotic"
+  ],
+  "Recipes": [
+    "Genetics_Genome_Expansion_Supreme"
+  ],
+  "Description": "Teaches the Supreme Genome Expansion recipe: +50 capacity each, usable again and again up to the limit."
+}

@@ -77,12 +77,15 @@ final class LibraryTab {
             c.set(row + " #Use.Value", page.libraryUse.contains(entry.getId()));
             boolean adjustable = Library.adjustable(gene);
             c.set(row + " #AmountBox.Visible", adjustable);
-            if (adjustable) c.set(row + " #Amount.Value", amount(page, entry));
+            c.set(row + " #Value.Visible", !adjustable);
+            if (adjustable) controls(page, c, row + " ", entry, true, true);
             e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #Use",
                     new EventData().append("Action", "LibraryUse").append("Node", entry.getId()).append("@Checked", row + " #Use.Value"), false);
             if (adjustable) {
                 e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #Amount",
                         new EventData().append("Action", "LibraryAmount").append("Node", entry.getId()).append("@Amount", row + " #Amount.Value"), false);
+                e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #AmountField",
+                        new EventData().append("Action", "LibraryField").append("Node", entry.getId()).append("@Field", row + " #AmountField.Value"), false);
             }
             e.addEventBinding(CustomUIEventBindingType.Activating, row + " #Discard", new EventData().append("Action", "Discard").append("Node", entry.getId()), false);
         }
@@ -121,12 +124,7 @@ final class LibraryTab {
             Gene gene = entry.getGene();
             String row = "#LibraryList[" + i + "]";
             boolean used = page.libraryUse.contains(entry.getId());
-            if (Library.adjustable(gene)) {
-                Gene chosen = Library.scaled(gene, amount(page, entry) / 100.0);
-                c.set(row + " #Value.Text", (chosen != null ? ProcessTab.value(chosen) : "0") + "  /  " + ProcessTab.value(gene));
-            } else {
-                c.set(row + " #Value.Text", ProcessTab.value(gene));
-            }
+            if (!Library.adjustable(gene)) c.set(row + " #Value.Text", ProcessTab.value(gene));
             c.set(row + " #Name.Style.TextColor", used ? Widgets.STRONG : Widgets.TEXT);
         }
 
@@ -183,16 +181,51 @@ final class LibraryTab {
                 : "Lasting genes " + GeneText.number(Widgets.round(complexity)) + "  ·  free " + GeneText.number(Widgets.round(capacity - complexity)));
     }
 
-    /** The amount (0-100% of the best value) chosen for an entry; 100 until moved. */
-    static int amount(@Nonnull LabStationPage page, @Nonnull GeneLibrary.Entry entry) {
-        return page.libraryAmount.getOrDefault(entry.getId(), 100);
+    /** The amount chosen for an entry, in its unit; its maximum until changed. */
+    static double amount(@Nonnull LabStationPage page, @Nonnull GeneLibrary.Entry entry) {
+        Gene gene = entry.getGene();
+        double max = gene != null ? Library.maxAmount(gene) : 0;
+        return Math.clamp(page.libraryAmount.getOrDefault(entry.getId(), max), 0, max);
+    }
+
+    /**
+     * Writes a row's amount controls: the max label, and the number field and/or the slider (0-100% of the max).
+     * The control the player is using is left alone, so typing isn't interrupted.
+     */
+    static void controls(@Nonnull LabStationPage page, @Nonnull UICommandBuilder c, @Nonnull String row, @Nonnull GeneLibrary.Entry entry,
+                         boolean field, boolean slider) {
+        Gene gene = entry.getGene();
+        if (gene == null) return;
+        double max = Library.maxAmount(gene);
+        double value = amount(page, entry);
+        String unit = Library.unit(gene);
+        c.set(row + " #Max.Text", "/ " + GeneText.number(max) + (unit.equals("%") ? "%" : " min"));
+        c.set(row + " #Unit.Text", unit.equals("%") ? (gene instanceof Gene.Stat s && s.isDrawback() ? "-%" : "+%") : "min");
+        if (field) c.set(row + " #AmountField.Value", value);
+        if (slider) c.set(row + " #Amount.Value", max > 0 ? (int) Math.round(value / max * 100) : 0);
+    }
+
+    /** Sets an entry's amount from the slider (percent of max) or the field (a value), then syncs the other control. */
+    static void setAmount(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
+                          @Nonnull UICommandBuilder c, @Nonnull String id, double input, boolean fromSlider) {
+        List<GeneLibrary.Entry> entries = Library.of(ref, store).getEntries();
+        for (int i = 0; i < entries.size(); i++) {
+            GeneLibrary.Entry entry = entries.get(i);
+            if (!entry.getId().equals(id) || entry.getGene() == null) continue;
+            double max = Library.maxAmount(entry.getGene());
+            double value = fromSlider ? Math.round(max * Math.clamp(input, 0, 100) / 100.0 * 10) / 10.0 : Math.round(input * 10) / 10.0;
+            boolean clamped = value < 0 || value > max;
+            page.libraryAmount.put(id, Math.clamp(value, 0, max));
+            controls(page, c, "#LibraryList[" + i + "] ", entry, fromSlider || clamped, !fromSlider);
+            return;
+        }
     }
 
     @Nonnull
     private static List<Library.Use> uses(@Nonnull LabStationPage page, @Nonnull List<GeneLibrary.Entry> entries) {
         List<Library.Use> out = new ArrayList<>();
         for (GeneLibrary.Entry entry : entries) {
-            if (page.libraryUse.contains(entry.getId())) out.add(new Library.Use(entry, amount(page, entry) / 100.0));
+            if (page.libraryUse.contains(entry.getId())) out.add(new Library.Use(entry, amount(page, entry)));
         }
         return out;
     }

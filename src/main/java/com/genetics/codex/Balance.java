@@ -159,10 +159,15 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .documentation("Extra sickness per point of Complexity over capacity, on top of jumping straight to the Severe band.").add()
                 .append(new KeyedCodec<>("OverflowBand", Codec.STRING), (t, v) -> t.overflowBand = v, t -> t.overflowBand)
                 .documentation("Sickness band an over-capacity injection pushes the entity into.").add()
+                .append(new KeyedCodec<>("HardCap", Codec.DOUBLE), (t, v) -> t.hardCap = v, t -> t.hardCap)
+                .documentation("Highest Genome Capacity any expansion can reach.").add()
                 .build();
 
         private double overflowSicknessPerPoint = 2;
         private String overflowBand = "Severe";
+        private double hardCap = 10000;
+
+        public double getHardCap() { return Math.max(1, hardCap); }
 
         public double getOverflowSicknessPerPoint() { return overflowSicknessPerPoint; }
         @Nonnull public String getOverflowBand() { return overflowBand != null ? overflowBand : "Severe"; }
@@ -219,6 +224,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .append(new KeyedCodec<>("EffectReferenceDuration", Codec.DOUBLE), (t, v) -> t.effectReferenceDuration = v, t -> t.effectReferenceDuration)
                 .documentation("Seconds a temporary effect lasts at its Effect Codex Complexity. Longer effects (splices add timers "
                         + "together) cost proportionally more. 0 turns the scaling off.").add()
+                .append(new KeyedCodec<>("MaxEffectDuration", Codec.DOUBLE), (t, v) -> t.maxEffectDuration = v, t -> t.maxEffectDuration)
+                .documentation("Cap, in seconds, on a temporary effect's duration when timers add up (splicing, the Library). 0: no cap.").add()
                 .append(new KeyedCodec<>("MutationBaseChance", Codec.DOUBLE), (t, v) -> t.mutationBaseChance = v, t -> t.mutationBaseChance)
                 .documentation("Chance of a new mutation, before Complexity.").add()
                 .append(new KeyedCodec<>("MutationPerComplexity", Codec.DOUBLE), (t, v) -> t.mutationPerComplexity = v, t -> t.mutationPerComplexity)
@@ -226,6 +233,10 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .build();
 
         private double effectReferenceDuration = 180;
+        private double maxEffectDuration = 1800;
+
+        /** Longest a temporary effect can last when timers are added together (splicing, the Library). */
+        public double getMaxEffectDuration() { return maxEffectDuration > 0 ? maxEffectDuration : Double.MAX_VALUE; }
         private double mutationBaseChance = 0.02;
         private double mutationPerComplexity = 0.0005;
 

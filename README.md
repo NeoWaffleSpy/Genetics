@@ -32,7 +32,8 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
   mutation +10 (`Balance/Default.json`). `/genetics journal` sums it up.
 - **Research**: a tech tree paid with Science (`Server/Genetics/Research/`, one file per node) in four branches: Lab
   (Splicing, Make Permanent, Genetic Library, which also teaches the Gene Enhancer), Reagents (Gene Stabilizer), Syringes (Copper,
-  Thorium, Adamantite) and Genome (Moderate, Complex, Advanced and Exotic expansions: capacity 45, 80, 130, 200). Nodes teach recipes and turn on Lab features; the items themselves still cost materials.
+  Thorium, Adamantite) and Genome (Moderate, Complex, Advanced and Exotic expansions: capacity 45, 80, 130, 200; then the Supreme expansion,
+  +50 each use up to a hard cap of 10 000, the first one lifting you to at least 250). Nodes teach recipes and turn on Lab features; the items themselves still cost materials.
   It replaces the old Journal milestones (players who had them keep the matching nodes).
 - **Lab Station** (`Server/Item/Items/Bench/Genetics_Lab_Station.json`): a one-slot station that only accepts
   syringes. Its custom screen (`Common/UI/Custom/Genetics/LabStation.ui`) is one panel with four tabs, **Process,
@@ -58,7 +59,7 @@ Built from the [Hytale plugin template](https://github.com/Kaupenjoe/Hytale-Exam
   - **Genetic Library** (researched, T3): extract one gene from genetic material into your library (the material
     is used up; stats and effects also cost **Gene Enhancers**, one per 10 Complexity). The library keeps one entry
     per gene at its best value. In the **Library** tab, tick genes and choose how much of each to use (0 to its
-    best value) to combine them into new genetic material in an empty syringe; drawbacks lower Complexity, and
+    best value, with a slider or by typing it) to combine them into new genetic material in an empty syringe; drawbacks lower Complexity, and
     several mutations multiply the cost (x3 each). `/genetics library` lists it.
   - **Mutations**: a splice may roll a new mutation (about 2–6%), drawn by weight among those its tier allows.
     Mutations carry stats, effects and **behaviors** (triggers such as low health, being hurt or nightfall that run

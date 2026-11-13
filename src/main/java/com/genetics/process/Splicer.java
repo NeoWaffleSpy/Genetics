@@ -156,7 +156,8 @@ public final class Splicer {
                 double cost = !sa.isDrawback() && !sb.isDrawback() ? sa.cost() + sb.cost() : Math.abs(sum);
                 yield sum == 0 ? null : new Gene.Stat(sa.stat(), sum, cost);
             }
-            case Gene.Effect ea -> ea.permanent() ? ea : new Gene.Effect(ea.effect(), false, ea.duration() + ((Gene.Effect) b).duration());
+            case Gene.Effect ea -> ea.permanent() ? ea : new Gene.Effect(ea.effect(), false,
+                    Math.min(ea.duration() + ((Gene.Effect) b).duration(), Balance.get().splicing().getMaxEffectDuration()));
             case Gene.Mutation ignored -> aLeads ? a : b;
         };
     }
