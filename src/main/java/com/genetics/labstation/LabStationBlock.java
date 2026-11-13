@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  */
 public class LabStationBlock implements Component<ChunkStore> {
     public static final String ID = "Genetics_LabStation";
-    public static final int MAX_TIER = 2;
+    public static final int MAX_TIER = 3;
 
     public static final BuilderCodec<LabStationBlock> CODEC = BuilderCodec.builder(LabStationBlock.class, LabStationBlock::new)
             .append(new KeyedCodec<>("Tier", Codec.INTEGER), (t, v) -> t.tier = v, t -> t.tier).add()
@@ -86,9 +86,10 @@ public class LabStationBlock implements Component<ChunkStore> {
         Balance.StationUpgrade upgrade = Balance.get().stationUpgrade(current + 1);
         if (current >= MAX_TIER || upgrade == null) return "This Lab Station is already at its highest tier.";
         com.genetics.journal.GeneJournal journal = com.genetics.journal.Journal.of(player, accessor);
-        if (!com.genetics.research.Research.hasFeature(journal, com.genetics.research.Research.SPLICING)) {
-            com.genetics.research.ResearchNode node = com.genetics.research.Research.grantingNode(com.genetics.research.Research.SPLICING);
-            return "Research " + (node != null ? node.getName() : "Splicing") + " first.";
+        String feature = com.genetics.research.Research.featureForStationTier(current + 1);
+        if (feature != null && !com.genetics.research.Research.hasFeature(journal, feature)) {
+            com.genetics.research.ResearchNode node = com.genetics.research.Research.grantingNode(feature);
+            return "Research " + (node != null ? node.getName() : feature) + " first.";
         }
         Ref<ChunkStore> block = blockEntity(world, pos);
         if (block == null) return "This Lab Station can't be upgraded.";

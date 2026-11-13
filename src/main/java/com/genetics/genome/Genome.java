@@ -99,7 +99,8 @@ public record Genome(int version, boolean processed, boolean identified, double 
     public String title() {
         if (source != null && source.spliced()) {
             com.genetics.tier.ComplexityTier tier = com.genetics.tier.Tiers.forComplexity(complexity);
-            return (tier != null ? tier.getName() + " " : "") + "Spliced Gene";
+            boolean designed = com.genetics.library.Library.SOURCE_ID.equals(source.mobId());
+            return (tier != null ? tier.getName() + " " : "") + (designed ? "Designed Gene" : "Spliced Gene");
         }
         return (source != null ? source.mobName() : "Unknown") + "'s Genes";
     }

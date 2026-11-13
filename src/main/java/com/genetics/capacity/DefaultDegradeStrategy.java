@@ -48,9 +48,12 @@ public final class DefaultDegradeStrategy implements DegradeStrategy {
             if (picked instanceof Gene.Stat stat) {
                 double excess = ComplexityCalculator.compute(genes) - capacity;
                 double weight = Math.max(0.0001, Codex.statWeight(stat.stat()));
-                double shrunk = Math.floor((stat.percent() - excess / weight) * 10) / 10.0;
+                // A fused stat costs more than its value: shrink its cost, and its value in the same ratio.
+                double ratio = stat.cost() / Math.max(0.0001, stat.percent());
+                double cost = stat.cost() - excess / weight;
+                double shrunk = Math.floor(cost / ratio * 10) / 10.0;
                 if (shrunk >= 0.1) {
-                    Gene.Stat result = new Gene.Stat(stat.stat(), shrunk);
+                    Gene.Stat result = new Gene.Stat(stat.stat(), shrunk, shrunk * ratio);
                     genes.set(index, result);
                     changes.add(new Change(stat, result));
                     continue;
@@ -86,7 +89,7 @@ public final class DefaultDegradeStrategy implements DegradeStrategy {
     /** How much Complexity a gene adds on its own. */
     private static double weight(@Nonnull Gene gene) {
         double value = switch (gene) {
-            case Gene.Stat stat -> Math.abs(stat.percent()) * Codex.statWeight(stat.stat());
+            case Gene.Stat stat -> stat.cost() * Codex.statWeight(stat.stat());
             case Gene.Effect effect -> Codex.effectComplexity(effect.effect(), effect.permanent());
             case Gene.Mutation mutation -> {
                 MutationEntry entry = Codex.mutation(mutation.mutation());

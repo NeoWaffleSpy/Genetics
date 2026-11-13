@@ -1,0 +1,17 @@
+{
+  "Name": "Genetic Library",
+  "Branch": "Lab",
+  "Order": 3,
+  "Icon": "Helix",
+  "Cost": 25,
+  "Requires": [
+    "MakePermanent"
+  ],
+  "Features": [
+    "GeneticLibrary"
+  ],
+  "Description": "Unlocks the Library tab and the Lab Station T3 upgrade, and teaches the Gene Enhancer recipe (used to extract stats and effects).",
+  "Recipes": [
+    "Genetics_Gene_Enhancer"
+  ]
+}

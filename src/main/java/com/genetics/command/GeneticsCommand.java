@@ -43,6 +43,7 @@ import java.util.TreeSet;
  * /genetics science &lt;amount&gt;   add Science (negative removes it)
  * /genetics research &lt;id&gt;      research a node for free; "all" researches every node, "reset" forgets them
  * /genetics nodes              list the research node ids
+ * /genetics library            list your Genetic Library
  * /genetics mutation &lt;id&gt;      give your active genome this mutation (replacing its mutation), "none" removes it
  * /genetics mutations          list the mutation ids
  * </pre>
@@ -59,6 +60,7 @@ public class GeneticsCommand extends AbstractCommandCollection {
         addSubCommand(new AddScience());
         addSubCommand(new GrantResearch());
         addSubCommand(new ListNodes());
+        addSubCommand(new ShowLibrary());
         addSubCommand(new SetMutation());
         addSubCommand(new ListMutations());
     }
@@ -214,6 +216,24 @@ public class GeneticsCommand extends AbstractCommandCollection {
         protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
                                @Nonnull PlayerRef playerRef, @Nonnull World world) {
             context.sendMessage(Message.raw("Research nodes: " + nodeList()));
+        }
+    }
+
+    private static final class ShowLibrary extends AbstractPlayerCommand {
+        ShowLibrary() {
+            super("library", "server.genetics.commands.library.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            List<String> lines = new ArrayList<>();
+            for (com.genetics.library.GeneLibrary.Entry entry : com.genetics.library.Library.of(ref, store).getEntries()) {
+                Gene gene = entry.getGene();
+                lines.add(gene != null ? GeneText.describe(gene, playerRef.getLanguage()) : "?");
+            }
+            context.sendMessage(Message.raw("Genetic Library: " + (lines.isEmpty() ? "empty." : String.join(", ", lines) + ".")));
         }
     }
 

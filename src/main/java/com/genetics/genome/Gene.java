@@ -16,19 +16,38 @@ public sealed interface Gene {
     @Nonnull
     BsonDocument toBson();
 
-    /** A modifier to a vanilla stat's max, in percent. Negative values are drawbacks. */
-    record Stat(@Nonnull String stat, double percent) implements Gene {
+    /**
+     * A modifier to a vanilla stat's max, in percent. Negative values are drawbacks.
+     * {@code cost} is the value Complexity is counted from: the same as the percent, except for stats fused in the
+     * Genetic Library (design doc §8.1), where it is the full value of every copy fused into it.
+     */
+    record Stat(@Nonnull String stat, double percent, double cost) implements Gene {
+        public Stat {
+            cost = Math.max(Math.abs(percent), cost);
+        }
+
+        public Stat(@Nonnull String stat, double percent) {
+            this(stat, percent, Math.abs(percent));
+        }
+
         public boolean isDrawback() {
             return percent < 0;
+        }
+
+        /** True if Complexity counts more than the percent (a fused stat). */
+        public boolean isFused() {
+            return cost > Math.abs(percent) + 1e-9;
         }
 
         @Nonnull
         @Override
         public BsonDocument toBson() {
-            return new BsonDocument()
+            BsonDocument doc = new BsonDocument()
                     .append("Type", new BsonString("Stat"))
                     .append("Stat", new BsonString(stat))
                     .append("Percent", new BsonDouble(percent));
+            if (isFused()) doc.append("Cost", new BsonDouble(cost));
+            return doc;
         }
     }
 
@@ -63,7 +82,8 @@ public sealed interface Gene {
         if (!doc.isString("Type")) return null;
         return switch (doc.getString("Type").getValue()) {
             case "Stat" -> doc.isString("Stat") && doc.isNumber("Percent")
-                    ? new Stat(doc.getString("Stat").getValue(), doc.getNumber("Percent").doubleValue()) : null;
+                    ? new Stat(doc.getString("Stat").getValue(), doc.getNumber("Percent").doubleValue(),
+                    doc.isNumber("Cost") ? doc.getNumber("Cost").doubleValue() : 0) : null;
             case "Effect" -> doc.isString("Effect")
                     ? new Effect(doc.getString("Effect").getValue(),
                     doc.isBoolean("Permanent") && doc.getBoolean("Permanent").getValue(),

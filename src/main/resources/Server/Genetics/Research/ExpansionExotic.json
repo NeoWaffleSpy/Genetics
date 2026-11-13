@@ -1,0 +1,14 @@
+{
+  "Name": "Expansion · Exotic",
+  "Branch": "Genome",
+  "Order": 3,
+  "Icon": "Stat",
+  "Cost": 40,
+  "Requires": [
+    "ExpansionAdvanced"
+  ],
+  "Recipes": [
+    "Genetics_Genome_Expansion_Exotic"
+  ],
+  "Description": "Teaches the Exotic Genome Expansion recipe (capacity 200)."
+}

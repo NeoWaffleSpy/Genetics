@@ -134,6 +134,8 @@ $C.@DecoratedContainer #Panel {
       TextButton #TabProcessOff { Style: @TabOffStyle; Text: "Process"; Anchor: (Width: 124); Visible: false; }
       TextButton #TabSpliceOn { Style: @TabOnStyle; Text: "Splice"; Anchor: (Width: 124); Visible: false; }
       TextButton #TabSpliceOff { Style: @TabOffStyle; Text: "Splice"; Anchor: (Width: 124); }
+      TextButton #TabLibraryOn { Style: @TabOnStyle; Text: "Library"; Anchor: (Width: 124); Visible: false; }
+      TextButton #TabLibraryOff { Style: @TabOffStyle; Text: "Library"; Anchor: (Width: 124); }
       TextButton #TabCatalogueOn { Style: @TabOnStyle; Text: "Catalogue"; Anchor: (Width: 124); Visible: false; }
       TextButton #TabCatalogueOff { Style: @TabOffStyle; Text: "Catalogue"; Anchor: (Width: 124); }
       TextButton #TabResearchOn { Style: @TabOnStyle; Text: "Research"; Anchor: (Width: 124); Visible: false; }
@@ -403,22 +405,26 @@ $C.@DecoratedContainer #Panel {
           }
         }
 
-        Label #ProcessReason {
+        Group #ProcessReasonRow {
+          LayoutMode: Left;
           Anchor: (Height: 24);
           Padding: (Top: 6);
-          Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+
+          Label #ProcessCostLabel {
+            Text: "Cost";
+            Style: @SectionStyle;
+          }
+
+          Label #ProcessReason {
+            FlexWeight: 1;
+            Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+          }
         }
 
         Group #ProcessBar {
           LayoutMode: Left;
           Anchor: (Height: 54);
           Padding: (Top: 6);
-
-          Label #ProcessCostLabel {
-            Text: "Cost";
-            Padding: (Right: 10);
-            Style: @SectionStyle;
-          }
 
           Group #ProcessCost {
             LayoutMode: Left;
@@ -444,6 +450,13 @@ $C.@DecoratedContainer #Panel {
             Style: @SecondaryStyle;
             Text: "Splice with...";
             Anchor: (Width: 180, Height: 44);
+            Visible: false;
+          }
+
+          TextButton #ExtractButton {
+            Style: @PrimaryStyle;
+            Text: "Extract";
+            Anchor: (Width: 160, Height: 44);
             Visible: false;
           }
 
@@ -629,22 +642,26 @@ $C.@DecoratedContainer #Panel {
           }
         }
 
-        Label #SpliceReason {
+        Group #SpliceReasonRow {
+          LayoutMode: Left;
           Anchor: (Height: 24);
           Padding: (Top: 6);
-          Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+
+          Label #SpliceCostLabel {
+            Text: "Cost";
+            Style: @SectionStyle;
+          }
+
+          Label #SpliceReason {
+            FlexWeight: 1;
+            Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+          }
         }
 
         Group #SpliceBar {
           LayoutMode: Left;
           Anchor: (Height: 54);
           Padding: (Top: 6);
-
-          Label #SpliceCostLabel {
-            Text: "Cost";
-            Padding: (Right: 10);
-            Style: @SectionStyle;
-          }
 
           Group #SpliceCost {
             LayoutMode: Left;
@@ -658,6 +675,205 @@ $C.@DecoratedContainer #Panel {
             Style: @PrimaryStyle;
             Text: "Splice";
             Anchor: (Width: 160, Height: 44);
+          }
+        }
+      }
+
+      // ---- Library: extracted genes, combined into new genetic material (Phase 3).
+      Group #LibraryTab {
+        LayoutMode: Top;
+        FlexWeight: 1;
+        Visible: false;
+
+        Group #LibraryLocked {
+          LayoutMode: Top;
+          FlexWeight: 1;
+          Padding: (Full: 12);
+          Background: #111a24;
+          OutlineColor: #273748;
+          OutlineSize: 1;
+          Visible: false;
+
+          Label #LibraryLockedText {
+            Style: (FontSize: 16, TextColor: #a9b9c7, Wrap: true);
+          }
+
+          Group #LibUpgradeCost {
+            LayoutMode: Left;
+            Anchor: (Height: 46, Top: 10);
+          }
+
+          Group {
+            LayoutMode: Left;
+            Anchor: (Height: 44, Top: 10);
+
+            TextButton #LibUpgradeButton {
+              Style: @PrimaryStyle;
+              Text: "Upgrade to T3";
+              Anchor: (Width: 210);
+            }
+          }
+        }
+
+        Group #LibraryOpen {
+          LayoutMode: Top;
+          FlexWeight: 1;
+
+          Group {
+            LayoutMode: Left;
+            FlexWeight: 1;
+
+            Group {
+              LayoutMode: Top;
+              FlexWeight: 1;
+              Padding: (Full: 12);
+              Background: #111a24;
+              OutlineColor: #273748;
+              OutlineSize: 1;
+
+              Group {
+                LayoutMode: Left;
+                Anchor: (Height: 26);
+
+                Label {
+                  Text: "Genetic Library";
+                  Style: (FontSize: 18, RenderBold: true, TextColor: #eaf1f4, FontName: "Secondary", VerticalAlignment: Center);
+                }
+
+                Group {
+                  FlexWeight: 1;
+                }
+
+                Label #LibraryCount {
+                  Style: (FontSize: 12, RenderBold: true, TextColor: #a9b9c7, VerticalAlignment: Center);
+                }
+              }
+
+              Label #LibraryEmpty {
+                Padding: (Top: 8);
+                Text: "Empty. Put genetic material in the slot, open the Process tab and extract a gene with its Extract button.";
+                Style: (FontSize: 14, TextColor: #66788a, Wrap: true);
+              }
+
+              Group #LibraryList {
+                LayoutMode: TopScrolling;
+                FlexWeight: 1;
+                Padding: (Top: 6);
+                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+              }
+            }
+
+            Group {
+              Anchor: (Width: 10);
+            }
+
+            Group {
+              LayoutMode: Top;
+              Anchor: (Width: 260);
+              Padding: (Full: 12);
+              Background: #111a24;
+              OutlineColor: #273748;
+              OutlineSize: 1;
+
+              Label #DesignName {
+                Style: (FontSize: 18, RenderBold: true, TextColor: #eaf1f4, FontName: "Secondary", Wrap: true);
+              }
+
+              Group {
+                LayoutMode: Top;
+                Padding: (Top: 6);
+
+                Group {
+                  LayoutMode: Left;
+                  Anchor: (Height: 18);
+
+                  Label {
+                    Text: "Capacity";
+                    FlexWeight: 1;
+                    Style: @SectionStyle;
+                  }
+
+                  Label #LCapNumbers {
+                    Style: (FontSize: 13, RenderBold: true, TextColor: #eaf1f4, VerticalAlignment: Center);
+                  }
+                }
+
+                Group #LCapTrack {
+                  LayoutMode: Left;
+                  Anchor: (Height: 10, Top: 4);
+                  Background: #0b121a;
+                  OutlineColor: #273748;
+                  OutlineSize: 1;
+
+                  Group #LCapFill {
+                    Anchor: (Width: 0);
+                    Background: #f0b54a;
+                  }
+
+                  Group #LCapOver {
+                    Anchor: (Width: 0);
+                    Background: #e86a6a;
+                  }
+                }
+
+                Label #LCapLegend {
+                  Padding: (Top: 4);
+                  Style: (FontSize: 11, TextColor: #a9b9c7, Wrap: true);
+                }
+              }
+
+              Label #DesignMutations {
+                Padding: (Top: 6);
+                Style: (FontSize: 12, RenderBold: true, TextColor: #b78cf2, Wrap: true);
+              }
+
+              Label #DesignHeader {
+                Padding: (Top: 8, Bottom: 6);
+                Style: @SectionStyle;
+              }
+
+              Group #DesignList {
+                LayoutMode: TopScrolling;
+                FlexWeight: 1;
+                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+              }
+            }
+          }
+
+          Group #LibraryReasonRow {
+            LayoutMode: Left;
+            Anchor: (Height: 24);
+            Padding: (Top: 6);
+
+            Label #LibraryCostLabel {
+              Text: "Cost";
+              Style: @SectionStyle;
+            }
+
+            Label #LibraryReason {
+              FlexWeight: 1;
+              Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+            }
+          }
+
+          Group #LibraryBar {
+            LayoutMode: Left;
+            Anchor: (Height: 54);
+            Padding: (Top: 6);
+
+            Group #LibraryCost {
+              LayoutMode: Left;
+            }
+
+            Group {
+              FlexWeight: 1;
+            }
+
+            TextButton #CombineButton {
+              Style: @PrimaryStyle;
+              Text: "Combine";
+              Anchor: (Width: 160, Height: 44);
+            }
           }
         }
       }

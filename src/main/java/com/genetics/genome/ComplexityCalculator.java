@@ -28,7 +28,7 @@ public final class ComplexityCalculator {
         for (Gene gene : genes) {
             switch (gene) {
                 case Gene.Stat stat -> {
-                    double value = Math.abs(stat.percent()) * Codex.statWeight(stat.stat());
+                    double value = stat.cost() * Codex.statWeight(stat.stat());
                     if (stat.isDrawback()) drawbacks += value * DRAWBACK_WEIGHT;
                     else positive += value;
                 }

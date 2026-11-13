@@ -160,6 +160,9 @@ public final class Codex {
         if (EntityStatType.getAssetMap().getAsset(com.genetics.capacity.GenomeCapacity.STAT_ID) == null) {
             problems += warn("Missing the " + com.genetics.capacity.GenomeCapacity.STAT_ID + " entity stat.");
         }
+        if (com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAsset(Balance.get().library().getExtractItem()) == null) {
+            problems += warn("Library extract item '" + Balance.get().library().getExtractItem() + "' doesn't exist.");
+        }
         for (com.genetics.research.ResearchNode node : com.genetics.research.ResearchNode.getAssetMap().getAssetMap().values()) {
             String where = "research node " + node.getId();
             for (String required : node.getRequires()) {

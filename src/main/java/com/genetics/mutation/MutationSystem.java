@@ -49,11 +49,14 @@ public class MutationSystem extends EntityTickingSystem<EntityStore> {
         ActiveGenome active = chunk.getComponent(index, ActiveGenome.getComponentType());
         Genome genome = active != null ? active.getGenome() : null;
         if (genome == null || chunk.getComponent(index, DeathComponent.getComponentType()) != null) return;
-        MutationEntry mutation = null;
+        java.util.List<MutationEntry> mutations = new java.util.ArrayList<>();
         for (Gene gene : genome.genes()) {
-            if (gene instanceof Gene.Mutation m) mutation = Codex.mutation(m.mutation());
+            if (gene instanceof Gene.Mutation m) {
+                MutationEntry entry = Codex.mutation(m.mutation());
+                if (entry != null && entry.getBehaviors().length > 0) mutations.add(entry);
+            }
         }
-        if (mutation == null || mutation.getBehaviors().length == 0) return;
+        if (mutations.isEmpty()) return;
 
         Ref<EntityStore> ref = chunk.getReferenceTo(index);
         State state = chunk.getComponent(index, State.getComponentType());
@@ -75,17 +78,19 @@ public class MutationSystem extends EntityTickingSystem<EntityStore> {
         state.actions.tick(dt, context);
         state.cooldowns.replaceAll((key, left) -> left - dt);
 
-        Behavior[] behaviors = mutation.getBehaviors();
-        for (int i = 0; i < behaviors.length; i++) {
-            Behavior behavior = behaviors[i];
-            String key = mutation.getId() + "#" + i;
-            boolean[] armed = state.armed.computeIfAbsent(key, k -> new boolean[]{true});
-            if (!behavior.check(input, armed) || state.cooldowns.getOrDefault(key, 0.0) > 0) continue;
-            state.cooldowns.put(key, behavior.getCooldown());
-            state.actions.start(behavior.getActions(), context);
-            if (behavior.getMessage() != null) {
-                PlayerRef player = buffer.getComponent(ref, PlayerRef.getComponentType());
-                if (player != null) player.sendMessage(Message.translation(behavior.getMessage()));
+        for (MutationEntry mutation : mutations) {
+            Behavior[] behaviors = mutation.getBehaviors();
+            for (int i = 0; i < behaviors.length; i++) {
+                Behavior behavior = behaviors[i];
+                String key = mutation.getId() + "#" + i;
+                boolean[] armed = state.armed.computeIfAbsent(key, k -> new boolean[]{true});
+                if (!behavior.check(input, armed) || state.cooldowns.getOrDefault(key, 0.0) > 0) continue;
+                state.cooldowns.put(key, behavior.getCooldown());
+                state.actions.start(behavior.getActions(), context);
+                if (behavior.getMessage() != null) {
+                    PlayerRef player = buffer.getComponent(ref, PlayerRef.getComponentType());
+                    if (player != null) player.sendMessage(Message.translation(behavior.getMessage()));
+                }
             }
         }
     }

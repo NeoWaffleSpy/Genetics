@@ -66,7 +66,7 @@ public final class GeneText {
     /** How much Complexity one gene adds on its own (drawbacks subtract, at the drawback weight). */
     public static double complexity(@Nonnull Gene gene) {
         return switch (gene) {
-            case Gene.Stat stat -> Math.abs(stat.percent()) * com.genetics.codex.Codex.statWeight(stat.stat())
+            case Gene.Stat stat -> stat.cost() * com.genetics.codex.Codex.statWeight(stat.stat())
                     * (stat.isDrawback() ? -ComplexityCalculator.DRAWBACK_WEIGHT : 1);
             case Gene.Effect effect -> ComplexityCalculator.effect(effect);
             case Gene.Mutation mutation -> {

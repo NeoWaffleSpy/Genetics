@@ -1,0 +1,118 @@
+$C = "../Common.ui";
+
+// One Genetic Library entry: tickbox to use it, type icon, name and source, the amount used (a slider from 0 to the
+// best value, for stats and temporary effects) and a discard button.
+Group {
+  LayoutMode: Top;
+  Padding: (Bottom: 5);
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 50);
+    Padding: (Horizontal: 8);
+    Background: #ffffff(0.035);
+
+    Group {
+      LayoutMode: Middle;
+      Anchor: (Width: 30);
+
+      $C.@CheckBox #Use {
+        Value: false;
+      }
+    }
+
+    Group {
+      LayoutMode: Middle;
+      Anchor: (Width: 28);
+
+      Group #IconStat { Anchor: (Width: 20, Height: 20); Background: "Icons/Stat.png"; }
+      Group #IconDrawback { Anchor: (Width: 20, Height: 20); Background: "Icons/Drawback.png"; Visible: false; }
+      Group #IconEffect { Anchor: (Width: 20, Height: 20); Background: "Icons/Effect.png"; Visible: false; }
+      Group #IconMutation { Anchor: (Width: 20, Height: 20); Background: "Icons/Mutation.png"; Visible: false; }
+    }
+
+    Group {
+      LayoutMode: Top;
+      FlexWeight: 1;
+      Padding: (Left: 6, Top: 7);
+
+      Label #Name {
+        Style: (FontSize: 14, RenderBold: true, TextColor: #eaf1f4);
+      }
+
+      Label #Meta {
+        Style: (FontSize: 11, TextColor: #a9b9c7);
+      }
+    }
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Width: 190);
+      Padding: (Top: 4, Right: 8);
+
+      Label #Value {
+        Padding: (Top: 10);
+        Style: (FontSize: 14, RenderBold: true, TextColor: #8fd17a, HorizontalAlignment: End);
+      }
+
+      Group #AmountBox {
+        LayoutMode: Top;
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 26);
+
+          Group {
+            FlexWeight: 1;
+          }
+
+          Label #Unit {
+            Padding: (Right: 4);
+            Style: (FontSize: 12, RenderBold: true, TextColor: #a9b9c7, VerticalAlignment: Center);
+          }
+
+          NumberField #AmountField {
+            Style: $C.@DefaultInputFieldStyle;
+            Background: $C.@InputBoxBackground;
+            Anchor: (Width: 68, Height: 26);
+            Padding: (Horizontal: 6);
+            Format: (
+              MaxDecimalPlaces: 1,
+              Step: 0.1,
+              MinValue: 0
+            );
+            Value: 0;
+          }
+
+          Label #Max {
+            Anchor: (Width: 74);
+            Padding: (Left: 6);
+            Style: (FontSize: 12, RenderBold: true, TextColor: #a9b9c7, VerticalAlignment: Center);
+          }
+        }
+
+        Group {
+          LayoutMode: Top;
+          Padding: (Top: 6, Left: 10);
+
+          $C.@Slider #Amount {
+            Min: 0;
+            Max: 100;
+            Step: 1;
+            Value: 100;
+          }
+        }
+      }
+    }
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Width: 44);
+      Padding: (Top: 9, Left: 4);
+
+      $C.@SmallSecondaryTextButton #Discard {
+        @Text = "X";
+      }
+    }
+  }
+}

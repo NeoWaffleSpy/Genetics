@@ -70,7 +70,9 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             CustomUIEventBindingType.SlotMouseEntered,
             CustomUIEventBindingType.SlotMouseExited
     );
-    private static final List<String> TABS = List.of("Process", "Splice", "Catalogue", "Research");
+    private static final List<String> TABS = List.of("Process", "Splice", "Library", "Catalogue", "Research");
+    /** Tabs that keep the sample rail and the inventory on screen. */
+    private static final List<String> BENCH_TABS = List.of("Process", "Splice", "Library");
     static final List<String> SUBS = List.of("Creatures", "Genes", "Buffs", "Mutations");
 
     final Station station;
@@ -98,6 +100,12 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     short bSlot = -1;
     boolean[] spliceKeep = new boolean[0];
     String sub = "Creatures";
+    /** Gene of the genetic material picked for extraction, or -1. */
+    int extractIndex = -1;
+    /** Library entries ticked into the combination. */
+    final java.util.Set<String> libraryUse = new java.util.LinkedHashSet<>();
+    /** Amount (0-100% of the best value) chosen per library entry. */
+    final java.util.Map<String, Double> libraryAmount = new java.util.HashMap<>();
     @Nullable
     String catalogueSelected;
     @Nullable
@@ -131,6 +139,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         if (!sampleKey.equals(builtSample)) {
             Genome sample = sample();
             keep = new boolean[sample != null ? sample.genes().size() : 0];
+            extractIndex = -1;
             Arrays.fill(keep, true);
             permanent = new boolean[keep.length];
         }
@@ -154,9 +163,13 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ProcessButton", new EventData().append("Action", "Process"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceWithButton", new EventData().append("Action", "Tab").append("Tab", "Splice"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeButton", new EventData().append("Action", "Upgrade"), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeStationButton", new EventData().append("Action", "Tab").append("Tab", "Splice"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeStationButton", new EventData().append("Action", "Tab")
+                .append("Tab", station.tier() < 2 ? "Splice" : "Library"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceButton", new EventData().append("Action", "Splice"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ResearchButton", new EventData().append("Action", "Research"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#ExtractButton", new EventData().append("Action", "Extract"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#CombineButton", new EventData().append("Action", "Combine"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#LibUpgradeButton", new EventData().append("Action", "Upgrade"), false);
         for (String grid : List.of(SAMPLE_GRID, SPLICE_GRID, STORAGE_GRID, HOTBAR_GRID)) {
             for (CustomUIEventBindingType type : SLOT_EVENTS) {
                 events.addEventBinding(type, grid, new EventData().append("Action", type.name()).append("Grid", grid), false);
@@ -168,6 +181,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         writeTooltip(commands, ref, store);
         switch (tab) {
             case "Splice" -> SpliceTab.build(this, ref, store, commands, events);
+            case "Library" -> LibraryTab.build(this, ref, store, commands, events);
             case "Catalogue" -> CatalogueTab.build(this, ref, store, commands, events);
             case "Research" -> ResearchTab.build(this, ref, store, commands, events);
             default -> ProcessTab.build(this, ref, store, commands, events);
@@ -185,7 +199,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
 
     /** Tabs, panel size, Science and station tier. */
     private void writeChrome(@Nonnull UICommandBuilder commands, @Nonnull Store<EntityStore> store) {
-        boolean bench = tab.equals("Process") || tab.equals("Splice");
+        boolean bench = BENCH_TABS.contains(tab);
         for (String t : TABS) {
             commands.set("#Tab" + t + "On.Visible", t.equals(tab));
             commands.set("#Tab" + t + "Off.Visible", !t.equals(tab));
@@ -229,8 +243,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             commands.set("#SpeciesName.Text", "No sample");
             commands.set("#SpeciesMeta.Text", "Drag a filled syringe into the slot.");
         } else if (a.source() == null || a.source().spliced()) {
-            commands.set("#SpeciesName.Text", a.source() != null ? "Spliced" : "Unknown");
-            commands.set("#SpeciesMeta.Text", a.source() != null ? "Mostly " + a.source().mobName() + " genes" : "");
+            boolean designed = a.source() != null && com.genetics.library.Library.SOURCE_ID.equals(a.source().mobId());
+            commands.set("#SpeciesName.Text", designed ? "Designed" : a.source() != null ? "Spliced" : "Unknown");
+            commands.set("#SpeciesMeta.Text", designed ? "Combined in the Genetic Library"
+                    : a.source() != null ? "Mostly " + a.source().mobName() + " genes" : "");
         } else {
             String id = a.source().mobId();
             GeneJournal.Species entry = journal.getSpecies().get(id);
@@ -300,6 +316,41 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 if (message != null) playerRef.sendMessage(Message.raw(message));
                 rebuild();
             }
+            case "PickExtract" -> {
+                int i = parse(data.index);
+                extractIndex = i == extractIndex ? -1 : i;
+                partial(ref, store);
+            }
+            case "Extract" -> {
+                String message = ProcessTab.extract(this, ref, store);
+                if (message != null) playerRef.sendMessage(Message.raw(message));
+                rebuild();
+            }
+            case "LibraryUse" -> {
+                if (data.node != null) {
+                    boolean use = data.checked != null ? data.checked : !libraryUse.contains(data.node);
+                    if (use) libraryUse.add(data.node);
+                    else libraryUse.remove(data.node);
+                }
+                partial(ref, store);
+            }
+            case "Combine" -> {
+                String message = LibraryTab.combine(this, ref, store);
+                if (message != null) playerRef.sendMessage(Message.raw(message));
+                rebuild();
+            }
+            case "LibraryAmount", "LibraryField" -> {
+                Double input = data.action.equals("LibraryAmount") ? (data.amount != null ? (double) data.amount : null) : data.field;
+                if (data.node == null || input == null) return;
+                UICommandBuilder commands = new UICommandBuilder();
+                LibraryTab.setAmount(this, ref, store, commands, data.node, input, data.action.equals("LibraryAmount"));
+                LibraryTab.update(this, ref, store, commands);
+                sendUpdate(commands, false);
+            }
+            case "Discard" -> {
+                if (data.node != null) playerRef.sendMessage(Message.raw(LibraryTab.discard(this, ref, store, data.node)));
+                rebuild();
+            }
             case "Splice" -> {
                 String message = SpliceTab.splice(this, ref, store);
                 if (message != null) playerRef.sendMessage(Message.raw(message));
@@ -308,7 +359,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             case "Upgrade" -> {
                 String failure = LabStationBlock.upgrade(world, station.pos(), ref, store);
                 playerRef.sendMessage(Message.raw(failure != null ? failure : "Lab Station upgraded to tier " + station.tier()
-                        + ": you can now splice and process Moderate samples."));
+                        + (station.tier() >= 3 ? ": the Genetic Library is open." : ": you can now splice and process Moderate samples.")));
                 rebuild();
             }
             case "Research" -> {
@@ -528,6 +579,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         switch (tab) {
             case "Process" -> ProcessTab.update(this, ref, store, commands);
             case "Splice" -> SpliceTab.update(this, ref, store, commands);
+            case "Library" -> LibraryTab.update(this, ref, store, commands);
             default -> {
             }
         }
@@ -551,7 +603,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             ItemContainer hovered = containerFor(store, ref, hoveredGrid);
             stack = hovered != null && hoveredSlot >= 0 && hoveredSlot < hovered.getCapacity() ? hovered.getItemStack((short) hoveredSlot) : null;
         }
-        boolean bench = tab.equals("Process") || tab.equals("Splice");
+        boolean bench = BENCH_TABS.contains(tab);
         if (!bench || isEmpty(stack) || hoveredGrid == null) {
             commands.set("#TooltipLayer.Visible", false);
             return;
@@ -614,6 +666,8 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 .append(new KeyedCodec<>("Index", Codec.STRING), (p, v) -> p.index = v, p -> p.index).add()
                 .append(new KeyedCodec<>("Node", Codec.STRING), (p, v) -> p.node = v, p -> p.node).add()
                 .append(new KeyedCodec<>("@Checked", Codec.BOOLEAN), (p, v) -> p.checked = v, p -> p.checked).add()
+                .append(new KeyedCodec<>("@Amount", Codec.FLOAT), (p, v) -> p.amount = v, p -> p.amount).add()
+                .append(new KeyedCodec<>("@Field", Codec.DOUBLE), (p, v) -> p.field = v, p -> p.field).add()
                 .append(new KeyedCodec<>("SlotIndex", Codec.INTEGER), (p, v) -> p.slotIndex = v, p -> p.slotIndex).add()
                 .append(new KeyedCodec<>("ItemStackId", Codec.STRING), (p, v) -> p.itemStackId = v, p -> p.itemStackId).add()
                 .append(new KeyedCodec<>("ItemStackQuantity", Codec.INTEGER), (p, v) -> p.itemStackQuantity = v, p -> p.itemStackQuantity).add()
@@ -630,6 +684,8 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         private String index;
         private String node;
         private Boolean checked;
+        private Float amount;
+        private Double field;
         private Integer slotIndex;
         private String itemStackId;
         private Integer itemStackQuantity;

@@ -45,7 +45,8 @@
   },
   "Capacity": {
     "OverflowSicknessPerPoint": 2,
-    "OverflowBand": "Severe"
+    "OverflowBand": "Severe",
+    "HardCap": 10000
   },
   "Syringes": {
     "HealthThresholds": [
@@ -57,7 +58,8 @@
   "Splicing": {
     "EffectReferenceDuration": 180,
     "MutationBaseChance": 0.02,
-    "MutationPerComplexity": 0.0005
+    "MutationPerComplexity": 0.0005,
+    "MaxEffectDuration": 1800
   },
   "Permanence": {
     "MinDuration": 1800,
@@ -81,6 +83,23 @@
           "Quantity": 10
         }
       ]
+    },
+    {
+      "Tier": 3,
+      "Materials": [
+        {
+          "ItemId": "Ingredient_Bar_Thorium",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Ingredient_Crystal_Cyan",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "Ingredient_Life_Essence_Concentrated",
+          "Quantity": 5
+        }
+      ]
     }
   ],
   "Science": {
@@ -89,5 +108,11 @@
     "SpeciesComplete": 5,
     "NewBuff": 2,
     "NewMutation": 10
+  },
+  "Library": {
+    "ExtractItem": "Genetics_Gene_Enhancer",
+    "ComplexityPerEnhancer": 10,
+    "MutationCostBase": 3,
+    "MaxMutations": 4
   }
 }

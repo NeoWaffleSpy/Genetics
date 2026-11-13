@@ -1,19 +1,19 @@
 // One Research node, with the link from the previous node of its lane. Researched: teal accent; available: amber.
 Group {
   LayoutMode: Left;
-  Anchor: (Width: 214, Height: 64);
+  Anchor: (Width: 168, Height: 64);
 
   Group {
     LayoutMode: Middle;
-    Anchor: (Width: 16);
+    Anchor: (Width: 10);
 
-    Group #LinkOn { Anchor: (Width: 16, Height: 2); Background: #3ec9a7; Visible: false; }
-    Group #LinkOff { Anchor: (Width: 16, Height: 2); Background: #273748; }
+    Group #LinkOn { Anchor: (Width: 10, Height: 2); Background: #3ec9a7; Visible: false; }
+    Group #LinkOff { Anchor: (Width: 10, Height: 2); Background: #273748; }
   }
 
   Button #Button {
     LayoutMode: Left;
-    Anchor: (Width: 198, Height: 64);
+    Anchor: (Width: 158, Height: 64);
     Style: (
       Default: (Background: #172332),
       Hovered: (Background: #1e2d41),
@@ -26,7 +26,7 @@ Group {
 
     Group {
       LayoutMode: Middle;
-      Anchor: (Width: 40);
+      Anchor: (Width: 34);
 
       Group #IconHelix { Anchor: (Width: 24, Height: 24); Background: "Icons/Helix.png"; Visible: false; }
       Group #IconStat { Anchor: (Width: 24, Height: 24); Background: "Icons/Stat.png"; Visible: false; }

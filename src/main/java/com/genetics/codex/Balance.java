@@ -159,10 +159,15 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .documentation("Extra sickness per point of Complexity over capacity, on top of jumping straight to the Severe band.").add()
                 .append(new KeyedCodec<>("OverflowBand", Codec.STRING), (t, v) -> t.overflowBand = v, t -> t.overflowBand)
                 .documentation("Sickness band an over-capacity injection pushes the entity into.").add()
+                .append(new KeyedCodec<>("HardCap", Codec.DOUBLE), (t, v) -> t.hardCap = v, t -> t.hardCap)
+                .documentation("Highest Genome Capacity any expansion can reach.").add()
                 .build();
 
         private double overflowSicknessPerPoint = 2;
         private String overflowBand = "Severe";
+        private double hardCap = 10000;
+
+        public double getHardCap() { return Math.max(1, hardCap); }
 
         public double getOverflowSicknessPerPoint() { return overflowSicknessPerPoint; }
         @Nonnull public String getOverflowBand() { return overflowBand != null ? overflowBand : "Severe"; }
@@ -219,6 +224,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .append(new KeyedCodec<>("EffectReferenceDuration", Codec.DOUBLE), (t, v) -> t.effectReferenceDuration = v, t -> t.effectReferenceDuration)
                 .documentation("Seconds a temporary effect lasts at its Effect Codex Complexity. Longer effects (splices add timers "
                         + "together) cost proportionally more. 0 turns the scaling off.").add()
+                .append(new KeyedCodec<>("MaxEffectDuration", Codec.DOUBLE), (t, v) -> t.maxEffectDuration = v, t -> t.maxEffectDuration)
+                .documentation("Cap, in seconds, on a temporary effect's duration when timers add up (splicing, the Library). 0: no cap.").add()
                 .append(new KeyedCodec<>("MutationBaseChance", Codec.DOUBLE), (t, v) -> t.mutationBaseChance = v, t -> t.mutationBaseChance)
                 .documentation("Chance of a new mutation, before Complexity.").add()
                 .append(new KeyedCodec<>("MutationPerComplexity", Codec.DOUBLE), (t, v) -> t.mutationPerComplexity = v, t -> t.mutationPerComplexity)
@@ -226,6 +233,10 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .build();
 
         private double effectReferenceDuration = 180;
+        private double maxEffectDuration = 1800;
+
+        /** Longest a temporary effect can last when timers are added together (splicing, the Library). */
+        public double getMaxEffectDuration() { return maxEffectDuration > 0 ? maxEffectDuration : Double.MAX_VALUE; }
         private double mutationBaseChance = 0.02;
         private double mutationPerComplexity = 0.0005;
 
@@ -260,6 +271,30 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         public double getMinDuration() { return minDuration; }
         @Nonnull public String getCatalyst() { return catalyst != null ? catalyst : "Genetics_Gene_Stabilizer"; }
         public int getCatalystPerEffect() { return Math.max(0, catalystPerEffect); }
+    }
+
+    /** The Genetic Library (design doc §8.1): extraction cost and several mutations. */
+    public static final class Library {
+        public static final BuilderCodec<Library> CODEC = BuilderCodec.builder(Library.class, Library::new)
+                .append(new KeyedCodec<>("ExtractItem", Codec.STRING), (t, v) -> t.extractItem = v, t -> t.extractItem)
+                .documentation("Item consumed when extracting a stat or an effect.").add()
+                .append(new KeyedCodec<>("ComplexityPerEnhancer", Codec.DOUBLE), (t, v) -> t.complexityPerEnhancer = v, t -> t.complexityPerEnhancer)
+                .documentation("One ExtractItem per this many points of the extracted gene's Complexity (at least one). 0: none.").add()
+                .append(new KeyedCodec<>("MutationCostBase", Codec.DOUBLE), (t, v) -> t.mutationCostBase = v, t -> t.mutationCostBase)
+                .documentation("Material cost multiplier per extra mutation (3: x1, x3, x9, x27).").add()
+                .append(new KeyedCodec<>("MaxMutations", Codec.INTEGER), (t, v) -> t.maxMutations = v, t -> t.maxMutations)
+                .documentation("Most mutations in one genome.").add()
+                .build();
+
+        private String extractItem = "Genetics_Gene_Enhancer";
+        private double complexityPerEnhancer = 10;
+        private double mutationCostBase = 3;
+        private int maxMutations = 4;
+
+        @Nonnull public String getExtractItem() { return extractItem != null ? extractItem : "Genetics_Gene_Enhancer"; }
+        public double getComplexityPerEnhancer() { return Math.max(0, complexityPerEnhancer); }
+        public double getMutationCostBase() { return Math.max(1, mutationCostBase); }
+        public int getMaxMutations() { return Math.max(1, maxMutations); }
     }
 
     /** Science (placeholder name) paid for Catalogue discoveries (design doc §9.4). */
@@ -324,6 +359,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
             .documentation("Legacy: Gene Journal milestones, replaced by Science and Research. Kept so old files still load.").add()
             .append(new KeyedCodec<>("Science", Science.CODEC), (t, v) -> t.science = v, t -> t.science)
             .documentation("Science paid for Catalogue discoveries.").add()
+            .append(new KeyedCodec<>("Library", Library.CODEC), (t, v) -> t.library = v, t -> t.library)
+            .documentation("Genetic Library: fusion, several mutations, refining.").add()
             .append(new KeyedCodec<>("Splicing", Splicing.CODEC), (t, v) -> t.splicing = v, t -> t.splicing).add()
             .append(new KeyedCodec<>("Permanence", Permanence.CODEC), (t, v) -> t.permanence = v, t -> t.permanence).add()
             .append(new KeyedCodec<>("StationUpgrades", new ArrayCodec<>(StationUpgrade.CODEC, StationUpgrade[]::new)), (t, v) -> t.stationUpgrades = v, t -> t.stationUpgrades)
@@ -341,6 +378,7 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     private Syringes syringes = new Syringes();
     private Milestone[] milestones = new Milestone[0];
     private Science science = new Science();
+    private Library library = new Library();
     private Splicing splicing = new Splicing();
     private Permanence permanence = new Permanence();
     private StationUpgrade[] stationUpgrades = {
@@ -348,6 +386,10 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                     new MaterialQuantity("Ingredient_Bar_Copper", null, null, 10, null),
                     new MaterialQuantity("Ingredient_Bar_Iron", null, null, 5, null),
                     new MaterialQuantity("Ingredient_Life_Essence", null, null, 10, null)),
+            new StationUpgrade(3,
+                    new MaterialQuantity("Ingredient_Bar_Thorium", null, null, 10, null),
+                    new MaterialQuantity("Ingredient_Crystal_Cyan", null, null, 5, null),
+                    new MaterialQuantity("Ingredient_Life_Essence_Concentrated", null, null, 5, null)),
     };
 
     private Balance() {
@@ -394,6 +436,11 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     @Nonnull
     public Syringes syringes() {
         return syringes != null ? syringes : BUILT_IN.syringes;
+    }
+
+    @Nonnull
+    public Library library() {
+        return library != null ? library : BUILT_IN.library;
     }
 
     @Nonnull
