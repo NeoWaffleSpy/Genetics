@@ -1,12 +1,14 @@
 // One material of a cost: its icon, its name and "have / need" (red when the player doesn't carry enough).
+// Fixed width so four chips and the main button always fit; long names are cut with an ellipsis.
 Group {
   LayoutMode: Left;
-  Anchor: (Height: 44);
+  Anchor: (Width: 148, Height: 44);
   Padding: (Right: 8);
 
   Group {
     LayoutMode: Left;
-    Padding: (Left: 4, Right: 10);
+    FlexWeight: 1;
+    Padding: (Left: 4, Right: 6);
     Background: #ffffff(0.035);
 
     Group {
@@ -22,7 +24,8 @@ Group {
 
     Group {
       LayoutMode: Top;
-      Padding: (Left: 8, Top: 5);
+      FlexWeight: 1;
+      Padding: (Left: 6, Top: 5);
 
       Label #Item {
         Style: (FontSize: 12, TextColor: #a9b9c7);

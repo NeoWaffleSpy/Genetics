@@ -230,8 +230,8 @@ public class GeneticsCommand extends AbstractCommandCollection {
                                @Nonnull PlayerRef playerRef, @Nonnull World world) {
             List<String> lines = new ArrayList<>();
             for (com.genetics.library.GeneLibrary.Entry entry : com.genetics.library.Library.of(ref, store).getEntries()) {
-                Gene gene = com.genetics.library.Library.effective(entry);
-                lines.add((gene != null ? GeneText.describe(gene, playerRef.getLanguage()) : "?") + (entry.getLevel() > 0 ? " [+" + entry.getLevel() + "]" : ""));
+                Gene gene = entry.getGene();
+                lines.add(gene != null ? GeneText.describe(gene, playerRef.getLanguage()) : "?");
             }
             context.sendMessage(Message.raw("Genetic Library: " + (lines.isEmpty() ? "empty." : String.join(", ", lines) + ".")));
         }

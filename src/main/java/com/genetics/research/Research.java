@@ -27,8 +27,7 @@ public final class Research {
     public static final String SPLICING = "Splicing";
     public static final String MAKE_PERMANENT = "MakePermanent";
     public static final String GENETIC_LIBRARY = "GeneticLibrary";
-    public static final String REFINING = "Refining";
-    public static final Set<String> FEATURES = Set.of(SPLICING, MAKE_PERMANENT, GENETIC_LIBRARY, REFINING);
+    public static final Set<String> FEATURES = Set.of(SPLICING, MAKE_PERMANENT, GENETIC_LIBRARY);
 
     /** The feature that must be researched before upgrading a Lab Station to this tier, or null. */
     @Nullable

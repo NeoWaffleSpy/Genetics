@@ -31,14 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The Library tab (design doc §8.1): the player's extracted genes, ticked into a combination previewed on the right,
- * combined into new genetic material in the empty syringe in the station's slot. Needs the Genetic Library research
- * and a Lab Station T3 (the upgrade is offered here once researched).
+ * The Library tab (design doc §8.1): the player's genes, one per kind at its best value, each ticked into the
+ * combination at an amount from 0 to that value; the preview on the right; the result goes into the empty syringe in
+ * the station's slot. Needs the Genetic Library research and a Lab Station T3 (the upgrade is offered here).
  */
 final class LibraryTab {
     private static final String ROW = "Genetics/LibraryRow.ui";
-    /** Inner width of the preview's capacity track: 300 panel - 2 x 12 padding - 2 outline. */
-    private static final int TRACK = 274;
+    /** Inner width of the preview's capacity track: 260 panel - 2 x 12 padding - 2 outline. */
+    private static final int TRACK = 234;
 
     private LibraryTab() {
     }
@@ -61,29 +61,29 @@ final class LibraryTab {
         GeneLibrary library = Library.of(ref, store);
         List<GeneLibrary.Entry> entries = library.getEntries();
         page.libraryUse.removeIf(id -> library.get(id) == null);
-        boolean refining = Research.hasFeature(journal, Research.REFINING);
         String language = page.player().getLanguage();
         c.clear("#LibraryList");
         for (int i = 0; i < entries.size(); i++) {
             GeneLibrary.Entry entry = entries.get(i);
-            Gene gene = Library.effective(entry);
+            Gene gene = entry.getGene();
             String row = "#LibraryList[" + i + "]";
             c.append("#LibraryList", ROW);
             String key = Catalogue.key(gene);
             String type = Catalogue.type(key);
             Widgets.typeIcon(c, row, type);
-            c.set(row + " #Name.Text", Catalogue.name(key, language));
-            int cost = Library.refineCost(entry);
-            String level = entry.getLevel() > 0 ? "  ·  refined +" + entry.getLevel() : "";
-            String next = refining && Library.canRefine(entry) ? "  ·  next: " + cost + " " + refineItemName() : "";
-            c.set(row + " #Meta.Text", "From " + entry.getSource() + level + next);
-            c.set(row + " #Value.Text", ProcessTab.value(gene));
+            c.set(row + " #Name.Text", Catalogue.name(key, language) + (gene instanceof Gene.Effect effect && effect.permanent() ? " (permanent)" : ""));
+            c.set(row + " #Meta.Text", "From " + entry.getSource());
             c.set(row + " #Value.Style.TextColor", Widgets.valueColor(type));
             c.set(row + " #Use.Value", page.libraryUse.contains(entry.getId()));
-            c.set(row + " #Refine.Visible", refining && Library.canRefine(entry));
+            boolean adjustable = Library.adjustable(gene);
+            c.set(row + " #AmountBox.Visible", adjustable);
+            if (adjustable) c.set(row + " #Amount.Value", amount(page, entry));
             e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #Use",
                     new EventData().append("Action", "LibraryUse").append("Node", entry.getId()).append("@Checked", row + " #Use.Value"), false);
-            e.addEventBinding(CustomUIEventBindingType.Activating, row + " #Refine", new EventData().append("Action", "Refine").append("Node", entry.getId()), false);
+            if (adjustable) {
+                e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #Amount",
+                        new EventData().append("Action", "LibraryAmount").append("Node", entry.getId()).append("@Amount", row + " #Amount.Value"), false);
+            }
             e.addEventBinding(CustomUIEventBindingType.Activating, row + " #Discard", new EventData().append("Action", "Discard").append("Node", entry.getId()), false);
         }
         c.set("#LibraryEmpty.Visible", entries.isEmpty());
@@ -99,8 +99,8 @@ final class LibraryTab {
         boolean needsT2 = page.station.tier() < 2;
         Balance.StationUpgrade upgrade = needsT2 ? null : Balance.get().stationUpgrade(3);
         List<MaterialQuantity> cost = upgrade != null ? upgrade.getMaterials() : List.of();
-        String text = "The Genetic Library extracts single genes from genetic material and combines them at will: stack the same stat "
-                + "(each extra copy adds less), mix several mutations, and refine genes past their creature's range. It needs a Lab Station T3.\n\n";
+        String text = "The Genetic Library keeps the best version of every gene you extract from genetic material, and combines them at will: "
+                + "pick how much of each gene to use, and mix several mutations. It needs a Lab Station T3.\n\n";
         if (!researched) text += "First research " + name + " in the Research tab (" + (node != null ? node.getCost() : 0)
                 + " Science, you have " + journal.getScience() + ").";
         else if (needsT2) text += "Upgrade this station to T2 first (in the Splice tab).";
@@ -111,21 +111,35 @@ final class LibraryTab {
         c.set("#LibUpgradeButton.Disabled", !researched || upgrade == null || !Materials.canPay(ref, store, cost));
     }
 
-    /** The combination preview, cost and button for the ticked entries. */
+    /** Row values, the combination preview, cost and button. */
     static void update(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull UICommandBuilder c) {
         GeneJournal journal = Journal.of(ref, store);
         if (!open(page, journal)) return;
-        Library.Plan plan = Library.plan(chosen(page, ref, store), page.station.tier());
+        List<GeneLibrary.Entry> entries = Library.of(ref, store).getEntries();
+        for (int i = 0; i < entries.size(); i++) {
+            GeneLibrary.Entry entry = entries.get(i);
+            Gene gene = entry.getGene();
+            String row = "#LibraryList[" + i + "]";
+            boolean used = page.libraryUse.contains(entry.getId());
+            if (Library.adjustable(gene)) {
+                Gene chosen = Library.scaled(gene, amount(page, entry) / 100.0);
+                c.set(row + " #Value.Text", (chosen != null ? ProcessTab.value(chosen) : "0") + "  /  " + ProcessTab.value(gene));
+            } else {
+                c.set(row + " #Value.Text", ProcessTab.value(gene));
+            }
+            c.set(row + " #Name.Style.TextColor", used ? Widgets.STRONG : Widgets.TEXT);
+        }
+
+        Library.Plan plan = Library.plan(uses(page, entries), page.station.tier());
         String language = page.player().getLanguage();
         Genome result = plan.result();
         double capacity = GenomeCapacity.capacity(ref, store);
         c.set("#DesignName.Text", result != null ? result.title() : "New genome");
-        double lasting = result != null ? Injection.lastingComplexity(result) : 0;
-        capacity(c, lasting, capacity);
+        capacity(c, result != null ? Injection.lastingComplexity(result) : 0, capacity);
         c.set("#DesignMutations.Text", plan.mutations() > 1
                 ? plan.mutations() + " mutations  ·  cost x" + GeneText.number(plan.multiplier())
                 : plan.mutations() == 1 ? "1 mutation" : "");
-        c.set("#DesignHeader.Text", "Result  ·  " + plan.genes().size() + (plan.genes().size() == 1 ? " gene" : " genes")
+        c.set("#DesignHeader.Text", plan.genes().size() + (plan.genes().size() == 1 ? " gene" : " genes")
                 + (result != null ? "  ·  Complexity " + GeneText.number(result.complexity()) : ""));
         c.clear("#DesignList");
         for (int i = 0; i < plan.genes().size(); i++) {
@@ -135,8 +149,7 @@ final class LibraryTab {
             String key = Catalogue.key(gene);
             String type = Catalogue.type(key);
             Widgets.typeIcon(c, row, type);
-            String fused = gene instanceof Gene.Stat stat && stat.isFused() ? "  (fused)" : "";
-            c.set(row + " #Name.Text", Catalogue.name(key, language) + fused);
+            c.set(row + " #Name.Text", Catalogue.name(key, language));
             c.set(row + " #Value.Text", ProcessTab.value(gene));
             c.set(row + " #Value.Style.TextColor", Widgets.valueColor(type));
         }
@@ -166,15 +179,21 @@ final class LibraryTab {
         }
         c.setObject("#LCapFill.Anchor", Widgets.width(fill));
         c.setObject("#LCapOver.Anchor", Widgets.width(extra));
-        c.set("#LCapLegend.Text", over ? "Over capacity by " + GeneText.number(Widgets.round(complexity - capacity)) + ": it would degrade when injected"
+        c.set("#LCapLegend.Text", over ? "Over capacity by " + GeneText.number(Widgets.round(complexity - capacity))
                 : "Lasting genes " + GeneText.number(Widgets.round(complexity)) + "  ·  free " + GeneText.number(Widgets.round(capacity - complexity)));
     }
 
+    /** The amount (0-100% of the best value) chosen for an entry; 100 until moved. */
+    static int amount(@Nonnull LabStationPage page, @Nonnull GeneLibrary.Entry entry) {
+        return page.libraryAmount.getOrDefault(entry.getId(), 100);
+    }
+
     @Nonnull
-    private static List<GeneLibrary.Entry> chosen(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        GeneLibrary library = Library.of(ref, store);
-        List<GeneLibrary.Entry> out = new ArrayList<>();
-        for (GeneLibrary.Entry entry : library.getEntries()) if (page.libraryUse.contains(entry.getId())) out.add(entry);
+    private static List<Library.Use> uses(@Nonnull LabStationPage page, @Nonnull List<GeneLibrary.Entry> entries) {
+        List<Library.Use> out = new ArrayList<>();
+        for (GeneLibrary.Entry entry : entries) {
+            if (page.libraryUse.contains(entry.getId())) out.add(new Library.Use(entry, amount(page, entry) / 100.0));
+        }
         return out;
     }
 
@@ -189,7 +208,7 @@ final class LibraryTab {
     @Nullable
     static String combine(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         if (!open(page, Journal.of(ref, store))) return null;
-        Library.Plan plan = Library.plan(chosen(page, ref, store), page.station.tier());
+        Library.Plan plan = Library.plan(uses(page, Library.of(ref, store).getEntries()), page.station.tier());
         if (plan.blocked() != null) return plan.blocked();
         if (plan.result() == null) return null;
         if (!emptySyringeInSlot(page)) return "Put a single empty syringe in the slot to hold the result.";
@@ -197,25 +216,9 @@ final class LibraryTab {
         ItemStack syringe = page.sampleStack();
         page.container.setItemStackForSlot(LabStationPage.SAMPLE_SLOT, Syringes.fill(syringe, plan.result()));
         page.libraryUse.clear();
+        page.libraryAmount.clear();
         return "Combined into " + plan.result().title() + ": " + plan.genes().size() + " genes, Complexity "
                 + GeneText.number(plan.result().complexity()) + ".";
-    }
-
-    /** Refines one entry by a level, paying the refine items. Returns a message. */
-    @Nonnull
-    static String refine(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull String id) {
-        GeneJournal journal = Journal.of(ref, store);
-        if (!open(page, journal) || !Research.hasFeature(journal, Research.REFINING)) return "Research the Gene Enhancer first.";
-        GeneLibrary library = Library.of(ref, store);
-        GeneLibrary.Entry entry = library.get(id);
-        if (entry == null) return "That gene is no longer in your library.";
-        if (!Library.canRefine(entry)) return "This gene can't be refined further.";
-        int cost = Library.refineCost(entry);
-        List<MaterialQuantity> items = List.of(new MaterialQuantity(Balance.get().library().getRefineItem(), null, null, cost, null));
-        if (!Materials.pay(ref, store, items)) return "Refining needs " + cost + " " + refineItemName() + ".";
-        library.refine(id);
-        Gene gene = Library.effective(entry);
-        return "Refined to " + (gene != null ? GeneText.describe(gene, page.player().getLanguage()) : "?") + ".";
     }
 
     @Nonnull
@@ -223,16 +226,10 @@ final class LibraryTab {
         GeneLibrary library = Library.of(ref, store);
         GeneLibrary.Entry entry = library.get(id);
         if (entry == null) return "That gene is no longer in your library.";
-        Gene gene = entry.getBase();
+        Gene gene = entry.getGene();
         library.remove(id);
         page.libraryUse.remove(id);
+        page.libraryAmount.remove(id);
         return "Removed " + (gene != null ? GeneText.describe(gene, page.player().getLanguage()) : "a gene") + " from your library.";
-    }
-
-    @Nonnull
-    private static String refineItemName() {
-        com.hypixel.hytale.server.core.asset.type.item.config.Item item =
-                com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAsset(Balance.get().library().getRefineItem());
-        return item != null ? "Gene Enhancer" : Balance.get().library().getRefineItem();
     }
 }

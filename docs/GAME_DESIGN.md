@@ -474,37 +474,31 @@ cost scales with the Complexity of what's combined.
 This replaces random splicing as the late-game way to build genomes. Splicing stays useful (it's the only
 way to create new mutations), but once a gene is in the library, the player no longer has to gamble for it.
 
-**Decided 2026-11-13: how it works** (implemented; numbers are in `Balance/Default.json` → `Library`)
+**Decided 2026-11-13: how it works** (implemented; changed after the first playtest; numbers are in
+`Balance/Default.json` → `Library`)
 
 - **Unlock.** The Genetic Library research (Lab branch, after Make Permanent) unlocks the Library tab and the
-  Lab Station T3 upgrade (thorium, cyan crystals, concentrated Life Essence).
-- **Extract.** Put a genetic material in the Lab Station T3 and pick **one** gene from it. The material is
-  consumed, and the gene is added to the library with its exact value. The cost uses the Complexity tier
-  of that gene alone. Any gene can be extracted: stats, drawbacks, effects (temporary or permanent) and
-  mutations.
-- **Library entries are reusable.** An entry is knowledge, not an item: once extracted, it can be used in
-  any number of combinations. This makes extraction a collection goal, like the Catalogue, and the cost of
-  each combination is what limits power.
-- **Combine.** Pick genes from the library into a new genome and pay for it. The result is genetic
-  material: injectable, and spliceable. The cost uses the Complexity tier of the result, times the
-  `MutationCostMultiplier` for multiple mutations (×1, ×3, ×9, ×27, with a hard cap of e.g. 4).
-- **Stat fusion: where the late-game spike comes from** (review item E2). A combination can include the
-  same stat several times. Each extra copy adds less: the best adds 100% of its value, the 2nd 50%, the
-  3rd 25%, the 4th 12.5%. So three +20% Health entries give +35%. Complexity counts the **full** value
-  of every copy, so fused stats get expensive fast and capacity still limits them. Each entry is used at
-  most once per combination (so fusion needs several entries of the stat), and at most 4 copies.
-  The full value is stored on the fused gene (`Cost`), so it keeps counting after splicing, processing or
-  degradation.
-- **Combination rules.** A bonus and a drawback of the same stat can't be combined. The same temporary
-  effect adds its timers, a permanent effect is kept once, and two tiers of the same buff conflict. The
-  result goes into an empty syringe in the station's slot and is named "<Tier> Designed Gene".
-- **Refine.** A library entry can be upgraded to a higher value with rare reagents, past its mob's
-  normal range, at a cost that grows with each step. This is an extra late-game resource sink.
-  Implemented: +25% of the base value per level, up to level 4, for 1, 2, 4 then 8 **Gene Enhancers**
-  (recipe researched in the Reagents branch). Stats and temporary effects only.
+  Lab Station T3 upgrade (thorium, cyan crystals, concentrated Life Essence), and teaches the Gene Enhancer.
+- **Extract.** Put a genetic material in the Lab Station T3 and pick **one** gene from it (its Extract
+  button on the Process tab). The material is consumed. Any gene can be extracted: stats, drawbacks,
+  effects (temporary or permanent) and mutations. The cost is the materials of that gene's Complexity tier,
+  plus **Gene Enhancers** for stats and effects: one per 10 points of the gene's Complexity (at least one).
+- **One entry per gene, at its best value.** The library keeps a single entry per stat, drawback, effect
+  form and mutation. Extracting a better version raises the entry; a weaker or equal one can't be
+  extracted (the button says why). Entries are knowledge, not items: they are never used up.
+- **Combine.** Tick entries in the Library tab and choose **how much** of each to use, from 0 to the
+  entry's best value (a slider, for stats and temporary effects; permanent effects and mutations are all
+  or nothing). The result goes into an empty syringe in the station's slot, named "<Tier> Designed Gene",
+  and its cost uses the Complexity tier of the result.
+- **Rules.** A bonus and a drawback of the same stat can't be combined; two tiers of the same buff
+  conflict; a permanent effect replaces its temporary form.
 - **Several mutations.** Only the Library can put several mutations in one genome (up to 4); the material
   cost is multiplied by 3 per extra mutation. Splicing keeps all of one input's mutations, never a mix, and
   every mutation's behaviors run on the player.
+- **Dropped after the playtest:** stat fusion (several copies of a stat stacking at falling rates) and
+  refining entries past their creature's range. The late-game spike now comes from extracting better
+  versions (splicing pushes values up) and from mixing genes and mutations freely, with capacity and
+  Complexity as the limits. Genes fused by the first version keep their full Complexity (`Cost`).
 - **Storage.** The library belongs to the player (a `GeneLibrary` component, like the Catalogue), so it's
   never lost with a block. Players share genes by giving each other genetic material to extract.
 
@@ -523,8 +517,8 @@ decided yet. Three possible uses, which can be combined:
 3. **Weapons, later.** Once genomes can be applied to mobs (§12), a genome made only of negative genes
    could weaken hostile mobs, e.g. as a syringe dart.
 
-Decided: **1**, which gives **2** for free; **3** waits for the mob features. Drawbacks fuse like
-bonuses but only lower Complexity by their fused value, and the 30% drawback cap still applies.
+Decided: **1**, which gives **2** for free; **3** waits for the mob features. A drawback entry lowers
+the combination's Complexity like any drawback, and the 30% drawback cap still applies.
 
 ## 9. Cross-cutting systems
 
@@ -644,7 +638,7 @@ station upgrade still costs its materials.
 | Branch | Nodes, in order (placeholder costs) |
 | --- | --- |
 | Lab | Processing (starter) → Splicing (10, unlocks the Splice tab and the Lab Station T2 upgrade) → Make Permanent (15) → Genetic Library (25, unlocks the Library tab and the T3 upgrade) |
-| Reagents | Identification Reagent (starter) → Gene Stabilizer (12, needs Make Permanent) → Gene Enhancer (20, needs Genetic Library; refining). Idea for later: Mutagen (raises the mutation chance of one splice) |
+| Reagents | Identification Reagent (starter) → Gene Stabilizer (12, needs Make Permanent). The Gene Enhancer recipe comes with Genetic Library. Idea for later: Mutagen (raises the mutation chance of one splice) |
 | Syringes | Crude (starter) → Copper (5) → Thorium (15) → Adamantite (30) |
 | Genome | Expansion · Moderate (8, capacity 45) → Complex (15, 80) → Advanced (25, 130) → Exotic (40, 200) |
 
@@ -679,7 +673,7 @@ All of these live in data files or config rather than code:
 - Drawback discount (60%) and cap (30%)
 - Raw injection curve (C0) and what a failed gene turns into
 - Sickness per Complexity point (raw and processed), decay rate, band thresholds, event weights and cooldowns
-- Library: extraction and combination costs, fusion falloff, refine costs
+- Library: extraction cost (Gene Enhancers per Complexity), combination costs, mutation multiplier
 - Splice effect reference duration; mutation base chance and Complexity factor
 - Roll counts and ranges per mob profile
 - Science rewards per discovery; Research node costs and prerequisites
@@ -770,7 +764,7 @@ where it stands after the author's answers.
 | Syringe tiers | Done (Crude, Copper, Thorium, Adamantite; tier from profile or max health) |
 | Phase 2 processing and splicing | Done (Lab Station T2 upgrade; processing screen to choose genes; additive splicing with the result shown before paying, spliced samples named after their tier; new mutations only when none is inherited) |
 | Mutations and behaviors | Done (MinTier required; behaviors OnLowHealth, OnDamaged, AtNight, Periodic, running the shared actions; 4 mutations) |
-| Phase 3 Genetic Library | Done (Lab Station T3; Library tab; extract any gene; combine with stat fusion and drawback reducers; several mutations with the x3 cost multiplier; refining with Gene Enhancers; Complex, Advanced and Exotic expansions) |
+| Phase 3 Genetic Library | Done (Lab Station T3; Library tab; extract any gene with Gene Enhancers; one entry per gene at its best value; combine at chosen amounts, drawbacks as reducers; several mutations with the x3 cost multiplier; Complex, Advanced and Exotic expansions) |
 
 ## 16. TODO
 

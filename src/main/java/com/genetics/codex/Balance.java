@@ -262,44 +262,28 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         public int getCatalystPerEffect() { return Math.max(0, catalystPerEffect); }
     }
 
-    /** The Genetic Library (design doc §8.1): stat fusion, several mutations, refining. */
+    /** The Genetic Library (design doc §8.1): extraction cost and several mutations. */
     public static final class Library {
         public static final BuilderCodec<Library> CODEC = BuilderCodec.builder(Library.class, Library::new)
-                .append(new KeyedCodec<>("FusionFalloff", Codec.DOUBLE), (t, v) -> t.fusionFalloff = v, t -> t.fusionFalloff)
-                .documentation("Each extra copy of a stat adds this fraction of the previous copy's share (0.5: 100%, 50%, 25%, 12.5%).").add()
-                .append(new KeyedCodec<>("MaxCopies", Codec.INTEGER), (t, v) -> t.maxCopies = v, t -> t.maxCopies)
-                .documentation("Most copies of one stat in a combination.").add()
+                .append(new KeyedCodec<>("ExtractItem", Codec.STRING), (t, v) -> t.extractItem = v, t -> t.extractItem)
+                .documentation("Item consumed when extracting a stat or an effect.").add()
+                .append(new KeyedCodec<>("ComplexityPerEnhancer", Codec.DOUBLE), (t, v) -> t.complexityPerEnhancer = v, t -> t.complexityPerEnhancer)
+                .documentation("One ExtractItem per this many points of the extracted gene's Complexity (at least one). 0: none.").add()
                 .append(new KeyedCodec<>("MutationCostBase", Codec.DOUBLE), (t, v) -> t.mutationCostBase = v, t -> t.mutationCostBase)
                 .documentation("Material cost multiplier per extra mutation (3: x1, x3, x9, x27).").add()
                 .append(new KeyedCodec<>("MaxMutations", Codec.INTEGER), (t, v) -> t.maxMutations = v, t -> t.maxMutations)
                 .documentation("Most mutations in one genome.").add()
-                .append(new KeyedCodec<>("RefineStep", Codec.DOUBLE), (t, v) -> t.refineStep = v, t -> t.refineStep)
-                .documentation("Each refine level adds this fraction of the entry's base value.").add()
-                .append(new KeyedCodec<>("RefineMaxLevel", Codec.INTEGER), (t, v) -> t.refineMaxLevel = v, t -> t.refineMaxLevel)
-                .documentation("Highest refine level.").add()
-                .append(new KeyedCodec<>("RefineItem", Codec.STRING), (t, v) -> t.refineItem = v, t -> t.refineItem)
-                .documentation("Item consumed by refining.").add()
-                .append(new KeyedCodec<>("RefineBaseCost", Codec.INTEGER), (t, v) -> t.refineBaseCost = v, t -> t.refineBaseCost)
-                .documentation("Refine items for the first level; each next level costs twice as many.").add()
                 .build();
 
-        private double fusionFalloff = 0.5;
-        private int maxCopies = 4;
+        private String extractItem = "Genetics_Gene_Enhancer";
+        private double complexityPerEnhancer = 10;
         private double mutationCostBase = 3;
         private int maxMutations = 4;
-        private double refineStep = 0.25;
-        private int refineMaxLevel = 4;
-        private String refineItem = "Genetics_Gene_Enhancer";
-        private int refineBaseCost = 1;
 
-        public double getFusionFalloff() { return Math.clamp(fusionFalloff, 0, 1); }
-        public int getMaxCopies() { return Math.max(1, maxCopies); }
+        @Nonnull public String getExtractItem() { return extractItem != null ? extractItem : "Genetics_Gene_Enhancer"; }
+        public double getComplexityPerEnhancer() { return Math.max(0, complexityPerEnhancer); }
         public double getMutationCostBase() { return Math.max(1, mutationCostBase); }
         public int getMaxMutations() { return Math.max(1, maxMutations); }
-        public double getRefineStep() { return Math.max(0, refineStep); }
-        public int getRefineMaxLevel() { return Math.max(0, refineMaxLevel); }
-        @Nonnull public String getRefineItem() { return refineItem != null ? refineItem : "Genetics_Gene_Enhancer"; }
-        public int getRefineBaseCost() { return Math.max(0, refineBaseCost); }
     }
 
     /** Science (placeholder name) paid for Catalogue discoveries (design doc §9.4). */

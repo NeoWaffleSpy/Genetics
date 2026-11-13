@@ -10,5 +10,8 @@
   "Features": [
     "GeneticLibrary"
   ],
-  "Description": "Unlocks the Library tab and the Lab Station T3 upgrade: extract genes from genetic material and combine them at will."
+  "Description": "Unlocks the Library tab and the Lab Station T3 upgrade, and teaches the Gene Enhancer recipe (used to extract stats and effects).",
+  "Recipes": [
+    "Genetics_Gene_Enhancer"
+  ]
 }

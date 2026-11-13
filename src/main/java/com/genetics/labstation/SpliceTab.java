@@ -82,7 +82,7 @@ final class SpliceTab {
         c.set("#SpliceUpgrade.Visible", mode == Mode.UPGRADE);
         c.set("#SpliceDetails.Visible", mode == Mode.READY);
         c.set("#SpliceBar.Visible", mode == Mode.READY);
-        c.set("#SpliceReason.Visible", mode == Mode.READY);
+        c.set("#SpliceReasonRow.Visible", mode == Mode.READY);
         switch (mode) {
             case LOCKED -> {
                 ResearchNode node = Research.grantingNode(Research.SPLICING);

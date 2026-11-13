@@ -108,13 +108,9 @@
     "NewMutation": 10
   },
   "Library": {
-    "FusionFalloff": 0.5,
-    "MaxCopies": 4,
+    "ExtractItem": "Genetics_Gene_Enhancer",
+    "ComplexityPerEnhancer": 10,
     "MutationCostBase": 3,
-    "MaxMutations": 4,
-    "RefineStep": 0.25,
-    "RefineMaxLevel": 4,
-    "RefineItem": "Genetics_Gene_Enhancer",
-    "RefineBaseCost": 1
+    "MaxMutations": 4
   }
 }

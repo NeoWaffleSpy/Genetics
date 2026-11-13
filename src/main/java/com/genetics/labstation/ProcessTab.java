@@ -77,7 +77,7 @@ final class ProcessTab {
         c.set("#ProcessEmpty.Visible", sample == null);
         c.set("#ProcessDetails.Visible", sample != null);
         c.set("#ProcessBar.Visible", sample != null);
-        c.set("#ProcessReason.Visible", sample != null);
+        c.set("#ProcessReasonRow.Visible", sample != null);
         c.set("#UpgradeStationButton.Visible", false);
         c.set("#ExtractButton.Visible", false);
         if (sample == null) return;
@@ -158,7 +158,7 @@ final class ProcessTab {
             c.set("#GeneList[" + i + "] #Extract.Text", i == picked ? "Picked" : "Extract");
         }
         if (picked < 0 || picked >= sample.genes().size() || !LibraryTab.open(page, Journal.of(ref, store))) return;
-        com.genetics.library.Library.ExtractPlan plan = com.genetics.library.Library.extractPlan(sample.genes().get(picked), page.station.tier());
+        com.genetics.library.Library.ExtractPlan plan = com.genetics.library.Library.extractPlan(sample.genes().get(picked), page.station.tier(), com.genetics.library.Library.of(ref, store));
         c.set("#ProcessStatus.Visible", false);
         c.set("#SpliceWithButton.Visible", false);
         c.set("#ProcessCostLabel.Visible", true);
@@ -181,13 +181,14 @@ final class ProcessTab {
         int picked = page.extractIndex;
         if (picked < 0 || picked >= sample.genes().size()) return "Pick a gene to extract.";
         Gene gene = sample.genes().get(picked);
-        com.genetics.library.Library.ExtractPlan plan = com.genetics.library.Library.extractPlan(gene, page.station.tier());
+        com.genetics.library.Library.ExtractPlan plan = com.genetics.library.Library.extractPlan(gene, page.station.tier(), com.genetics.library.Library.of(ref, store));
         if (plan.blocked() != null) return plan.blocked();
         if (!Materials.pay(ref, store, plan.cost())) return "You don't carry enough materials to extract this gene.";
+        boolean replaced = com.genetics.library.Library.of(ref, store).find(gene) != null;
         com.genetics.library.Library.of(ref, store).add(gene, sample.title());
         page.container.setItemStackForSlot(LabStationPage.SAMPLE_SLOT, Syringes.empty(stack));
         page.extractIndex = -1;
-        return "Extracted " + GeneText.describe(gene, page.player().getLanguage()) + " into your Genetic Library.";
+        return (replaced ? "Improved " : "Extracted ") + GeneText.describe(gene, page.player().getLanguage()) + " in your Genetic Library.";
     }
 
     /** Processes the sample in the station with the current choices. Returns a message for the player, or null. */

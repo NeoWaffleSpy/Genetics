@@ -16,7 +16,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,16 +23,15 @@ import java.util.Map;
 /**
  * The Genetic Library rules (design doc §8.1):
  * <ul>
- *   <li><b>Extract</b> one gene from genetic material into the library; the cost uses that gene's Complexity tier.</li>
- *   <li><b>Combine</b> library entries (each at most once) into new genetic material. The same stat several times is
- *   <b>fused</b>: the best copy adds 100%, the next {@code FusionFalloff} of its value, the next that squared, and so
- *   on, while Complexity counts the full value of every bonus copy (kept on the gene as its {@code cost}).
- *   Drawbacks fuse the same way and lower Complexity by their fused value only. A bonus and a drawback of the same
- *   stat can't be combined. The same temporary effect adds its timers, a permanent effect is kept once, and two
- *   tiers of the same buff conflict. Several mutations multiply the material cost by {@code MutationCostBase} per
- *   extra mutation (x1, x3, x9, x27), up to {@code MaxMutations}.</li>
- *   <li><b>Refine</b> an entry past its mob's range: +{@code RefineStep} of its base value per level, for
- *   {@code RefineBaseCost} x 2^level of the refine item. Stats and temporary effects only.</li>
+ *   <li><b>Extract</b> one gene from genetic material into the library (the material is used up). The library keeps
+ *   one entry per gene at the best value, so extracting only helps if the gene is new or better. The cost is the
+ *   gene's Complexity tier materials, plus Gene Enhancers for stats and effects: one per
+ *   {@code ComplexityPerEnhancer} points of the gene's Complexity.</li>
+ *   <li><b>Combine</b> library entries into new genetic material, each at any amount from 0 to its best value (stats
+ *   and temporary effects; permanent effects and mutations are all or nothing). A bonus and a drawback of the same
+ *   stat can't be combined, two tiers of the same buff conflict, and a permanent effect replaces its temporary form.
+ *   Several mutations multiply the material cost by {@code MutationCostBase} per extra mutation (x1, x3, x9, x27),
+ *   up to {@code MaxMutations}.</li>
  * </ul>
  */
 public final class Library {
@@ -55,47 +53,64 @@ public final class Library {
 
     // ---- Extract
 
-    /** What extracting one gene costs, and why this station can't do it (null if it can). */
+    /** What extracting one gene costs, and why it can't be done (null if it can). */
     public record ExtractPlan(@Nullable ComplexityTier tier, @Nonnull List<MaterialQuantity> cost, @Nullable String blocked) {
     }
 
     @Nonnull
-    public static ExtractPlan extractPlan(@Nonnull Gene gene, int stationTier) {
+    public static ExtractPlan extractPlan(@Nonnull Gene gene, int stationTier, @Nonnull GeneLibrary library) {
         double complexity = Math.max(ComplexityCalculator.MINIMUM, Math.abs(GeneText.complexity(gene)));
         ComplexityTier tier = Tiers.forComplexity(complexity);
-        if (tier == null) return new ExtractPlan(null, List.of(), null);
-        String blocked = Tiers.allows(stationTier, tier) ? null : tier.getName() + " Complexity needs a Lab Station T" + tier.getStationTier() + ".";
-        return new ExtractPlan(tier, Tiers.cost(tier, complexity), blocked);
+        List<MaterialQuantity> cost = new ArrayList<>(tier != null ? Tiers.cost(tier, complexity) : List.of());
+        int enhancers = enhancersFor(gene);
+        if (enhancers > 0) cost.addFirst(new MaterialQuantity(Balance.get().library().getExtractItem(), null, null, enhancers, null));
+        String blocked = null;
+        if (!library.wouldImprove(gene)) {
+            GeneLibrary.Entry existing = library.find(gene);
+            blocked = "Your library already has this gene" + (existing != null && existing.getGene() != null
+                    ? " at " + GeneText.describe(existing.getGene(), null) : "") + ".";
+        } else if (tier != null && !Tiers.allows(stationTier, tier)) {
+            blocked = tier.getName() + " Complexity needs a Lab Station T" + tier.getStationTier() + ".";
+        }
+        return new ExtractPlan(tier, cost, blocked);
     }
 
-    // ---- Refine
-
-    public static boolean canRefine(@Nonnull GeneLibrary.Entry entry) {
-        Gene base = entry.getBase();
-        boolean kind = base instanceof Gene.Stat || (base instanceof Gene.Effect effect && !effect.permanent());
-        return kind && entry.getLevel() < Balance.get().library().getRefineMaxLevel();
-    }
-
-    /** Refine items the next level costs. */
-    public static int refineCost(@Nonnull GeneLibrary.Entry entry) {
-        Balance.Library balance = Balance.get().library();
-        return balance.getRefineBaseCost() * (1 << Math.min(entry.getLevel(), 20));
-    }
-
-    /** The entry's gene with its refine levels applied. */
-    @Nullable
-    public static Gene effective(@Nonnull GeneLibrary.Entry entry) {
-        Gene base = entry.getBase();
-        if (base == null || entry.getLevel() <= 0) return base;
-        double factor = 1 + Balance.get().library().getRefineStep() * entry.getLevel();
-        return switch (base) {
-            case Gene.Stat stat -> new Gene.Stat(stat.stat(), round(stat.percent() * factor), stat.cost() * factor);
-            case Gene.Effect effect -> effect.permanent() ? effect : new Gene.Effect(effect.effect(), false, Math.round(effect.duration() * factor));
-            case Gene.Mutation mutation -> mutation;
-        };
+    /** Gene Enhancers to extract a stat or an effect (mutations need none). */
+    public static int enhancersFor(@Nonnull Gene gene) {
+        if (gene instanceof Gene.Mutation) return 0;
+        double per = Balance.get().library().getComplexityPerEnhancer();
+        if (per <= 0) return 0;
+        return Math.max(1, (int) Math.ceil(Math.abs(GeneText.complexity(gene)) / per));
     }
 
     // ---- Combine
+
+    /** One entry in a combination, at a fraction (0 to 1) of its best value. */
+    public record Use(@Nonnull GeneLibrary.Entry entry, double fraction) {
+    }
+
+    /** True if an entry's amount can be chosen (stats and temporary effects). */
+    public static boolean adjustable(@Nonnull Gene gene) {
+        return gene instanceof Gene.Stat || (gene instanceof Gene.Effect effect && !effect.permanent());
+    }
+
+    /** The entry's gene at a fraction of its best value, or null if that rounds to nothing. */
+    @Nullable
+    public static Gene scaled(@Nonnull Gene gene, double fraction) {
+        double f = Math.clamp(fraction, 0, 1);
+        return switch (gene) {
+            case Gene.Stat stat -> {
+                double value = Math.round(stat.percent() * f * 10) / 10.0;
+                yield value == 0 ? null : new Gene.Stat(stat.stat(), value, stat.cost() * f);
+            }
+            case Gene.Effect effect -> {
+                if (effect.permanent()) yield effect;
+                double seconds = Math.round(effect.duration() * f);
+                yield seconds < 1 ? null : new Gene.Effect(effect.effect(), false, seconds);
+            }
+            case Gene.Mutation mutation -> mutation;
+        };
+    }
 
     /** What combining these entries gives and costs. {@code blocked}: why it can't be done (null if it can). */
     public record Plan(@Nonnull List<Gene> genes, @Nullable Genome result, int mutations, double multiplier,
@@ -103,46 +118,40 @@ public final class Library {
     }
 
     @Nonnull
-    public static Plan plan(@Nonnull List<GeneLibrary.Entry> chosen, int stationTier) {
+    public static Plan plan(@Nonnull List<Use> uses, int stationTier) {
         Balance.Library balance = Balance.get().library();
-        if (chosen.isEmpty()) return new Plan(List.of(), null, 0, 1, null, List.of(), "Tick the genes to combine.");
-
-        Map<String, List<Gene.Stat>> stats = new LinkedHashMap<>();
-        Map<String, List<Gene.Effect>> effects = new LinkedHashMap<>();
-        List<String> mutations = new ArrayList<>();
-        for (GeneLibrary.Entry entry : chosen) {
-            Gene gene = effective(entry);
-            switch (gene) {
-                case Gene.Stat stat -> stats.computeIfAbsent(stat.stat(), k -> new ArrayList<>()).add(stat);
-                case Gene.Effect effect -> effects.computeIfAbsent(effect.effect(), k -> new ArrayList<>()).add(effect);
-                case Gene.Mutation mutation -> {
-                    if (!mutations.contains(mutation.mutation())) mutations.add(mutation.mutation());
-                }
-                case null -> {
-                }
-            }
+        List<Gene> picked = new ArrayList<>();
+        for (Use use : uses) {
+            Gene gene = use.entry().getGene();
+            Gene scaled = gene != null ? scaled(gene, use.fraction()) : null;
+            if (scaled != null) picked.add(scaled);
         }
+        if (picked.isEmpty()) return new Plan(List.of(), null, 0, 1, null, List.of(), "Tick the genes to combine.");
 
         List<Gene> genes = new ArrayList<>();
         String blocked = null;
-        for (Map.Entry<String, List<Gene.Stat>> group : stats.entrySet()) {
-            List<Gene.Stat> copies = group.getValue();
-            boolean bonus = copies.stream().anyMatch(s -> !s.isDrawback());
-            boolean drawback = copies.stream().anyMatch(Gene.Stat::isDrawback);
-            String name = "Max " + GeneText.prettify(group.getKey());
-            if (bonus && drawback && blocked == null) blocked = "A bonus and a drawback of " + name + " can't be combined.";
-            if (copies.size() > balance.getMaxCopies() && blocked == null) blocked = "At most " + balance.getMaxCopies() + " copies of " + name + ".";
-            genes.add(fuse(group.getKey(), copies, balance.getFusionFalloff()));
+        Map<String, Gene.Effect> effects = new LinkedHashMap<>();
+        List<String> mutations = new ArrayList<>();
+        for (Gene gene : picked) {
+            switch (gene) {
+                case Gene.Stat stat -> {
+                    boolean clash = genes.stream().anyMatch(g -> g instanceof Gene.Stat other && other.stat().equals(stat.stat()));
+                    if (clash && blocked == null) blocked = "A bonus and a drawback of Max " + GeneText.prettify(stat.stat()) + " can't be combined.";
+                    genes.add(stat);
+                }
+                case Gene.Effect effect -> effects.merge(effect.effect(), effect, (a, b) -> a.permanent() ? a : b);
+                case Gene.Mutation mutation -> {
+                    if (!mutations.contains(mutation.mutation())) mutations.add(mutation.mutation());
+                }
+            }
         }
         Map<String, String> families = new LinkedHashMap<>();
-        for (Map.Entry<String, List<Gene.Effect>> group : effects.entrySet()) {
-            String other = families.putIfAbsent(Splicer.family(group.getKey()), group.getKey());
+        for (Gene.Effect effect : effects.values()) {
+            String other = families.putIfAbsent(Splicer.family(effect.effect()), effect.effect());
             if (other != null && blocked == null) {
-                blocked = GeneText.effectName(other, null) + " and " + GeneText.effectName(group.getKey(), null) + " are the same buff at two tiers.";
+                blocked = GeneText.effectName(other, null) + " and " + GeneText.effectName(effect.effect(), null) + " are the same buff at two tiers.";
             }
-            boolean permanent = group.getValue().stream().anyMatch(Gene.Effect::permanent);
-            double duration = group.getValue().stream().mapToDouble(Gene.Effect::duration).sum();
-            genes.add(new Gene.Effect(group.getKey(), permanent, permanent ? 0 : duration));
+            genes.add(effect);
         }
         for (String mutation : mutations) genes.add(new Gene.Mutation(mutation));
         if (mutations.size() > balance.getMaxMutations() && blocked == null) blocked = "At most " + balance.getMaxMutations() + " mutations in one genome.";
@@ -160,28 +169,5 @@ public final class Library {
             if (blocked == null && !Tiers.allows(stationTier, tier)) blocked = tier.getName() + " Complexity needs a Lab Station T" + tier.getStationTier() + ".";
         }
         return new Plan(genes, result, mutations.size(), multiplier, tier, cost, blocked);
-    }
-
-    /** Fuses copies of one stat: the best (largest) first at 100%, each next one at falloff^i. */
-    @Nonnull
-    static Gene.Stat fuse(@Nonnull String stat, @Nonnull List<Gene.Stat> copies, double falloff) {
-        List<Gene.Stat> sorted = new ArrayList<>(copies);
-        sorted.sort(Comparator.comparingDouble((Gene.Stat s) -> -Math.abs(s.percent())));
-        double value = 0;
-        double factor = 1;
-        double fullCost = 0;
-        for (Gene.Stat copy : sorted) {
-            value += copy.percent() * factor;
-            factor *= falloff;
-            fullCost += copy.cost();
-        }
-        value = round(value);
-        boolean drawback = value < 0;
-        // Bonuses cost the full value of every copy; drawbacks only reduce Complexity by what they really do.
-        return new Gene.Stat(stat, value, drawback ? Math.abs(value) : fullCost);
-    }
-
-    private static double round(double value) {
-        return Math.round(value * 10) / 10.0;
     }
 }
