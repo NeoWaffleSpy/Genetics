@@ -1,0 +1,75 @@
+$C = "../Common.ui";
+
+// One Genetic Library entry: tickbox to use it in the combination, type icon, name and source/level, value, and
+// Refine / discard buttons.
+Group {
+  LayoutMode: Top;
+  Padding: (Bottom: 5);
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 44);
+    Padding: (Horizontal: 8);
+    Background: #ffffff(0.035);
+
+    Group {
+      LayoutMode: Middle;
+      Anchor: (Width: 30);
+
+      $C.@CheckBox #Use {
+        Value: false;
+      }
+    }
+
+    Group {
+      LayoutMode: Middle;
+      Anchor: (Width: 28);
+
+      Group #IconStat { Anchor: (Width: 20, Height: 20); Background: "Icons/Stat.png"; }
+      Group #IconDrawback { Anchor: (Width: 20, Height: 20); Background: "Icons/Drawback.png"; Visible: false; }
+      Group #IconEffect { Anchor: (Width: 20, Height: 20); Background: "Icons/Effect.png"; Visible: false; }
+      Group #IconMutation { Anchor: (Width: 20, Height: 20); Background: "Icons/Mutation.png"; Visible: false; }
+    }
+
+    Group {
+      LayoutMode: Top;
+      FlexWeight: 1;
+      Padding: (Left: 6, Top: 5);
+
+      Label #Name {
+        Style: (FontSize: 14, RenderBold: true, TextColor: #eaf1f4);
+      }
+
+      Label #Meta {
+        Style: (FontSize: 11, TextColor: #a9b9c7);
+      }
+    }
+
+    Label #Value {
+      Anchor: (Width: 70);
+      Padding: (Right: 8);
+      Style: (FontSize: 14, RenderBold: true, TextColor: #8fd17a, HorizontalAlignment: End, VerticalAlignment: Center);
+    }
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Width: 96);
+      Padding: (Top: 6);
+
+      $C.@SmallSecondaryTextButton #Refine {
+        @Text = "Refine";
+        Visible: false;
+      }
+    }
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Width: 44);
+      Padding: (Top: 6, Left: 4);
+
+      $C.@SmallSecondaryTextButton #Discard {
+        @Text = "X";
+      }
+    }
+  }
+}

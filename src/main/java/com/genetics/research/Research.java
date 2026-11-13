@@ -26,7 +26,19 @@ import java.util.Set;
 public final class Research {
     public static final String SPLICING = "Splicing";
     public static final String MAKE_PERMANENT = "MakePermanent";
-    public static final Set<String> FEATURES = Set.of(SPLICING, MAKE_PERMANENT);
+    public static final String GENETIC_LIBRARY = "GeneticLibrary";
+    public static final String REFINING = "Refining";
+    public static final Set<String> FEATURES = Set.of(SPLICING, MAKE_PERMANENT, GENETIC_LIBRARY, REFINING);
+
+    /** The feature that must be researched before upgrading a Lab Station to this tier, or null. */
+    @Nullable
+    public static String featureForStationTier(int tier) {
+        return switch (tier) {
+            case 2 -> SPLICING;
+            case 3 -> GENETIC_LIBRARY;
+            default -> null;
+        };
+    }
     /** Known lanes, in display order; other lanes follow alphabetically. */
     public static final List<String> BRANCHES = List.of("Lab", "Reagents", "Syringes", "Genome");
 

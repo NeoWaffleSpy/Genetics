@@ -67,5 +67,16 @@ Group {
       Anchor: (Width: 60);
       Style: (FontSize: 15, RenderBold: true, TextColor: #f0b54a, HorizontalAlignment: End, VerticalAlignment: Center);
     }
+
+    Group #ExtractBox {
+      LayoutMode: Top;
+      Anchor: (Width: 106);
+      Padding: (Left: 10, Top: 2);
+      Visible: false;
+
+      $C.@SmallSecondaryTextButton #Extract {
+        @Text = "Extract";
+      }
+    }
   }
 }

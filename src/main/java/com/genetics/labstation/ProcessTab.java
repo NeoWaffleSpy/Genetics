@@ -41,9 +41,15 @@ final class ProcessTab {
         if (sample != null) {
             boolean editable = !sample.processed();
             boolean permanentAllowed = Research.hasFeature(Journal.of(ref, store), Research.MAKE_PERMANENT);
+            boolean extract = !editable && LibraryTab.open(page, Journal.of(ref, store));
             for (int i = 0; i < sample.genes().size(); i++) {
                 String row = "#GeneList[" + i + "]";
                 c.append("#GeneList", Widgets.GENE_ROW);
+                if (extract) {
+                    c.set(row + " #ExtractBox.Visible", true);
+                    e.addEventBinding(CustomUIEventBindingType.Activating, row + " #Extract",
+                            new EventData().append("Action", "PickExtract").append("Index", String.valueOf(i)), false);
+                }
                 if (!editable) continue;
                 c.set(row + " #Toggle.Value", page.keep[i]);
                 e.addEventBinding(CustomUIEventBindingType.ValueChanged, row + " #Toggle",
@@ -73,6 +79,7 @@ final class ProcessTab {
         c.set("#ProcessBar.Visible", sample != null);
         c.set("#ProcessReason.Visible", sample != null);
         c.set("#UpgradeStationButton.Visible", false);
+        c.set("#ExtractButton.Visible", false);
         if (sample == null) return;
         GeneJournal journal = Journal.of(ref, store);
         String language = page.player().getLanguage();
@@ -115,6 +122,7 @@ final class ProcessTab {
             c.set("#ProcessButton.Visible", false);
             c.set("#SpliceWithButton.Visible", true);
             c.set("#SpliceWithButton.Disabled", !Research.hasFeature(journal, Research.SPLICING));
+            extractBar(page, ref, store, c, sample);
             return;
         }
 
@@ -132,6 +140,7 @@ final class ProcessTab {
         String reason = plan.blocked();
         if (reason == null && !Materials.canPay(ref, store, plan.cost())) reason = "Missing materials";
         c.set("#ProcessReason.Text", reason != null ? reason : "");
+        c.set("#ProcessReason.Style.TextColor", Widgets.BAD);
         c.set("#ProcessStatus.Visible", false);
         // A tier the station can't handle: offer the upgrade instead of a dead Process button.
         boolean needsStation = plan.tier() != null && plan.blocked() != null && page.station.tier() < plan.tier().getStationTier();
@@ -139,6 +148,46 @@ final class ProcessTab {
         c.set("#ProcessButton.Disabled", reason != null || result == null);
         c.set("#UpgradeStationButton.Visible", needsStation);
         c.set("#SpliceWithButton.Visible", false);
+    }
+
+    /** With a gene picked for extraction: its row highlighted, the extraction cost and the Extract button. */
+    private static void extractBar(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
+                                   @Nonnull UICommandBuilder c, @Nonnull Genome sample) {
+        int picked = page.extractIndex;
+        for (int i = 0; i < sample.genes().size(); i++) {
+            c.set("#GeneList[" + i + "] #Extract.Text", i == picked ? "Picked" : "Extract");
+        }
+        if (picked < 0 || picked >= sample.genes().size() || !LibraryTab.open(page, Journal.of(ref, store))) return;
+        com.genetics.library.Library.ExtractPlan plan = com.genetics.library.Library.extractPlan(sample.genes().get(picked), page.station.tier());
+        c.set("#ProcessStatus.Visible", false);
+        c.set("#SpliceWithButton.Visible", false);
+        c.set("#ProcessCostLabel.Visible", true);
+        c.set("#ProcessCostLabel.Text", plan.tier() != null ? "Extract  ·  " + plan.tier().getName() : "Extract");
+        Widgets.costs(c, "#ProcessCost", plan.cost(), ref, store);
+        String reason = plan.blocked() != null ? plan.blocked()
+                : !Materials.canPay(ref, store, plan.cost()) ? "Missing materials" : null;
+        c.set("#ProcessReason.Text", reason != null ? reason : "Extracting uses up this genetic material");
+        c.set("#ProcessReason.Style.TextColor", reason != null ? Widgets.BAD : Widgets.TEXT);
+        c.set("#ExtractButton.Visible", true);
+        c.set("#ExtractButton.Disabled", reason != null);
+    }
+
+    /** Extracts the picked gene into the Genetic Library, using up the genetic material. Returns a message, or null. */
+    @Nullable
+    static String extract(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        ItemStack stack = page.sampleStack();
+        Genome sample = page.sample();
+        if (stack == null || sample == null || !sample.processed() || !LibraryTab.open(page, Journal.of(ref, store))) return null;
+        int picked = page.extractIndex;
+        if (picked < 0 || picked >= sample.genes().size()) return "Pick a gene to extract.";
+        Gene gene = sample.genes().get(picked);
+        com.genetics.library.Library.ExtractPlan plan = com.genetics.library.Library.extractPlan(gene, page.station.tier());
+        if (plan.blocked() != null) return plan.blocked();
+        if (!Materials.pay(ref, store, plan.cost())) return "You don't carry enough materials to extract this gene.";
+        com.genetics.library.Library.of(ref, store).add(gene, sample.title());
+        page.container.setItemStackForSlot(LabStationPage.SAMPLE_SLOT, Syringes.empty(stack));
+        page.extractIndex = -1;
+        return "Extracted " + GeneText.describe(gene, page.player().getLanguage()) + " into your Genetic Library.";
     }
 
     /** Processes the sample in the station with the current choices. Returns a message for the player, or null. */

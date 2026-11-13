@@ -52,6 +52,8 @@ public class GeneticsPlugin extends JavaPlugin {
         MorphSystem.State.setComponentType(entities.registerComponent(MorphSystem.State.class, MorphSystem.State::new));
         SicknessState.setComponentType(entities.registerComponent(SicknessState.class, SicknessState.ID, SicknessState.CODEC));
         GeneJournal.setComponentType(entities.registerComponent(GeneJournal.class, GeneJournal.ID, GeneJournal.CODEC));
+        com.genetics.library.GeneLibrary.setComponentType(entities.registerComponent(com.genetics.library.GeneLibrary.class,
+                com.genetics.library.GeneLibrary.ID, com.genetics.library.GeneLibrary.CODEC));
         MutationSystem.State.setComponentType(entities.registerComponent(MutationSystem.State.class, MutationSystem.State::new));
         LabStationBlock.setComponentType(getChunkStoreRegistry().registerComponent(LabStationBlock.class, LabStationBlock.ID, LabStationBlock.CODEC));
         entities.registerSystem(new GenomeMaintenanceSystem());

@@ -262,6 +262,46 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         public int getCatalystPerEffect() { return Math.max(0, catalystPerEffect); }
     }
 
+    /** The Genetic Library (design doc §8.1): stat fusion, several mutations, refining. */
+    public static final class Library {
+        public static final BuilderCodec<Library> CODEC = BuilderCodec.builder(Library.class, Library::new)
+                .append(new KeyedCodec<>("FusionFalloff", Codec.DOUBLE), (t, v) -> t.fusionFalloff = v, t -> t.fusionFalloff)
+                .documentation("Each extra copy of a stat adds this fraction of the previous copy's share (0.5: 100%, 50%, 25%, 12.5%).").add()
+                .append(new KeyedCodec<>("MaxCopies", Codec.INTEGER), (t, v) -> t.maxCopies = v, t -> t.maxCopies)
+                .documentation("Most copies of one stat in a combination.").add()
+                .append(new KeyedCodec<>("MutationCostBase", Codec.DOUBLE), (t, v) -> t.mutationCostBase = v, t -> t.mutationCostBase)
+                .documentation("Material cost multiplier per extra mutation (3: x1, x3, x9, x27).").add()
+                .append(new KeyedCodec<>("MaxMutations", Codec.INTEGER), (t, v) -> t.maxMutations = v, t -> t.maxMutations)
+                .documentation("Most mutations in one genome.").add()
+                .append(new KeyedCodec<>("RefineStep", Codec.DOUBLE), (t, v) -> t.refineStep = v, t -> t.refineStep)
+                .documentation("Each refine level adds this fraction of the entry's base value.").add()
+                .append(new KeyedCodec<>("RefineMaxLevel", Codec.INTEGER), (t, v) -> t.refineMaxLevel = v, t -> t.refineMaxLevel)
+                .documentation("Highest refine level.").add()
+                .append(new KeyedCodec<>("RefineItem", Codec.STRING), (t, v) -> t.refineItem = v, t -> t.refineItem)
+                .documentation("Item consumed by refining.").add()
+                .append(new KeyedCodec<>("RefineBaseCost", Codec.INTEGER), (t, v) -> t.refineBaseCost = v, t -> t.refineBaseCost)
+                .documentation("Refine items for the first level; each next level costs twice as many.").add()
+                .build();
+
+        private double fusionFalloff = 0.5;
+        private int maxCopies = 4;
+        private double mutationCostBase = 3;
+        private int maxMutations = 4;
+        private double refineStep = 0.25;
+        private int refineMaxLevel = 4;
+        private String refineItem = "Genetics_Gene_Enhancer";
+        private int refineBaseCost = 1;
+
+        public double getFusionFalloff() { return Math.clamp(fusionFalloff, 0, 1); }
+        public int getMaxCopies() { return Math.max(1, maxCopies); }
+        public double getMutationCostBase() { return Math.max(1, mutationCostBase); }
+        public int getMaxMutations() { return Math.max(1, maxMutations); }
+        public double getRefineStep() { return Math.max(0, refineStep); }
+        public int getRefineMaxLevel() { return Math.max(0, refineMaxLevel); }
+        @Nonnull public String getRefineItem() { return refineItem != null ? refineItem : "Genetics_Gene_Enhancer"; }
+        public int getRefineBaseCost() { return Math.max(0, refineBaseCost); }
+    }
+
     /** Science (placeholder name) paid for Catalogue discoveries (design doc §9.4). */
     public static final class Science {
         public static final BuilderCodec<Science> CODEC = BuilderCodec.builder(Science.class, Science::new)
@@ -324,6 +364,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
             .documentation("Legacy: Gene Journal milestones, replaced by Science and Research. Kept so old files still load.").add()
             .append(new KeyedCodec<>("Science", Science.CODEC), (t, v) -> t.science = v, t -> t.science)
             .documentation("Science paid for Catalogue discoveries.").add()
+            .append(new KeyedCodec<>("Library", Library.CODEC), (t, v) -> t.library = v, t -> t.library)
+            .documentation("Genetic Library: fusion, several mutations, refining.").add()
             .append(new KeyedCodec<>("Splicing", Splicing.CODEC), (t, v) -> t.splicing = v, t -> t.splicing).add()
             .append(new KeyedCodec<>("Permanence", Permanence.CODEC), (t, v) -> t.permanence = v, t -> t.permanence).add()
             .append(new KeyedCodec<>("StationUpgrades", new ArrayCodec<>(StationUpgrade.CODEC, StationUpgrade[]::new)), (t, v) -> t.stationUpgrades = v, t -> t.stationUpgrades)
@@ -341,6 +383,7 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     private Syringes syringes = new Syringes();
     private Milestone[] milestones = new Milestone[0];
     private Science science = new Science();
+    private Library library = new Library();
     private Splicing splicing = new Splicing();
     private Permanence permanence = new Permanence();
     private StationUpgrade[] stationUpgrades = {
@@ -348,6 +391,10 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                     new MaterialQuantity("Ingredient_Bar_Copper", null, null, 10, null),
                     new MaterialQuantity("Ingredient_Bar_Iron", null, null, 5, null),
                     new MaterialQuantity("Ingredient_Life_Essence", null, null, 10, null)),
+            new StationUpgrade(3,
+                    new MaterialQuantity("Ingredient_Bar_Thorium", null, null, 10, null),
+                    new MaterialQuantity("Ingredient_Crystal_Cyan", null, null, 5, null),
+                    new MaterialQuantity("Ingredient_Life_Essence_Concentrated", null, null, 5, null)),
     };
 
     private Balance() {
@@ -394,6 +441,11 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     @Nonnull
     public Syringes syringes() {
         return syringes != null ? syringes : BUILT_IN.syringes;
+    }
+
+    @Nonnull
+    public Library library() {
+        return library != null ? library : BUILT_IN.library;
     }
 
     @Nonnull

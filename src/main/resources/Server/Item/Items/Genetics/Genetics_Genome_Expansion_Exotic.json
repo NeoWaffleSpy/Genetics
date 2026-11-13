@@ -1,0 +1,71 @@
+{
+  "TranslationProperties": {
+    "Name": "server.genetics.items.Genome_Expansion_Exotic.name",
+    "Description": "server.genetics.items.Genome_Expansion_Exotic.description"
+  },
+  "Icon": "Icons/ItemsGenerated/Ingredient_Crystal_Fragments_Purple.png",
+  "Quality": "Legendary",
+  "Categories": [
+    "Items.Potions"
+  ],
+  "Model": "Resources/Crystals/Crystal_Fragment.blockymodel",
+  "Texture": "Resources/Crystals/Crystal_Fragment_Textures/Void.png",
+  "PlayerAnimationsId": "Item",
+  "Scale": 1.3,
+  "IconProperties": {
+    "Scale": 0.75,
+    "Translation": [
+      -0.3,
+      0.3
+    ],
+    "Rotation": [
+      34.315,
+      29.815,
+      22.5
+    ]
+  },
+  "Recipe": {
+    "TimeSeconds": 3,
+    "KnowledgeRequired": true,
+    "Input": [
+      {
+        "ItemId": "Ingredient_Bar_Mithril",
+        "Quantity": 8
+      },
+      {
+        "ItemId": "Rock_Gem_Voidstone",
+        "Quantity": 2
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 10
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Id": "Alchemybench",
+        "Type": "Crafting",
+        "Categories": [
+          "Alchemy_Potions_Misc"
+        ]
+      }
+    ]
+  },
+  "Interactions": {
+    "Secondary": {
+      "Interactions": [
+        {
+          "Type": "Genetics_UseExpansion",
+          "Capacity": 200
+        }
+      ]
+    }
+  },
+  "Light": {
+    "Color": "#315",
+    "Radius": 1
+  },
+  "ItemSoundSetId": "ISS_Items_Gems",
+  "MaxStack": 10,
+  "DropOnDeath": true
+}

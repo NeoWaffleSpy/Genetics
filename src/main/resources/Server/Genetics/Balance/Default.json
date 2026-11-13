@@ -81,6 +81,23 @@
           "Quantity": 10
         }
       ]
+    },
+    {
+      "Tier": 3,
+      "Materials": [
+        {
+          "ItemId": "Ingredient_Bar_Thorium",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Ingredient_Crystal_Cyan",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "Ingredient_Life_Essence_Concentrated",
+          "Quantity": 5
+        }
+      ]
     }
   ],
   "Science": {
@@ -89,5 +106,15 @@
     "SpeciesComplete": 5,
     "NewBuff": 2,
     "NewMutation": 10
+  },
+  "Library": {
+    "FusionFalloff": 0.5,
+    "MaxCopies": 4,
+    "MutationCostBase": 3,
+    "MaxMutations": 4,
+    "RefineStep": 0.25,
+    "RefineMaxLevel": 4,
+    "RefineItem": "Genetics_Gene_Enhancer",
+    "RefineBaseCost": 1
   }
 }

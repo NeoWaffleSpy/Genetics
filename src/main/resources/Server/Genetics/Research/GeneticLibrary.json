@@ -1,0 +1,14 @@
+{
+  "Name": "Genetic Library",
+  "Branch": "Lab",
+  "Order": 3,
+  "Icon": "Helix",
+  "Cost": 25,
+  "Requires": [
+    "MakePermanent"
+  ],
+  "Features": [
+    "GeneticLibrary"
+  ],
+  "Description": "Unlocks the Library tab and the Lab Station T3 upgrade: extract genes from genetic material and combine them at will."
+}

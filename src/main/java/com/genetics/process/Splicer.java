@@ -25,7 +25,7 @@ import java.util.Random;
  *   ({@link com.genetics.genome.ComplexityCalculator#effect}).</li>
  *   <li>The same permanent effect in both: kept once.</li>
  *   <li>A gene only one input has: kept as it is.</li>
- *   <li>Mutations (a sample holds at most one): the same one is kept; two different ones keep the higher-Complexity
+ *   <li>Mutations: all of one input's mutations are kept, never a mix: the input that has any, or the higher-Complexity
  *   input's. If neither input has one, a new one may be rolled: the chance rises with the two inputs' combined
  *   Complexity, and the mutation is drawn by Weight among those whose MinTier the result reaches.</li>
  * </ul>
@@ -78,6 +78,10 @@ public final class Splicer {
         genesB.keySet().forEach(k -> keys.put(k, true));
 
         boolean aLeads = a.complexity() >= b.complexity();
+        // Mutations come from one input only: the one that has any, or the higher-Complexity one if both do.
+        boolean aMutations = genesA.keySet().stream().anyMatch(k -> k.startsWith("Mutation:"));
+        boolean bMutations = genesB.keySet().stream().anyMatch(k -> k.startsWith("Mutation:"));
+        boolean mutationsFromA = aMutations && (!bMutations || aLeads);
         List<Line> lines = new ArrayList<>();
         List<Gene> genes = new ArrayList<>();
         boolean inherited = false;
@@ -85,7 +89,9 @@ public final class Splicer {
         for (String key : keys.keySet()) {
             Gene ga = genesA.get(key);
             Gene gb = genesB.get(key);
-            Gene merged = merge(ga, gb, aLeads);
+            Gene merged = key.startsWith("Mutation:")
+                    ? (mutationsFromA ? ga : gb)
+                    : merge(ga, gb, aLeads);
             boolean kept = keep == null || index >= keep.length || keep[index];
             index++;
             lines.add(new Line(key, ga, gb, merged, kept));
@@ -144,8 +150,11 @@ public final class Splicer {
         if (b == null) return a;
         return switch (a) {
             case Gene.Stat sa -> {
-                double sum = Math.round((sa.percent() + ((Gene.Stat) b).percent()) * 10) / 10.0;
-                yield sum == 0 ? null : new Gene.Stat(sa.stat(), sum);
+                Gene.Stat sb = (Gene.Stat) b;
+                double sum = Math.round((sa.percent() + sb.percent()) * 10) / 10.0;
+                // Two bonuses keep their full (fused) cost; anything else costs what's left.
+                double cost = !sa.isDrawback() && !sb.isDrawback() ? sa.cost() + sb.cost() : Math.abs(sum);
+                yield sum == 0 ? null : new Gene.Stat(sa.stat(), sum, cost);
             }
             case Gene.Effect ea -> ea.permanent() ? ea : new Gene.Effect(ea.effect(), false, ea.duration() + ((Gene.Effect) b).duration());
             case Gene.Mutation ignored -> aLeads ? a : b;
@@ -179,7 +188,7 @@ public final class Splicer {
             String key = switch (gene) {
                 case Gene.Stat stat -> "Stat:" + stat.stat();
                 case Gene.Effect effect -> "Effect:" + effect.effect() + (effect.permanent() ? ":Permanent" : ":Temporary");
-                case Gene.Mutation ignored -> "Mutation";
+                case Gene.Mutation mutation -> "Mutation:" + mutation.mutation();
             };
             out.merge(key, gene, (first, second) -> merge(first, second, true));
         }

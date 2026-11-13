@@ -1,0 +1,14 @@
+{
+  "Name": "Expansion · Complex",
+  "Branch": "Genome",
+  "Order": 1,
+  "Icon": "Stat",
+  "Cost": 15,
+  "Requires": [
+    "ExpansionModerate"
+  ],
+  "Recipes": [
+    "Genetics_Genome_Expansion_Complex"
+  ],
+  "Description": "Teaches the Complex Genome Expansion recipe (capacity 80)."
+}
