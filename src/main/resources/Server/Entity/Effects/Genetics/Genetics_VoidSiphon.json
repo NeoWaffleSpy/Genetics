@@ -1,0 +1,17 @@
+{
+  "Name": "server.genetics.effects.VoidSiphon.name",
+  "Duration": 10,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "Debuff": false,
+  "RawStatModifiers": {
+    "Mana": [
+      {
+        "Amount": 1.2,
+        "CalculationType": "Multiplicative",
+        "Target": "Max"
+      }
+    ]
+  },
+  "StatusEffectIcon": "Icons/ItemsGenerated/Potion_Signature.png"
+}

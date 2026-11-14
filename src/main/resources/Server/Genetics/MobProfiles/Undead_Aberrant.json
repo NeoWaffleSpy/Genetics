@@ -1,0 +1,43 @@
+{
+  "Name": "server.genetics.species.Undead_Aberrant.name",
+  "Roles": [
+    "Zombie_Aberrant",
+    "Zombie_Aberrant_Big",
+    "Zombie_Aberrant_Small"
+  ],
+  "Category": "Undead",
+  "Zone": "Zone 4",
+  "SyringeTier": 4,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 14,
+      "Max": 22
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "HealthRegen_Buff_T3",
+    "Duration": 240
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.8,
+      "Min": 8,
+      "Max": 12
+    },
+    {
+      "Stat": "Mana",
+      "Chance": 0.5,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "Icons": {
+    "Zombie_Aberrant": "Icons/ModelsGenerated/Zombie_Aberrant.png",
+    "Zombie_Aberrant_Big": "Icons/ModelsGenerated/Zombie_Aberrant.png",
+    "Zombie_Aberrant_Small": "Icons/ModelsGenerated/Zombie_Aberrant.png"
+  }
+}

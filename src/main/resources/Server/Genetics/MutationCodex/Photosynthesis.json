@@ -1,0 +1,35 @@
+{
+  "Name": "server.genetics.mutations.Photosynthesis.name",
+  "Description": "server.genetics.mutations.Photosynthesis.desc",
+  "Complexity": 15,
+  "Species": [
+    "Folk_Village",
+    "Elemental_Spirit",
+    "Mythic_Hedera"
+  ],
+  "Behaviors": [
+    {
+      "Type": "WhileHeld",
+      "Conditions": {
+        "Day": true,
+        "Still": true
+      },
+      "HoldTime": 3,
+      "Cooldown": 2,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "HealthRegen_Buff_T1",
+          "Duration": 3
+        },
+        {
+          "Type": "ApplyEffect",
+          "Id": "Food_Stamina_Regen_Small",
+          "Duration": 3
+        }
+      ]
+    }
+  ],
+  "Weight": 7,
+  "MinTier": "Simple"
+}

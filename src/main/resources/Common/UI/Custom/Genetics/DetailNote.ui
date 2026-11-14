@@ -1,0 +1,9 @@
+// A short paragraph inside the Catalogue's detail list.
+Group {
+  LayoutMode: Top;
+  Padding: (Bottom: 5, Horizontal: 2);
+
+  Label #Text {
+    Style: (FontSize: 13, TextColor: #c4d1dc, Wrap: true);
+  }
+}

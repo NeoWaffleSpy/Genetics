@@ -1,0 +1,27 @@
+{
+  "Name": "server.genetics.mutations.BloodInTheWater.name",
+  "Description": "server.genetics.mutations.BloodInTheWater.desc",
+  "Complexity": 25,
+  "Species": [
+    "Aquatic_Hunter"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHit",
+      "Conditions": {
+        "InWater": true
+      },
+      "TargetHealthBelow": 0.5,
+      "DamageBonus": 0.3,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Genetics_Speed",
+          "Duration": 4
+        }
+      ]
+    }
+  ],
+  "Weight": 5,
+  "MinTier": "Moderate"
+}

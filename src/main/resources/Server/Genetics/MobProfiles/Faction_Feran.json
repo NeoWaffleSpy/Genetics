@@ -1,0 +1,49 @@
+{
+  "Name": "server.genetics.species.Faction_Feran.name",
+  "Roles": [
+    "Feran_Burrower",
+    "Feran_Civilian",
+    "Feran_Cub",
+    "Feran_Longtooth",
+    "Feran_Sharptooth",
+    "Feran_Windwalker"
+  ],
+  "Category": "Tribes",
+  "Zone": "Zone 2",
+  "SyringeTier": 2,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Stamina",
+      "Weight": 2,
+      "Min": 5,
+      "Max": 9
+    },
+    {
+      "Stat": "Mana",
+      "Weight": 1,
+      "Min": 2,
+      "Max": 5
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Speed_T2",
+    "Duration": 150
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Health",
+      "Chance": 0.4,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "Icons": {
+    "Feran_Burrower": "Icons/ModelsGenerated/Feran_Burrower.png",
+    "Feran_Civilian": "Icons/ModelsGenerated/Feran_Civilian.png",
+    "Feran_Cub": "Icons/ModelsGenerated/Feran_Cub.png",
+    "Feran_Longtooth": "Icons/ModelsGenerated/Feran_Longtooth.png",
+    "Feran_Sharptooth": "Icons/ModelsGenerated/Feran_Sharptooth.png",
+    "Feran_Windwalker": "Icons/ModelsGenerated/Feran_Windwalker.png"
+  }
+}

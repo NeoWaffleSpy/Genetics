@@ -1,0 +1,61 @@
+{
+  "Name": "server.genetics.species.Faction_Trork.name",
+  "Roles": [
+    "Trork_Brawler",
+    "Trork_Chieftain",
+    "Trork_Doctor_Witch",
+    "Trork_Guard",
+    "Trork_Hunter",
+    "Trork_Mauler",
+    "Trork_Sentry",
+    "Trork_Sentry_Patrol",
+    "Trork_Shaman",
+    "Trork_Unarmed",
+    "Trork_Warrior",
+    "Trork_Warrior_Patrol"
+  ],
+  "Category": "Tribes",
+  "Zone": "Zone 1",
+  "SyringeTier": 2,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 2,
+      "Min": 5,
+      "Max": 9
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 4,
+      "Max": 7
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Meat_Buff_T1",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.4,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "Icons": {
+    "Trork_Brawler": "Icons/ModelsGenerated/Trork_Brawler.png",
+    "Trork_Chieftain": "Icons/ModelsGenerated/Trork_Chieftain.png",
+    "Trork_Doctor_Witch": "Icons/ModelsGenerated/Trork_Doctor_Witch.png",
+    "Trork_Guard": "Icons/ModelsGenerated/Trork_Guard.png",
+    "Trork_Hunter": "Icons/ModelsGenerated/Trork_Hunter.png",
+    "Trork_Mauler": "Icons/ModelsGenerated/Trork_Mauler.png",
+    "Trork_Sentry": "Icons/ModelsGenerated/Trork_Sentry.png",
+    "Trork_Sentry_Patrol": "Icons/ModelsGenerated/Trork_Sentry.png",
+    "Trork_Shaman": "Icons/ModelsGenerated/Trork_Shaman.png",
+    "Trork_Unarmed": "Icons/ModelsGenerated/Trork_Hunter.png",
+    "Trork_Warrior": "Icons/ModelsGenerated/Trork_Warrior.png",
+    "Trork_Warrior_Patrol": "Icons/ModelsGenerated/Trork_Warrior.png"
+  }
+}

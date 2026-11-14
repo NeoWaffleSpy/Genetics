@@ -1,0 +1,30 @@
+{
+  "Name": "server.genetics.mutations.Blink.name",
+  "Description": "server.genetics.mutations.Blink.desc",
+  "Complexity": 30,
+  "Species": [
+    "Void_Creature"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHurt",
+      "FromEntity": true,
+      "MinFraction": 0.2,
+      "Cooldown": 45,
+      "Actions": [
+        {
+          "Type": "PushAway",
+          "Force": 2.2,
+          "Up": 0.4
+        },
+        {
+          "Type": "ApplyEffect",
+          "Id": "Intangible_Dark",
+          "Duration": 1
+        }
+      ]
+    }
+  ],
+  "Weight": 4,
+  "MinTier": "Complex"
+}

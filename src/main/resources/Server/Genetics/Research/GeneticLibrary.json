@@ -3,7 +3,7 @@
   "Branch": "Lab",
   "Order": 3,
   "Icon": "Helix",
-  "Cost": 25,
+  "Cost": 125,
   "Requires": [
     "MakePermanent"
   ],

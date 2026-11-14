@@ -1,0 +1,38 @@
+{
+  "Name": "server.genetics.mutations.Frostbite.name",
+  "Description": "server.genetics.mutations.Frostbite.desc",
+  "Complexity": 55,
+  "Species": [
+    "Mythic_Yeti",
+    "Predator_BigCat"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHurt",
+      "Melee": true,
+      "AttackerActions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Slow",
+          "Duration": 3
+        }
+      ]
+    },
+    {
+      "Type": "OnHurt",
+      "Melee": true,
+      "EveryNth": 3,
+      "Window": 6,
+      "Cooldown": 8,
+      "AttackerActions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Freeze",
+          "Duration": 2
+        }
+      ]
+    }
+  ],
+  "Weight": 2,
+  "MinTier": "Advanced"
+}

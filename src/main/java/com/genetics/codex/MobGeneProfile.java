@@ -114,6 +114,8 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
 
     public static final AssetBuilderCodec<String, MobGeneProfile> CODEC = AssetBuilderCodec.builder(
                     MobGeneProfile.class, MobGeneProfile::new, Codec.STRING, (t, k) -> t.id = k, t -> t.id, (t, d) -> t.data = d, t -> t.data)
+            .append(new KeyedCodec<>("Name", Codec.STRING), (t, v) -> t.name = v, t -> t.name)
+            .documentation("Translation key of the species name shown in the Catalogue (one species per profile).").add()
             .append(new KeyedCodec<>("Roles", Codec.STRING_ARRAY), (t, v) -> t.roles = v, t -> t.roles)
             .documentation("NPC role ids this profile applies to.").add()
             .append(new KeyedCodec<>("StatRolls", Codec.INTEGER), (t, v) -> t.statRolls = v, t -> t.statRolls)
@@ -129,6 +131,15 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
             .documentation("Sound event id of the mob's call, used by sickness events (PlaySourceMobSound).").add()
             .append(new KeyedCodec<>("SyringeTier", Codec.INTEGER), (t, v) -> t.syringeTier = v, t -> t.syringeTier)
             .documentation("Syringe tier needed to sample these mobs (1 = Crude). 0 or absent: based on the mob's max health.").add()
+            .append(new KeyedCodec<>("SignatureMutation", Codec.STRING), (t, v) -> t.signatureMutation = v, t -> t.signatureMutation)
+            .documentation("A mutation these mobs can carry (bosses). Such mobs can only be sampled once each.").add()
+            .append(new KeyedCodec<>("SignatureChance", Codec.DOUBLE), (t, v) -> t.signatureChance = v, t -> t.signatureChance)
+            .documentation("Chance a sample carries the signature mutation. Default 0.5.").add()
+            .append(new KeyedCodec<>("Icons", new com.hypixel.hytale.codec.codecs.map.MapCodec<>(Codec.STRING, java.util.HashMap::new)),
+                    (t, v) -> t.icons = v, t -> t.icons)
+            .documentation("Catalogue icon per role (an icon asset path), for creatures whose model is named differently or has none.").add()
+            .append(new KeyedCodec<>("Category", Codec.STRING), (t, v) -> t.category = v, t -> t.category)
+            .documentation("The Catalogue group (a biome or a tribe) the species is listed under. Default: its Zone.").add()
             .append(new KeyedCodec<>("Zone", Codec.STRING), (t, v) -> t.zone = v, t -> t.zone)
             .documentation("Where the species lives, shown in the Catalogue (e.g. \"Zone 1\"). Unknown species are grouped by it.").add()
             .build();
@@ -137,6 +148,7 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
 
     private AssetExtraInfo.Data data;
     private String id;
+    private String name;
     private String[] roles = new String[0];
     private int statRolls = 1;
     private StatRoll[] statPool = new StatRoll[0];
@@ -147,6 +159,10 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
     private String sound;
     private int syringeTier;
     private String zone;
+    private String category;
+    private java.util.Map<String, String> icons = java.util.Map.of();
+    private String signatureMutation;
+    private double signatureChance = 0.5;
 
     private MobGeneProfile() {
     }
@@ -165,6 +181,34 @@ public final class MobGeneProfile implements JsonAssetWithMap<String, DefaultAss
     @Override
     public String getId() {
         return id;
+    }
+
+    /** The Catalogue icon of a role, or null. */
+    @Nullable
+    public String getIcon(@Nonnull String role) {
+        return icons != null ? icons.get(role) : null;
+    }
+
+    /** The Catalogue group (biome or tribe), or null to use the Zone. */
+    @Nullable
+    public String getCategory() {
+        return category;
+    }
+
+    /** The mutation these mobs can carry, or null. Mobs with one can only be sampled once each. */
+    @Nullable
+    public String getSignatureMutation() {
+        return signatureMutation;
+    }
+
+    public double getSignatureChance() {
+        return signatureChance;
+    }
+
+    /** Translation key of the species name, or null. */
+    @Nullable
+    public String getName() {
+        return name;
     }
 
     @Nonnull

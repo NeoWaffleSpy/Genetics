@@ -1,0 +1,24 @@
+{
+  "Name": "server.genetics.mutations.Webspinner.name",
+  "Description": "server.genetics.mutations.Webspinner.desc",
+  "Complexity": 18,
+  "Species": [
+    "Vermin_Crawler"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHit",
+      "Chance": 0.15,
+      "Cooldown": 8,
+      "TargetActions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Root",
+          "Duration": 1.5
+        }
+      ]
+    }
+  ],
+  "Weight": 7,
+  "MinTier": "Simple"
+}

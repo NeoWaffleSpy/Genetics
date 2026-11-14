@@ -1,0 +1,47 @@
+{
+  "Name": "server.genetics.species.Aquatic_Shelled.name",
+  "Roles": [
+    "Crab",
+    "Lobster",
+    "Trilobite",
+    "Trilobite_Black",
+    "Shellfish_Lava"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 7
+    },
+    {
+      "Stat": "Oxygen",
+      "Weight": 1,
+      "Min": 8,
+      "Max": 15
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Hide_T1",
+    "Duration": 120
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.3,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "Icons": {
+    "Crab": "Icons/ModelsGenerated/Crab.png",
+    "Lobster": "Icons/ModelsGenerated/Lobster.png",
+    "Trilobite": "Icons/ModelsGenerated/Trilobite.png",
+    "Trilobite_Black": "Icons/ModelsGenerated/Trilobite_Black.png",
+    "Shellfish_Lava": "Icons/ModelsGenerated/Shellfish_Lava.png"
+  }
+}

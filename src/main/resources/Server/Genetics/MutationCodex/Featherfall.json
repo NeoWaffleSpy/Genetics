@@ -1,0 +1,37 @@
+{
+  "Name": "server.genetics.mutations.Featherfall.name",
+  "Description": "server.genetics.mutations.Featherfall.desc",
+  "Complexity": 15,
+  "Species": [
+    "Bird_Common"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnFall",
+      "MinDistance": 6,
+      "Cooldown": 20,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Immunity_Fall",
+          "Duration": 6
+        },
+        {
+          "Type": "Impulse",
+          "Add": true,
+          "Up": 0.8
+        },
+        {
+          "Type": "Impulse",
+          "Add": true,
+          "Up": 0.35,
+          "Repeat": 8,
+          "Interval": 0.25,
+          "Delay": 0.25
+        }
+      ]
+    }
+  ],
+  "Weight": 7,
+  "MinTier": "Simple"
+}

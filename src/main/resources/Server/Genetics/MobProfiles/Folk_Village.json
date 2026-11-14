@@ -1,0 +1,73 @@
+{
+  "Name": "server.genetics.species.Folk_Village.name",
+  "Roles": [
+    "Klops_Gentleman",
+    "Klops_Merchant",
+    "Klops_Merchant_Patrol",
+    "Klops_Merchant_Wandering",
+    "Klops_Miner",
+    "Klops_Miner_Patrol",
+    "Dungeon_Klops_Scrap_Trader",
+    "Kweebec_Elder",
+    "Kweebec_Merchant",
+    "Kweebec_Razorleaf",
+    "Kweebec_Razorleaf_Patrol",
+    "Kweebec_Rootling",
+    "Kweebec_Sapling",
+    "Kweebec_Sapling_Orange",
+    "Kweebec_Sapling_Pink",
+    "Kweebec_Seedling",
+    "Kweebec_Sproutling",
+    "Kweebec_Sproutling_Patrol"
+  ],
+  "Category": "Tribes",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 6
+    },
+    {
+      "Stat": "Mana",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "HealthRegen_Buff_T1",
+    "Duration": 150
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Oxygen",
+      "Chance": 0.3,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "Icons": {
+    "Klops_Gentleman": "Icons/ModelsGenerated/Goblin_Scientist.png",
+    "Klops_Merchant": "Icons/ModelsGenerated/Goblin_Scientist.png",
+    "Klops_Merchant_Patrol": "Icons/ModelsGenerated/Goblin_Scientist.png",
+    "Klops_Merchant_Wandering": "Icons/ModelsGenerated/Goblin_Scientist.png",
+    "Klops_Miner": "Icons/ModelsGenerated/Goblin_Miner.png",
+    "Klops_Miner_Patrol": "Icons/ModelsGenerated/Goblin_Miner.png",
+    "Dungeon_Klops_Scrap_Trader": "Icons/ModelsGenerated/Goblin_Scientist.png",
+    "Kweebec_Elder": "Icons/ModelsGenerated/Kweebec_Sapling.png",
+    "Kweebec_Merchant": "Icons/ModelsGenerated/Kweebec_Rootling.png",
+    "Kweebec_Razorleaf": "Icons/ModelsGenerated/Kweebec_Sapling.png",
+    "Kweebec_Razorleaf_Patrol": "Icons/ModelsGenerated/Kweebec_Sapling.png",
+    "Kweebec_Rootling": "Icons/ModelsGenerated/Kweebec_Rootling.png",
+    "Kweebec_Sapling": "Icons/ModelsGenerated/Kweebec_Sapling.png",
+    "Kweebec_Sapling_Orange": "Icons/ModelsGenerated/Kweebec_Sapling.png",
+    "Kweebec_Sapling_Pink": "Icons/ModelsGenerated/Kweebec_Sapling.png",
+    "Kweebec_Seedling": "Icons/ModelsGenerated/Kweebec_Seedling.png",
+    "Kweebec_Sproutling": "Icons/ModelsGenerated/Kweebec_Sproutling.png",
+    "Kweebec_Sproutling_Patrol": "Icons/ModelsGenerated/Kweebec_Sproutling.png"
+  }
+}

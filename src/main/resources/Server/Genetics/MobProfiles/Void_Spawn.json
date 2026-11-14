@@ -1,0 +1,54 @@
+{
+  "Name": "server.genetics.species.Void_Spawn.name",
+  "Roles": [
+    "Void_Spawn",
+    "Void_Spawn_Surge",
+    "Void_Spawn_Entombed",
+    "Void_Spawn_Entombed_Anomaly"
+  ],
+  "Category": "Void",
+  "Zone": "Void",
+  "SyringeTier": 4,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Mana",
+      "Weight": 2,
+      "Min": 15,
+      "Max": 25
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 10,
+      "Max": 15
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Might_T2",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.25,
+  "PermanentEffects": [
+    {
+      "Id": "Immunity_Environmental",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.6,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "Icons": {
+    "Void_Spawn": "Icons/ModelsGenerated/Spawn_Void.png",
+    "Void_Spawn_Surge": "Icons/ModelsGenerated/Spawn_Void.png",
+    "Void_Spawn_Entombed": "Icons/ModelsGenerated/Spawn_Void.png",
+    "Void_Spawn_Entombed_Anomaly": "Icons/ModelsGenerated/Spawn_Void.png"
+  },
+  "SignatureMutation": "VoidSiphon",
+  "SignatureChance": 0.5
+}

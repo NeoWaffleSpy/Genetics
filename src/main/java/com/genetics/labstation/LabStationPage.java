@@ -104,10 +104,18 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     int extractIndex = -1;
     /** Library entries ticked into the combination. */
     final java.util.Set<String> libraryUse = new java.util.LinkedHashSet<>();
+    /** The Library sub-tab shown: Stats, Effects or Mutations. */
+    String libraryFilter = "Stats";
     /** Amount (0-100% of the best value) chosen per library entry. */
     final java.util.Map<String, Double> libraryAmount = new java.util.HashMap<>();
     @Nullable
     String catalogueSelected;
+    /** Open Catalogue groups, as "Sub:Group". */
+    final java.util.Set<String> catalogueOpen = new java.util.HashSet<>();
+    /** Sub-tabs already shown once (their selected entry's group was opened then). */
+    final java.util.Set<String> catalogueSeen = new java.util.HashSet<>();
+    /** Catalogue entry id to its row index in the list (group headers take rows too). */
+    final java.util.Map<String, Integer> catalogueRows = new java.util.HashMap<>();
     @Nullable
     String researchSelected;
     /** What the screen was built for: the sample and B (as genome JSON), to rebuild when they change. */
@@ -158,6 +166,11 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         for (String s : SUBS) {
             for (String state : List.of("On", "Off")) {
                 events.addEventBinding(CustomUIEventBindingType.Activating, "#Sub" + s + state, new EventData().append("Action", "Sub").append("Tab", s), false);
+            }
+        }
+        for (String f : LibraryTab.FILTERS) {
+            for (String state : List.of("On", "Off")) {
+                events.addEventBinding(CustomUIEventBindingType.Activating, "#LibSub" + f + state, new EventData().append("Action", "LibSub").append("Tab", f), false);
             }
         }
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ProcessButton", new EventData().append("Action", "Process"), false);
@@ -248,9 +261,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             commands.set("#SpeciesMeta.Text", designed ? "Combined in the Genetic Library"
                     : a.source() != null ? "Mostly " + a.source().mobName() + " genes" : "");
         } else {
-            String id = a.source().mobId();
+            String species = com.genetics.journal.Catalogue.speciesOf(a.source().mobId());
+            String id = species != null ? species : a.source().mobId();
             GeneJournal.Species entry = journal.getSpecies().get(id);
-            int total = com.genetics.journal.Catalogue.possibleGenes(id).size();
+            int total = species != null ? com.genetics.journal.Catalogue.possibleGenes(id).size() : 0;
             commands.set("#SpeciesName.Text", a.source().mobName());
             commands.set("#SpeciesMeta.Text", "Sampled " + (entry != null ? entry.getSamples() : 0) + " times  ·  "
                     + journal.genesOf(id).size() + " / " + total + " genes known");
@@ -270,6 +284,12 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 if (data.tab != null && TABS.contains(data.tab) && !data.tab.equals(tab)) {
                     tab = data.tab;
                     hoveredGrid = null;
+                    rebuild();
+                }
+            }
+            case "LibSub" -> {
+                if (data.tab != null && LibraryTab.FILTERS.contains(data.tab) && !data.tab.equals(libraryFilter)) {
+                    libraryFilter = data.tab;
                     rebuild();
                 }
             }
@@ -294,6 +314,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 int i = parse(data.index);
                 if (i >= 0 && i < spliceKeep.length) spliceKeep[i] = data.checked != null ? data.checked : !spliceKeep[i];
                 partial(ref, store);
+            }
+            case "Group" -> {
+                if (data.node != null && !catalogueOpen.remove(data.node)) catalogueOpen.add(data.node);
+                rebuild();
             }
             case "Entry" -> {
                 if (data.node != null) {

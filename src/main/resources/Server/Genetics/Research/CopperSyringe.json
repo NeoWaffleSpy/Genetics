@@ -3,7 +3,7 @@
   "Branch": "Syringes",
   "Order": 1,
   "Icon": "Syringe",
-  "Cost": 5,
+  "Cost": 25,
   "Requires": [
     "CrudeSyringe"
   ],

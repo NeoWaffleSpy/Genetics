@@ -1,0 +1,55 @@
+{
+  "Name": "server.genetics.species.Faction_Outlander.name",
+  "Roles": [
+    "Outlander_Berserker",
+    "Outlander_Brute",
+    "Outlander_Cultist",
+    "Outlander_Hunter",
+    "Outlander_Marauder",
+    "Outlander_Peon",
+    "Outlander_Priest",
+    "Outlander_Sorcerer",
+    "Outlander_Stalker"
+  ],
+  "Category": "Tribes",
+  "Zone": "Zone 3",
+  "SyringeTier": 3,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 5,
+      "Max": 9
+    },
+    {
+      "Stat": "Mana",
+      "Weight": 1,
+      "Min": 4,
+      "Max": 8
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "FruitVeggie_Buff_T2",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.4,
+      "Min": 4,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Outlander_Berserker": "Icons/ModelsGenerated/Outlander_Berserker.png",
+    "Outlander_Brute": "Icons/ModelsGenerated/Outlander_Brute.png",
+    "Outlander_Cultist": "Icons/ModelsGenerated/Outlander_Cultist.png",
+    "Outlander_Hunter": "Icons/ModelsGenerated/Outlander_Hunter.png",
+    "Outlander_Marauder": "Icons/ModelsGenerated/Outlander_Marauder.png",
+    "Outlander_Peon": "Icons/ModelsGenerated/Outlander_Peon.png",
+    "Outlander_Priest": "Icons/ModelsGenerated/Outlander_Priest.png",
+    "Outlander_Sorcerer": "Icons/ModelsGenerated/Outlander_Sorcerer.png",
+    "Outlander_Stalker": "Icons/ModelsGenerated/Outlander_Stalker.png"
+  }
+}

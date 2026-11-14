@@ -1,0 +1,39 @@
+{
+  "Name": "server.genetics.species.Aquatic_Whale.name",
+  "Roles": [
+    "Whale_Humpback"
+  ],
+  "Category": "Oceans",
+  "Zone": "Zone 0 - Oceans",
+  "SyringeTier": 3,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Oxygen",
+      "Weight": 2,
+      "Min": 35,
+      "Max": 60
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 8,
+      "Max": 14
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "HealthRegen_Buff_T2",
+    "Duration": 240
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.5,
+      "Min": 5,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Whale_Humpback": "Icons/ModelsGenerated/Whale_Humpback.png"
+  }
+}

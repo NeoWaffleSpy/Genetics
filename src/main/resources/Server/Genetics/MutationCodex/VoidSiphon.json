@@ -1,0 +1,42 @@
+{
+  "Name": "server.genetics.mutations.VoidSiphon.name",
+  "Description": "server.genetics.mutations.VoidSiphon.desc",
+  "Complexity": 35,
+  "Species": [
+    "Void_Creature",
+    "Void_Spawn"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnKill",
+      "Actions": [
+        {
+          "Type": "RestoreStat",
+          "Stat": "Mana",
+          "Fraction": 0.2
+        },
+        {
+          "Type": "ApplyEffect",
+          "Id": "Genetics_VoidSiphon",
+          "Duration": 10
+        }
+      ]
+    },
+    {
+      "Type": "OnKill",
+      "TargetSpecies": [
+        "Void_Creature",
+        "Void_Spawn"
+      ],
+      "Actions": [
+        {
+          "Type": "RestoreStat",
+          "Stat": "Mana",
+          "Fraction": 0.2
+        }
+      ]
+    }
+  ],
+  "Weight": 4,
+  "MinTier": "Complex"
+}

@@ -1,0 +1,60 @@
+{
+  "Name": "server.genetics.species.Critter_Small.name",
+  "Roles": [
+    "Rabbit",
+    "Bunny",
+    "Mouse",
+    "Squirrel",
+    "Meerkat",
+    "Gecko",
+    "Frog_Blue",
+    "Frog_Green",
+    "Frog_Orange",
+    "Tamed_Rabbit",
+    "Tamed_Bunny"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Stamina",
+      "Weight": 2,
+      "Min": 5,
+      "Max": 10
+    },
+    {
+      "Stat": "Oxygen",
+      "Weight": 1,
+      "Min": 8,
+      "Max": 15
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Speed",
+    "Duration": 120
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Health",
+      "Chance": 0.3,
+      "Min": 3,
+      "Max": 5
+    }
+  ],
+  "Sound": "SFX_Rabbit_Alerted",
+  "Icons": {
+    "Rabbit": "Icons/ModelsGenerated/Rabbit.png",
+    "Bunny": "Icons/ModelsGenerated/Bunny.png",
+    "Mouse": "Icons/ModelsGenerated/Mouse.png",
+    "Squirrel": "Icons/ModelsGenerated/Squirrel.png",
+    "Meerkat": "Icons/ModelsGenerated/Meerkat.png",
+    "Gecko": "Icons/ModelsGenerated/Gecko.png",
+    "Frog_Blue": "Icons/ModelsGenerated/Frog_Blue.png",
+    "Frog_Green": "Icons/ModelsGenerated/Frog_Green.png",
+    "Frog_Orange": "Icons/ModelsGenerated/Frog_Orange.png",
+    "Tamed_Rabbit": "Icons/ModelsGenerated/Rabbit.png",
+    "Tamed_Bunny": "Icons/ModelsGenerated/Bunny.png"
+  }
+}

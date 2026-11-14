@@ -1,0 +1,31 @@
+// A collapsible group header in the Catalogue list (a biome, a tribe, a buff family). Clicking it opens or closes it.
+Group {
+  LayoutMode: Top;
+  Padding: (Bottom: 5);
+
+  Button #Button {
+    LayoutMode: Left;
+    Anchor: (Height: 38);
+    Padding: (Horizontal: 10);
+    Style: (
+      Default: (Background: #3ec9a7(0.08)),
+      Hovered: (Background: #3ec9a7(0.16)),
+      Pressed: (Background: #3ec9a7(0.24))
+    );
+
+    Label #Arrow {
+      Anchor: (Width: 22);
+      Style: (FontSize: 18, RenderBold: true, TextColor: #3ec9a7, VerticalAlignment: Center);
+    }
+
+    Label #Name {
+      FlexWeight: 1;
+      Style: (FontSize: 15, RenderBold: true, RenderUppercase: true, TextColor: #eaf1f4, FontName: "Secondary", VerticalAlignment: Center);
+    }
+
+    Label #Count {
+      Anchor: (Width: 90);
+      Style: (FontSize: 14, RenderBold: true, TextColor: #8ff5dc, HorizontalAlignment: End, VerticalAlignment: Center);
+    }
+  }
+}

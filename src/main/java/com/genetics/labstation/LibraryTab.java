@@ -40,7 +40,28 @@ final class LibraryTab {
     /** Inner width of the preview's capacity track: 260 panel - 2 x 12 padding - 2 outline. */
     private static final int TRACK = 234;
 
+    /** The Library's sub-tabs: stats (bonuses and drawbacks), effects, mutations. */
+    static final List<String> FILTERS = List.of("Stats", "Effects", "Mutations");
+
     private LibraryTab() {
+    }
+
+    /** The sub-tab an entry is listed under. */
+    @Nonnull
+    static String filterOf(@Nonnull Gene gene) {
+        return switch (gene) {
+            case Gene.Stat ignored -> "Stats";
+            case Gene.Effect ignored -> "Effects";
+            case Gene.Mutation ignored -> "Mutations";
+        };
+    }
+
+    /** The entries shown in the current sub-tab (row i of the list is entry i of this). */
+    @Nonnull
+    static List<GeneLibrary.Entry> visible(@Nonnull LabStationPage page, @Nonnull List<GeneLibrary.Entry> entries) {
+        List<GeneLibrary.Entry> out = new ArrayList<>();
+        for (GeneLibrary.Entry entry : entries) if (entry.getGene() != null && filterOf(entry.getGene()).equals(page.libraryFilter)) out.add(entry);
+        return out;
     }
 
     /** True once the Library can be used here: researched, and a T3 station. */
@@ -59,8 +80,13 @@ final class LibraryTab {
             return;
         }
         GeneLibrary library = Library.of(ref, store);
-        List<GeneLibrary.Entry> entries = library.getEntries();
+        List<GeneLibrary.Entry> all = library.getEntries();
         page.libraryUse.removeIf(id -> library.get(id) == null);
+        for (String f : FILTERS) {
+            c.set("#LibSub" + f + "On.Visible", f.equals(page.libraryFilter));
+            c.set("#LibSub" + f + "Off.Visible", !f.equals(page.libraryFilter));
+        }
+        List<GeneLibrary.Entry> entries = visible(page, all);
         String language = page.player().getLanguage();
         c.clear("#LibraryList");
         for (int i = 0; i < entries.size(); i++) {
@@ -90,7 +116,11 @@ final class LibraryTab {
             e.addEventBinding(CustomUIEventBindingType.Activating, row + " #Discard", new EventData().append("Action", "Discard").append("Node", entry.getId()), false);
         }
         c.set("#LibraryEmpty.Visible", entries.isEmpty());
-        c.set("#LibraryCount.Text", entries.size() + (entries.size() == 1 ? " gene" : " genes"));
+        c.set("#LibraryEmpty.Text", all.isEmpty()
+                ? "Empty. Put genetic material in the slot, open the Process tab and extract a gene with its Extract button."
+                : "No " + page.libraryFilter.toLowerCase() + " in your library yet.");
+        long ticked = page.libraryUse.size();
+        c.set("#LibraryCount.Text", all.size() + (all.size() == 1 ? " gene" : " genes") + (ticked > 0 ? "  ·  " + ticked + " ticked" : ""));
         update(page, ref, store, c);
     }
 
@@ -119,8 +149,9 @@ final class LibraryTab {
         GeneJournal journal = Journal.of(ref, store);
         if (!open(page, journal)) return;
         List<GeneLibrary.Entry> entries = Library.of(ref, store).getEntries();
-        for (int i = 0; i < entries.size(); i++) {
-            GeneLibrary.Entry entry = entries.get(i);
+        List<GeneLibrary.Entry> shown = visible(page, entries);
+        for (int i = 0; i < shown.size(); i++) {
+            GeneLibrary.Entry entry = shown.get(i);
             Gene gene = entry.getGene();
             String row = "#LibraryList[" + i + "]";
             boolean used = page.libraryUse.contains(entry.getId());
@@ -153,6 +184,8 @@ final class LibraryTab {
         }
         Widgets.costs(c, "#LibraryCost", plan.cost(), ref, store);
         c.set("#LibraryCostLabel.Text", plan.tier() != null ? "Cost  ·  " + plan.tier().getName() : "Cost");
+        c.set("#LibraryCount.Text", entries.size() + (entries.size() == 1 ? " gene" : " genes")
+                + (page.libraryUse.isEmpty() ? "" : "  ·  " + page.libraryUse.size() + " ticked"));
         String reason = plan.blocked();
         if (reason == null && !emptySyringeInSlot(page)) reason = "Put an empty syringe in the slot to hold the result";
         if (reason == null && !Materials.canPay(ref, store, plan.cost())) reason = "Missing materials";
@@ -208,7 +241,7 @@ final class LibraryTab {
     /** Sets an entry's amount from the slider (percent of max) or the field (a value), then syncs the other control. */
     static void setAmount(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
                           @Nonnull UICommandBuilder c, @Nonnull String id, double input, boolean fromSlider) {
-        List<GeneLibrary.Entry> entries = Library.of(ref, store).getEntries();
+        List<GeneLibrary.Entry> entries = visible(page, Library.of(ref, store).getEntries());
         for (int i = 0; i < entries.size(); i++) {
             GeneLibrary.Entry entry = entries.get(i);
             if (!entry.getId().equals(id) || entry.getGene() == null) continue;

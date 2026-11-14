@@ -1,0 +1,38 @@
+{
+  "Name": "server.genetics.mutations.Overpressure.name",
+  "Description": "server.genetics.mutations.Overpressure.desc",
+  "Complexity": 50,
+  "Species": [
+    "Boss_Gobliterator"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHurt",
+      "FromEntity": true,
+      "StackKey": "Pressure",
+      "StackGain": 1,
+      "StackMax": 5,
+      "StackWindow": 30
+    },
+    {
+      "Type": "OnHit",
+      "StackKey": "Pressure",
+      "RequireStacks": 5,
+      "Actions": [
+        {
+          "Type": "AreaImpulse",
+          "Radius": 5,
+          "Force": 1.4,
+          "Up": 0.6
+        },
+        {
+          "Type": "CameraShake",
+          "Id": "Impact_Light"
+        }
+      ],
+      "Message": "server.genetics.mutations.Overpressure.trigger"
+    }
+  ],
+  "Weight": 3,
+  "MinTier": "Complex"
+}

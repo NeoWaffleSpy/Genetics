@@ -1,0 +1,70 @@
+{
+  "Name": "server.genetics.species.Boss_Gobliterator.name",
+  "Roles": [
+    "Goblin_Gobliterator_Intro",
+    "Goblin_Gobliterator_Phase1",
+    "Goblin_Gobliterator_Phase1_HM",
+    "Goblin_Gobliterator_Phase2",
+    "Goblin_Gobliterator_Phase2_HM",
+    "Goblin_Gobliterator_Phase3",
+    "Goblin_Gobliterator_Phase3_HM",
+    "Goblin_Gobliterator_SawTransition",
+    "Goblin_Gobliterator_SawTransition_HM",
+    "Goblin_Gobliterator_Transition_Phase3",
+    "Goblin_Gobliterator_Transition_Phase3_HM",
+    "Goblin_Gobliterator_Bottom_Phase3"
+  ],
+  "Category": "Goblins",
+  "Zone": "Zone 2",
+  "SyringeTier": 4,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 20,
+      "Max": 30
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Might_T3",
+    "Duration": 240
+  },
+  "PermanentEffectChance": 0.4,
+  "PermanentEffects": [
+    {
+      "Id": "Genetics_Hide_T2",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.5,
+      "Min": 10,
+      "Max": 15
+    }
+  ],
+  "Icons": {
+    "Goblin_Gobliterator_Intro": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Phase1": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Phase1_HM": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Phase2": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Phase2_HM": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Phase3": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Phase3_HM": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_SawTransition": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_SawTransition_HM": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Transition_Phase3": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Transition_Phase3_HM": "Icons/ModelsGenerated/Goblin_Gobliterator.png",
+    "Goblin_Gobliterator_Bottom_Phase3": "Icons/ModelsGenerated/Goblin_Gobliterator.png"
+  },
+  "SignatureMutation": "Overpressure",
+  "SignatureChance": 0.5
+}

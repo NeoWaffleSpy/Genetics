@@ -3,7 +3,7 @@
   "Branch": "Genome",
   "Order": 0,
   "Icon": "Stat",
-  "Cost": 8,
+  "Cost": 40,
   "Recipes": [
     "Genetics_Genome_Expansion_Moderate"
   ],

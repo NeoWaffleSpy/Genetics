@@ -1,0 +1,20 @@
+{
+  "Name": "server.genetics.mutations.SilentHunter.name",
+  "Description": "server.genetics.mutations.SilentHunter.desc",
+  "Complexity": 25,
+  "Species": [
+    "Nocturnal_Flyer"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHit",
+      "Conditions": {
+        "Night": true
+      },
+      "Unnoticed": true,
+      "DamageBonus": 0.5
+    }
+  ],
+  "Weight": 5,
+  "MinTier": "Moderate"
+}

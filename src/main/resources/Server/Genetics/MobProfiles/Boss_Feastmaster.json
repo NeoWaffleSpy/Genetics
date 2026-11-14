@@ -1,0 +1,44 @@
+{
+  "Name": "server.genetics.species.Boss_Feastmaster.name",
+  "Roles": [
+    "Dungeon_Feastmaster_Boss",
+    "Dungeon_Feastmaster_Feeding"
+  ],
+  "Category": "Goblins",
+  "Zone": "Zone 1",
+  "SyringeTier": 3,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 18,
+      "Max": 28
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "HealthRegen_Buff_T3",
+    "Duration": 300
+  },
+  "PermanentEffectChance": 0.5,
+  "PermanentEffects": [
+    {
+      "Id": "Immunity_Poison",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.6,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "Icons": {
+    "Dungeon_Feastmaster_Boss": "Icons/ModelsGenerated/Goblin_Feastmaster.png",
+    "Dungeon_Feastmaster_Feeding": "Icons/ModelsGenerated/Goblin_Feastmaster.png"
+  },
+  "SignatureMutation": "Scavenger",
+  "SignatureChance": 0.5
+}

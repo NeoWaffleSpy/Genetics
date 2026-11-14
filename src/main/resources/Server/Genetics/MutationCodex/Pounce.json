@@ -1,0 +1,28 @@
+{
+  "Name": "server.genetics.mutations.Pounce.name",
+  "Description": "server.genetics.mutations.Pounce.desc",
+  "Complexity": 30,
+  "Species": [
+    "Predator_BigCat"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHit",
+      "Melee": true,
+      "Conditions": {
+        "SprintJump": true
+      },
+      "DamageBonus": 0.5,
+      "Cooldown": 4,
+      "TargetActions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Slow",
+          "Duration": 3
+        }
+      ]
+    }
+  ],
+  "Weight": 5,
+  "MinTier": "Moderate"
+}

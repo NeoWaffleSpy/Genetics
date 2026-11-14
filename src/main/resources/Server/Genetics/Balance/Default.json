@@ -105,9 +105,9 @@
   "Science": {
     "FirstSample": 3,
     "NewGene": 1,
-    "SpeciesComplete": 5,
+    "SpeciesComplete": 3,
     "NewBuff": 2,
-    "NewMutation": 10
+    "NewMutation": 4
   },
   "Library": {
     "ExtractItem": "Genetics_Gene_Enhancer",

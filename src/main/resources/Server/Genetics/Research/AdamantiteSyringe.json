@@ -3,7 +3,7 @@
   "Branch": "Syringes",
   "Order": 3,
   "Icon": "Syringe",
-  "Cost": 30,
+  "Cost": 150,
   "Requires": [
     "ThoriumSyringe"
   ],

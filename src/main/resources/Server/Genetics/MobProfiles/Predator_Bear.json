@@ -1,15 +1,19 @@
 {
+  "Name": "server.genetics.species.Predator_Bear.name",
   "Roles": [
     "Bear_Grizzly",
     "Bear_Polar"
   ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 2,
   "StatRolls": 2,
   "StatPool": [
     {
       "Stat": "Health",
       "Weight": 2,
-      "Min": 4,
-      "Max": 7
+      "Min": 5,
+      "Max": 9
     },
     {
       "Stat": "Stamina",
@@ -31,5 +35,8 @@
     }
   ],
   "Sound": "SFX_Bear_Grizzly_Alerted",
-  "Zone": "Zone 1"
+  "Icons": {
+    "Bear_Grizzly": "Icons/ModelsGenerated/Bear_Grizzly.png",
+    "Bear_Polar": "Icons/ModelsGenerated/Bear_Polar.png"
+  }
 }

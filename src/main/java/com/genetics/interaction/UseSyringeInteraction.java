@@ -97,6 +97,14 @@ public class UseSyringeInteraction extends SimpleInstantInteraction {
             return;
         }
 
+        MobGeneProfile own = Codex.profileFor(npc.getRoleName());
+        boolean once = own != null && own.getSignatureMutation() != null;
+        if (once && commandBuffer.getComponent(target, SampledOnce.getComponentType()) != null) {
+            user.sendMessage(Message.raw("The " + GenomeSampler.mobName(npc, user.getLanguage()) + " is too angry to be sampled again."));
+            fail(context);
+            return;
+        }
+
         Genome genome = GenomeSampler.sample(target, npc, user.getLanguage(), commandBuffer, false);
         ItemStack filled = Syringes.fill(syringe, genome);
         if (!context.getHeldItemContainer().replaceItemStackInSlot(context.getHeldItemSlot(), syringe, filled).succeeded()) {
@@ -104,6 +112,7 @@ public class UseSyringeInteraction extends SimpleInstantInteraction {
             return;
         }
         context.setHeldItem(filled);
+        if (once) commandBuffer.putComponent(target, SampledOnce.getComponentType(), new SampledOnce());
         Journal.onSample(self, commandBuffer, user, genome);
 
         String mobName = genome.source() != null ? genome.source().mobName() : npc.getRoleName();

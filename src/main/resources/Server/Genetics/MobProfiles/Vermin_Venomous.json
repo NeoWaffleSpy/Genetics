@@ -1,0 +1,52 @@
+{
+  "Name": "server.genetics.species.Vermin_Venomous.name",
+  "Roles": [
+    "Scorpion",
+    "Snake_Marsh",
+    "Snake_Cobra",
+    "Snake_Rattle"
+  ],
+  "Category": "Zone 2 wildlife",
+  "Zone": "Zone 2",
+  "SyringeTier": 2,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 4,
+      "Max": 8
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 5
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Immunity_Poison",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.1,
+  "PermanentEffects": [
+    {
+      "Id": "Immunity_Poison",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.4,
+      "Min": 5,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Scorpion": "Icons/ModelsGenerated/Scorpion.png",
+    "Snake_Marsh": "Icons/ModelsGenerated/Snake_Marsh.png",
+    "Snake_Cobra": "Icons/ModelsGenerated/Snake_Cobra.png",
+    "Snake_Rattle": "Icons/ModelsGenerated/Snake_Rattle.png"
+  }
+}

@@ -18,9 +18,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Mutation Codex: a special gene that never appears on a source mob.
- * One file per mutation in {@code Server/Genetics/MutationCodex/}, named after the mutation id.
- * Mutations only come from splicing (design doc §7); their behaviors are run by MutationSystem.
+ * Mutation Codex: a special gene, themed to some species. One file per mutation in
+ * {@code Server/Genetics/MutationCodex/}, named after the mutation id. Mutations come from splicing, which favours
+ * those themed to the inputs' species, and some bosses carry their signature mutation (design doc §7); their
+ * behaviors are run by MutationSystem and MutationDamageSystems.
  */
 public final class MutationEntry implements JsonAssetWithMap<String, DefaultAssetMap<String, MutationEntry>> {
     public static final String PATH = "Genetics/MutationCodex";
@@ -29,6 +30,10 @@ public final class MutationEntry implements JsonAssetWithMap<String, DefaultAsse
                     MutationEntry.class, MutationEntry::new, Codec.STRING, (t, k) -> t.id = k, t -> t.id, (t, d) -> t.data = d, t -> t.data)
             .append(new KeyedCodec<>("Name", Codec.STRING), (t, v) -> t.name = v, t -> t.name)
             .documentation("Translation key of the mutation's name.").add()
+            .append(new KeyedCodec<>("Description", Codec.STRING), (t, v) -> t.description = v, t -> t.description)
+            .documentation("Translation key of what the mutation does, shown in the Catalogue.").add()
+            .append(new KeyedCodec<>("Species", Codec.STRING_ARRAY), (t, v) -> t.species = v, t -> t.species)
+            .documentation("Species (gene profile ids) the mutation is themed to: splicing their genes favours it.").add()
             .append(new KeyedCodec<>("Complexity", Codec.DOUBLE), (t, v) -> t.complexity = v, t -> t.complexity).add()
             .append(new KeyedCodec<>("Stats", new MapCodec<>(Codec.DOUBLE, HashMap::new)), (t, v) -> t.stats = v, t -> t.stats)
             .documentation("Stat modifiers in percent, by vanilla stat id.").add()
@@ -47,6 +52,8 @@ public final class MutationEntry implements JsonAssetWithMap<String, DefaultAsse
     private AssetExtraInfo.Data data;
     private String id;
     private String name;
+    private String description;
+    private String[] species = new String[0];
     private double complexity;
     private Map<String, Double> stats = Map.of();
     private String[] effects = new String[0];
@@ -76,6 +83,16 @@ public final class MutationEntry implements JsonAssetWithMap<String, DefaultAsse
     @Nullable
     public String getName() {
         return name;
+    }
+
+    @Nullable
+    public String getDescription() {
+        return description;
+    }
+
+    @Nonnull
+    public String[] getSpecies() {
+        return species != null ? species : new String[0];
     }
 
     public double getComplexity() {

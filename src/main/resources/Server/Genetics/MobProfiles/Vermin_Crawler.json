@@ -1,0 +1,51 @@
+{
+  "Name": "server.genetics.species.Vermin_Crawler.name",
+  "Roles": [
+    "Rat",
+    "Molerat",
+    "Larva_Silk",
+    "Spider",
+    "Spider_Cave",
+    "Spider_Cave_Ambush",
+    "Spider_Cave_Spiderling"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 2,
+      "Max": 5
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 2,
+      "Max": 5
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Immunity_Poison",
+    "Duration": 120
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.4,
+      "Min": 4,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Rat": "Icons/ModelsGenerated/Rat.png",
+    "Molerat": "Icons/ModelsGenerated/Molerat.png",
+    "Larva_Silk": "Icons/ModelsGenerated/Larva_Silk.png",
+    "Spider": "Icons/ModelsGenerated/Spider.png",
+    "Spider_Cave": "Icons/ModelsGenerated/Spider_Cave.png",
+    "Spider_Cave_Ambush": "Icons/ModelsGenerated/Spider_Cave.png",
+    "Spider_Cave_Spiderling": "Icons/ModelsGenerated/Spider_Cave.png"
+  }
+}

@@ -41,6 +41,13 @@ public abstract class Action {
         CODEC.register(ImpulseAction.TYPE, ImpulseAction.class, ImpulseAction.CODEC);
         CODEC.register(CameraShakeAction.TYPE, CameraShakeAction.class, CameraShakeAction.CODEC);
         CODEC.register(MorphIntoSourceMobAction.TYPE, MorphIntoSourceMobAction.class, MorphIntoSourceMobAction.CODEC);
+        CODEC.register(RestoreStatAction.TYPE, RestoreStatAction.class, RestoreStatAction.CODEC);
+        CODEC.register(RemoveEffectAction.TYPE, RemoveEffectAction.class, RemoveEffectAction.CODEC);
+        CODEC.register(AreaEffectAction.TYPE, AreaEffectAction.class, AreaEffectAction.CODEC);
+        CODEC.register(AreaImpulseAction.TYPE, AreaImpulseAction.class, AreaImpulseAction.CODEC);
+        CODEC.register(PushAwayAction.TYPE, PushAwayAction.class, PushAwayAction.CODEC);
+        CODEC.register(DropItemAction.TYPE, DropItemAction.class, DropItemAction.CODEC);
+        CODEC.register(DropLootAction.TYPE, DropLootAction.class, DropLootAction.CODEC);
     }
 
     public int getRepeat() {

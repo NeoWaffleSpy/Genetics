@@ -1,0 +1,67 @@
+{
+  "Name": "server.genetics.species.Faction_Scarak.name",
+  "Roles": [
+    "Scarak_Fighter",
+    "Scarak_Fighter_Patrol",
+    "Scarak_Fighter_Royal_Guard",
+    "Scarak_Defender",
+    "Scarak_Defender_Patrol",
+    "Scarak_Seeker",
+    "Scarak_Seeker_Patrol",
+    "Scarak_Louse",
+    "Dungeon_Scarak_Fighter",
+    "Dungeon_Scarak_Fighter_Patrol",
+    "Dungeon_Scarak_Defender",
+    "Dungeon_Scarak_Defender_Patrol",
+    "Dungeon_Scarak_Seeker",
+    "Dungeon_Scarak_Seeker_Patrol",
+    "Dungeon_Scarak_Louse"
+  ],
+  "Category": "Scarak",
+  "Zone": "Zone 2",
+  "SyringeTier": 2,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 4,
+      "Max": 8
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Hide_T1",
+    "Duration": 150
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Oxygen",
+      "Chance": 0.4,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "Icons": {
+    "Scarak_Fighter": "Icons/ModelsGenerated/Scarak_Fighter.png",
+    "Scarak_Fighter_Patrol": "Icons/ModelsGenerated/Scarak_Fighter.png",
+    "Scarak_Fighter_Royal_Guard": "Icons/ModelsGenerated/Scarak_Fighter.png",
+    "Scarak_Defender": "Icons/ModelsGenerated/Scarak_Defender.png",
+    "Scarak_Defender_Patrol": "Icons/ModelsGenerated/Scarak_Defender.png",
+    "Scarak_Seeker": "Icons/ModelsGenerated/Scarak_Seeker.png",
+    "Scarak_Seeker_Patrol": "Icons/ModelsGenerated/Scarak_Seeker.png",
+    "Scarak_Louse": "Icons/ModelsGenerated/Scarak_Louse.png",
+    "Dungeon_Scarak_Fighter": "Icons/ModelsGenerated/Scarak_Fighter.png",
+    "Dungeon_Scarak_Fighter_Patrol": "Icons/ModelsGenerated/Scarak_Fighter.png",
+    "Dungeon_Scarak_Defender": "Icons/ModelsGenerated/Scarak_Defender.png",
+    "Dungeon_Scarak_Defender_Patrol": "Icons/ModelsGenerated/Scarak_Defender.png",
+    "Dungeon_Scarak_Seeker": "Icons/ModelsGenerated/Scarak_Seeker.png",
+    "Dungeon_Scarak_Seeker_Patrol": "Icons/ModelsGenerated/Scarak_Seeker.png",
+    "Dungeon_Scarak_Louse": "Icons/ModelsGenerated/Scarak_Louse.png"
+  }
+}

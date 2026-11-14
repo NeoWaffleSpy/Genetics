@@ -90,6 +90,9 @@ public final class GenomeSampler {
                 rolledStats.add(stat);
             }
         }
+        if (profile.getSignatureMutation() != null && random.nextDouble() < profile.getSignatureChance()) {
+            genes.add(new Gene.Mutation(profile.getSignatureMutation()));
+        }
         return genes;
     }
 
@@ -124,14 +127,14 @@ public final class GenomeSampler {
     }
 
     @Nullable
-    private static String modelIcon(@Nullable String modelId) {
+    public static String modelIcon(@Nullable String modelId) {
         ModelAsset asset = modelId != null ? ModelAsset.getAssetMap().getAsset(modelId) : null;
         return asset != null ? asset.getIcon() : null;
     }
 
     /** The mob's translated name (e.g. "Cow"), falling back to a prettified role id. */
     @Nonnull
-    private static String mobName(@Nonnull NPCEntity npc, @Nullable String language) {
+    public static String mobName(@Nonnull NPCEntity npc, @Nullable String language) {
         Role role = npc.getRole();
         return Translations.resolve(language, role != null ? role.getNameTranslationKey() : null, npc.getRoleName().replace('_', ' '));
     }

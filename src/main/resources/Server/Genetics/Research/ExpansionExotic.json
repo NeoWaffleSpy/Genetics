@@ -3,7 +3,7 @@
   "Branch": "Genome",
   "Order": 3,
   "Icon": "Stat",
-  "Cost": 40,
+  "Cost": 200,
   "Requires": [
     "ExpansionAdvanced"
   ],

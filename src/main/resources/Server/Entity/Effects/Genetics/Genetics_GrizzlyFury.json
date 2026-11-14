@@ -1,0 +1,31 @@
+{
+  "Name": "server.genetics.effects.GrizzlyFury.name",
+  "Duration": 2,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "Debuff": false,
+  "RawStatModifiers": {
+    "Health": [
+      {
+        "Amount": 1.15,
+        "CalculationType": "Multiplicative",
+        "Target": "Max"
+      }
+    ]
+  },
+  "OutgoingDamage": {
+    "Physical": [
+      {
+        "CalculationType": "Percent",
+        "Amount": 0.1
+      }
+    ],
+    "Projectile": [
+      {
+        "CalculationType": "Percent",
+        "Amount": 0.1
+      }
+    ]
+  },
+  "StatusEffectIcon": "UI/StatusEffects/AddHealth/Small.png"
+}

@@ -1,0 +1,44 @@
+{
+  "Name": "server.genetics.species.Predator_Dinosaur.name",
+  "Roles": [
+    "Raptor_Cave",
+    "Archaeopteryx",
+    "Pterodactyl"
+  ],
+  "Category": "Zone 4 wildlife",
+  "Zone": "Zone 4",
+  "SyringeTier": 4,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Stamina",
+      "Weight": 2,
+      "Min": 7,
+      "Max": 12
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 4,
+      "Max": 7
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Speed_T2",
+    "Duration": 150
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.4,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "Sound": "SFX_Raptor_Cave_Alerted",
+  "Icons": {
+    "Raptor_Cave": "Icons/ModelsGenerated/Raptor_Cave.png",
+    "Archaeopteryx": "Icons/ModelsGenerated/Archaeopteryx.png",
+    "Pterodactyl": "Icons/ModelsGenerated/Pterodactyl.png"
+  }
+}

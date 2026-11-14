@@ -1,6 +1,9 @@
 package com.genetics.action;
 
 import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
@@ -24,6 +27,8 @@ public class ImpulseAction extends Action {
             .append(new KeyedCodec<>("Up", Codec.DOUBLE), (t, v) -> t.up = v, t -> t.up).add()
             .append(new KeyedCodec<>("Back", Codec.DOUBLE), (t, v) -> t.back = v, t -> t.back).add()
             .append(new KeyedCodec<>("Side", Codec.DOUBLE), (t, v) -> t.side = v, t -> t.side).add()
+            .append(new KeyedCodec<>("Add", Codec.BOOLEAN), (t, v) -> t.add = v != null && v, t -> t.add)
+            .documentation("Adds to the current velocity instead of replacing it (e.g. to slow a fall). Default false.").add()
             .build();
 
     /** Data values are kept small and readable; this turns them into velocity. */
@@ -32,6 +37,7 @@ public class ImpulseAction extends Action {
     private double up;
     private double back;
     private double side;
+    private boolean add;
 
     @Override
     public void run(@Nonnull ActionContext context) {
@@ -41,13 +47,28 @@ public class ImpulseAction extends Action {
         Vector3d right = new Vector3d(-forward.z, 0, forward.x);
         Vector3d velocity = new Vector3d(forward).mul(-back).add(new Vector3d(right).mul(side)).mul(SCALE);
         velocity.y = up * SCALE;
+        push(context.buffer(), context.entity(), velocity, add);
+    }
 
-        KnockbackComponent knockback = context.buffer().ensureAndGetComponent(context.entity(), KnockbackComponent.getComponentType());
+    /** Sets (or adds to) an entity's velocity, damped like a weapon's knockback. */
+    public static void push(@Nonnull ComponentAccessor<EntityStore> buffer, @Nonnull Ref<EntityStore> ref, @Nonnull Vector3d velocity, boolean add) {
+        KnockbackComponent knockback = buffer.ensureAndGetComponent(ref, KnockbackComponent.getComponentType());
         knockback.setVelocity(velocity);
-        knockback.setVelocityType(ChangeVelocityType.Set);
+        knockback.setVelocityType(add ? ChangeVelocityType.Add : ChangeVelocityType.Set);
         knockback.setVelocityConfig(damping());
         knockback.setDuration(0);
         knockback.setTimer(0);
+    }
+
+    /** A velocity pushing something at {@code at} away from {@code from}, in data units (like Back and Up). */
+    @Nonnull
+    public static Vector3d away(@Nonnull Vector3d from, @Nonnull Vector3d at, double force, double up) {
+        Vector3d direction = new Vector3d(at).sub(from);
+        direction.y = 0;
+        if (direction.lengthSquared() < 1e-6) direction.set(0, 0, 1);
+        direction.normalize().mul(force * SCALE);
+        direction.y = up * SCALE;
+        return direction;
     }
 
     /** Same air and ground resistance as the default knockback preset. */

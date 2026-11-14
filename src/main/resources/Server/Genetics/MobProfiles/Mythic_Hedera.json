@@ -1,0 +1,48 @@
+{
+  "Name": "server.genetics.species.Mythic_Hedera.name",
+  "Roles": [
+    "Hedera"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 3,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Mana",
+      "Weight": 1,
+      "Min": 12,
+      "Max": 18
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "HealthRegen_Buff_T3",
+    "Duration": 240
+  },
+  "PermanentEffectChance": 0.2,
+  "PermanentEffects": [
+    {
+      "Id": "HealthRegen_Buff_T1",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.5,
+      "Min": 5,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Hedera": "Icons/ModelsGenerated/Hedera.png"
+  },
+  "SignatureMutation": "Photosynthesis",
+  "SignatureChance": 0.5
+}

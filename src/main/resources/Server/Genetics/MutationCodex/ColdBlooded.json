@@ -1,0 +1,48 @@
+{
+  "Name": "server.genetics.mutations.ColdBlooded.name",
+  "Description": "server.genetics.mutations.ColdBlooded.desc",
+  "Complexity": 35,
+  "Species": [
+    "Mythic_Yeti"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnEffect",
+      "Effects": [
+        "Slow",
+        "Freeze",
+        "Ability_Frost_Slow",
+        "Ability_Frost_Freeze",
+        "Ability_Frost_Chill",
+        "Two_Handed_Bow_Ability2_Slow",
+        "Slowness_Totem_Slow",
+        "Dungeon_Cauldron_Goo_Slow",
+        "Dungeon_Feastmaster_Vomit_Slow"
+      ],
+      "Cooldown": 20,
+      "Actions": [
+        {
+          "Type": "RemoveEffect",
+          "Ids": [
+            "Slow",
+            "Freeze",
+            "Ability_Frost_Slow",
+            "Ability_Frost_Freeze",
+            "Ability_Frost_Chill",
+            "Two_Handed_Bow_Ability2_Slow",
+            "Slowness_Totem_Slow",
+            "Dungeon_Cauldron_Goo_Slow",
+            "Dungeon_Feastmaster_Vomit_Slow"
+          ]
+        },
+        {
+          "Type": "ApplyEffect",
+          "Id": "Genetics_Might_T1",
+          "Duration": 6
+        }
+      ]
+    }
+  ],
+  "Weight": 3,
+  "MinTier": "Complex"
+}

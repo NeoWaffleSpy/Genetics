@@ -184,6 +184,13 @@ public class GeneLibrary implements Component<EntityStore> {
         return true;
     }
 
+    /** Removes every entry. Returns how many there were. */
+    public int clear() {
+        int n = entries.size();
+        entries.clear();
+        return n;
+    }
+
     public boolean remove(@Nonnull String id) {
         return entries.removeIf(e -> e.getId().equals(id));
     }

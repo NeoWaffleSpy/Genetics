@@ -1,0 +1,39 @@
+{
+  "Name": "server.genetics.mutations.EmberHeart.name",
+  "Description": "server.genetics.mutations.EmberHeart.desc",
+  "Complexity": 60,
+  "Species": [
+    "Beast_Magma"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHit",
+      "Conditions": {
+        "HealthBelow": 0.5
+      },
+      "TargetActions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Burn"
+        }
+      ]
+    },
+    {
+      "Type": "WhileHeld",
+      "Conditions": {
+        "HealthBelow": 0.5
+      },
+      "HoldTime": 0,
+      "Cooldown": 2,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Immunity_Fire",
+          "Duration": 3
+        }
+      ]
+    }
+  ],
+  "Weight": 2,
+  "MinTier": "Advanced"
+}

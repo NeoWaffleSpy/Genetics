@@ -1,10 +1,14 @@
 {
+  "Name": "server.genetics.species.Nocturnal_Flyer.name",
   "Roles": [
     "Bat",
     "Bat_Ice",
     "Owl_Brown",
     "Owl_Snow"
   ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
   "StatRolls": 1,
   "StatPool": [
     {
@@ -18,7 +22,7 @@
     "Id": "Genetics_NightVision",
     "Duration": 180
   },
-  "PermanentEffectChance": 0.35,
+  "PermanentEffectChance": 0.2,
   "PermanentEffects": [
     {
       "Id": "Genetics_NightVision",
@@ -34,5 +38,10 @@
     }
   ],
   "Sound": "SFX_Bat_Alerted",
-  "Zone": "Zone 1"
+  "Icons": {
+    "Bat": "Icons/ModelsGenerated/Bat.png",
+    "Bat_Ice": "Icons/ModelsGenerated/Bat_Ice.png",
+    "Owl_Brown": "Icons/ModelsGenerated/Owl_Brown.png",
+    "Owl_Snow": "Icons/ModelsGenerated/Owl_Snow.png"
+  }
 }

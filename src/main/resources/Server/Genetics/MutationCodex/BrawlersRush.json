@@ -1,0 +1,26 @@
+{
+  "Name": "server.genetics.mutations.BrawlersRush.name",
+  "Description": "server.genetics.mutations.BrawlersRush.desc",
+  "Complexity": 25,
+  "Species": [
+    "Faction_Trork"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHit",
+      "Melee": true,
+      "StackKey": "Rush",
+      "StackGain": 1,
+      "StackMax": 5,
+      "StackWindow": 3,
+      "BonusPerStack": 0.05
+    },
+    {
+      "Type": "OnHurt",
+      "FromEntity": true,
+      "ClearStacks": "Rush"
+    }
+  ],
+  "Weight": 6,
+  "MinTier": "Moderate"
+}

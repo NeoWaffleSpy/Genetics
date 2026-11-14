@@ -1,0 +1,69 @@
+{
+  "Name": "server.genetics.species.Livestock_Caprine.name",
+  "Roles": [
+    "Sheep",
+    "Sheep_Lamb",
+    "Goat",
+    "Goat_Kid",
+    "Mouflon",
+    "Mouflon_Lamb",
+    "Ram",
+    "Ram_Lamb",
+    "Tamed_Sheep",
+    "Tamed_Sheep_Lamb",
+    "Tamed_Goat",
+    "Tamed_Goat_Kid",
+    "Tamed_Mouflon",
+    "Tamed_Mouflon_Lamb",
+    "Tamed_Ram",
+    "Tamed_Ram_Lamb"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 6
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Immunity_Freeze",
+    "Duration": 120
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Oxygen",
+      "Chance": 0.3,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "Icons": {
+    "Sheep": "Icons/ModelsGenerated/Sheep.png",
+    "Sheep_Lamb": "Icons/ModelsGenerated/Lamb.png",
+    "Goat": "Icons/ModelsGenerated/Goat.png",
+    "Goat_Kid": "Icons/ModelsGenerated/Goat_Kid.png",
+    "Mouflon": "Icons/ModelsGenerated/Mouflon.png",
+    "Mouflon_Lamb": "Icons/ModelsGenerated/Mouflon_Lamb.png",
+    "Ram": "Icons/ModelsGenerated/Ram.png",
+    "Ram_Lamb": "Icons/ModelsGenerated/Ram_Lamb.png",
+    "Tamed_Sheep": "Icons/ModelsGenerated/Sheep.png",
+    "Tamed_Sheep_Lamb": "Icons/ModelsGenerated/Lamb.png",
+    "Tamed_Goat": "Icons/ModelsGenerated/Goat.png",
+    "Tamed_Goat_Kid": "Icons/ModelsGenerated/Goat_Kid.png",
+    "Tamed_Mouflon": "Icons/ModelsGenerated/Mouflon.png",
+    "Tamed_Mouflon_Lamb": "Icons/ModelsGenerated/Mouflon_Lamb.png",
+    "Tamed_Ram": "Icons/ModelsGenerated/Ram.png",
+    "Tamed_Ram_Lamb": "Icons/ModelsGenerated/Ram_Lamb.png"
+  }
+}

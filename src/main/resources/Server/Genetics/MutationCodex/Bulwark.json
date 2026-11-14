@@ -1,0 +1,28 @@
+{
+  "Name": "server.genetics.mutations.Bulwark.name",
+  "Description": "server.genetics.mutations.Bulwark.desc",
+  "Complexity": 30,
+  "Species": [
+    "Elemental_Golem"
+  ],
+  "Behaviors": [
+    {
+      "Type": "WhileHeld",
+      "Conditions": {
+        "Crouching": true,
+        "Still": true
+      },
+      "HoldTime": 1,
+      "Cooldown": 0.5,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Genetics_Bulwark",
+          "Duration": 1
+        }
+      ]
+    }
+  ],
+  "Weight": 5,
+  "MinTier": "Moderate"
+}

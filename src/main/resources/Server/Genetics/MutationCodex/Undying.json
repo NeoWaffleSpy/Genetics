@@ -1,0 +1,29 @@
+{
+  "Name": "server.genetics.mutations.Undying.name",
+  "Description": "server.genetics.mutations.Undying.desc",
+  "Complexity": 70,
+  "Species": [
+    "Undead_Champion"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnLethal",
+      "Invulnerable": 3,
+      "Cooldown": 600,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Immune",
+          "Duration": 3
+        },
+        {
+          "Type": "CameraShake",
+          "Id": "Impact_Light"
+        }
+      ],
+      "Message": "server.genetics.mutations.Undying.trigger"
+    }
+  ],
+  "Weight": 2,
+  "MinTier": "Advanced"
+}

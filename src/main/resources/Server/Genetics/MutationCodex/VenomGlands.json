@@ -1,0 +1,22 @@
+{
+  "Name": "server.genetics.mutations.VenomGlands.name",
+  "Description": "server.genetics.mutations.VenomGlands.desc",
+  "Complexity": 22,
+  "Species": [
+    "Vermin_Venomous"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHit",
+      "EveryNth": 4,
+      "TargetActions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Poison_T1"
+        }
+      ]
+    }
+  ],
+  "Weight": 7,
+  "MinTier": "Simple"
+}

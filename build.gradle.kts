@@ -14,6 +14,24 @@ val javaVersion = 25
 dependencies {
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.jspecify)
+
+    // Unit tests only: nothing here is packaged into the mod jar.
+    testImplementation(platform("org.junit:junit-bom:5.13.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+// Tests run against the same Hytale server API the mod compiles against (compileOnly is not on the test
+// classpath by default).
+configurations.testImplementation { extendsFrom(configurations.compileOnly.get()) }
+
+tasks.test {
+    useJUnitPlatform()
+    // The mod's data files, loaded by the tests through the real asset codecs.
+    // Hytale classes log through HytaleLogger, which needs its log manager installed before anything else.
+    systemProperty("java.util.logging.manager", "com.hypixel.hytale.logger.backend.HytaleLogManager")
+    systemProperty("genetics.resources", file("src/main/resources").absolutePath)
+    testLogging { events("failed"); exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL }
 }
 
 // Most values are read from gradle.properties (see the "Hytale" section there).

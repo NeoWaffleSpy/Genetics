@@ -1,0 +1,34 @@
+{
+  "Name": "server.genetics.effects.Bulwark.name",
+  "Duration": 1,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "Debuff": false,
+  "DamageResistance": {
+    "Slashing": [
+      {
+        "CalculationType": "Percent",
+        "Amount": 0.25
+      }
+    ],
+    "Bludgeoning": [
+      {
+        "CalculationType": "Percent",
+        "Amount": 0.25
+      }
+    ],
+    "Crush": [
+      {
+        "CalculationType": "Percent",
+        "Amount": 0.25
+      }
+    ],
+    "Projectile": [
+      {
+        "CalculationType": "Percent",
+        "Amount": 0.25
+      }
+    ]
+  },
+  "StatusEffectIcon": "UI/StatusEffects/AddHealth/Small.png"
+}
