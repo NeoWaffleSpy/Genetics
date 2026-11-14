@@ -1,0 +1,50 @@
+{
+  "Name": "server.genetics.species.Scarak_Broodmother.name",
+  "Roles": [
+    "Scarak_Broodmother",
+    "Dungeon_Scarak_Broodmother",
+    "Dungeon_Scarak_Broodmother_Young"
+  ],
+  "Category": "Scarak",
+  "Zone": "Zone 2",
+  "SyringeTier": 3,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 2,
+      "Min": 10,
+      "Max": 16
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 5,
+      "Max": 9
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Hide_T2",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.3,
+  "PermanentEffects": [
+    {
+      "Id": "Genetics_Hide_T1",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Oxygen",
+      "Chance": 0.5,
+      "Min": 10,
+      "Max": 15
+    }
+  ],
+  "Icons": {
+    "Scarak_Broodmother": "Icons/ModelsGenerated/Scarak_Broodmother.png",
+    "Dungeon_Scarak_Broodmother": "Icons/ModelsGenerated/Scarak_Broodmother.png",
+    "Dungeon_Scarak_Broodmother_Young": "Icons/ModelsGenerated/Scarak_Broodmother.png"
+  }
+}

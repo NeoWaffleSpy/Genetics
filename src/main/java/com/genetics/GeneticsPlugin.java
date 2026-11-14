@@ -55,6 +55,8 @@ public class GeneticsPlugin extends JavaPlugin {
         com.genetics.library.GeneLibrary.setComponentType(entities.registerComponent(com.genetics.library.GeneLibrary.class,
                 com.genetics.library.GeneLibrary.ID, com.genetics.library.GeneLibrary.CODEC));
         MutationSystem.State.setComponentType(entities.registerComponent(MutationSystem.State.class, MutationSystem.State::new));
+        com.genetics.interaction.SampledOnce.setComponentType(entities.registerComponent(com.genetics.interaction.SampledOnce.class,
+                com.genetics.interaction.SampledOnce.ID, com.genetics.interaction.SampledOnce.CODEC));
         LabStationBlock.setComponentType(getChunkStoreRegistry().registerComponent(LabStationBlock.class, LabStationBlock.ID, LabStationBlock.CODEC));
         entities.registerSystem(new GenomeMaintenanceSystem());
         entities.registerSystem(new SicknessSystem());
@@ -62,6 +64,8 @@ public class GeneticsPlugin extends JavaPlugin {
         entities.registerSystem(new NightVisionSystem());
         entities.registerSystem(new MorphSystem());
         entities.registerSystem(new MutationSystem());
+        entities.registerSystem(new com.genetics.mutation.MutationDamageSystems.Filter());
+        entities.registerSystem(new com.genetics.mutation.MutationDamageSystems.Inspect());
         LOGGER.atInfo().log("Genetics set up.");
     }
 

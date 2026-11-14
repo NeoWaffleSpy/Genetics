@@ -15,10 +15,22 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * What an action runs on: the entity, what to read and change it through (a command buffer or the store), and the
- * mob the entity's genes came from (the source of its last injection), if any.
+ * What an action runs on: the entity, what to read and change it through (a command buffer or the store), the mob the
+ * entity's genes came from (the source of its last injection), if any, and the other entity of the event that
+ * triggered it (the attacker when hurt, the target when hitting or killing), if any.
  */
-public record ActionContext(@Nonnull Ref<EntityStore> entity, @Nonnull ComponentAccessor<EntityStore> buffer, @Nullable Genome.Source source) {
+public record ActionContext(@Nonnull Ref<EntityStore> entity, @Nonnull ComponentAccessor<EntityStore> buffer, @Nullable Genome.Source source,
+                            @Nullable Ref<EntityStore> other) {
+    public ActionContext(@Nonnull Ref<EntityStore> entity, @Nonnull ComponentAccessor<EntityStore> buffer, @Nullable Genome.Source source) {
+        this(entity, buffer, source, null);
+    }
+
+    /** The same context acting on another entity (e.g. a hit's target), with this entity as the other one. */
+    @Nonnull
+    public ActionContext on(@Nonnull Ref<EntityStore> target) {
+        return new ActionContext(target, buffer, source, entity);
+    }
+
     /** The gene profile of the source mob, or null if there is no source or no matching profile. */
     @Nullable
     public MobGeneProfile sourceProfile() {

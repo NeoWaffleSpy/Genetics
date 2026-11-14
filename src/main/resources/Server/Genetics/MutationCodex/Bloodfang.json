@@ -1,0 +1,24 @@
+{
+  "Name": "server.genetics.mutations.Bloodfang.name",
+  "Description": "server.genetics.mutations.Bloodfang.desc",
+  "Complexity": 30,
+  "Species": [
+    "Mammal_Canid",
+    "Undead_Werewolf"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHit",
+      "HealFraction": 0.08
+    },
+    {
+      "Type": "OnHit",
+      "HealFraction": 0.07,
+      "Conditions": {
+        "Night": true
+      }
+    }
+  ],
+  "Weight": 6,
+  "MinTier": "Moderate"
+}

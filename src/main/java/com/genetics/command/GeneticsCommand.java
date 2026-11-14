@@ -60,7 +60,8 @@ public class GeneticsCommand extends AbstractCommandCollection {
         addSubCommand(new AddScience());
         addSubCommand(new GrantResearch());
         addSubCommand(new ListNodes());
-        addSubCommand(new ShowLibrary());
+        addSubCommand(new LibraryCommand());
+        addSubCommand(new CatalogueCommand());
         addSubCommand(new SetMutation());
         addSubCommand(new ListMutations());
     }
@@ -219,8 +220,11 @@ public class GeneticsCommand extends AbstractCommandCollection {
         }
     }
 
-    private static final class ShowLibrary extends AbstractPlayerCommand {
-        ShowLibrary() {
+    /** {@code /genetics library show|fill|flush}: list, fill with the best of every gene, or empty the Genetic Library. */
+    private static final class LibraryCommand extends AbstractPlayerCommand {
+        private final RequiredArg<String> action = withRequiredArg("action", "server.genetics.commands.library.action.desc", ArgTypes.STRING);
+
+        LibraryCommand() {
             super("library", "server.genetics.commands.library.desc");
             setPermissionGroups("hytale:Builder");
         }
@@ -228,12 +232,97 @@ public class GeneticsCommand extends AbstractCommandCollection {
         @Override
         protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
                                @Nonnull PlayerRef playerRef, @Nonnull World world) {
-            List<String> lines = new ArrayList<>();
-            for (com.genetics.library.GeneLibrary.Entry entry : com.genetics.library.Library.of(ref, store).getEntries()) {
-                Gene gene = entry.getGene();
-                lines.add(gene != null ? GeneText.describe(gene, playerRef.getLanguage()) : "?");
+            com.genetics.library.GeneLibrary library = com.genetics.library.Library.of(ref, store);
+            switch (action.get(context).toLowerCase()) {
+                case "fill" -> {
+                    int added = 0;
+                    for (Gene gene : bestGenes()) if (library.add(gene, "Command")) added++;
+                    context.sendMessage(Message.raw("Genetic Library filled: " + added + " genes added or improved ("
+                            + library.getEntries().size() + " in total)."));
+                }
+                case "flush", "clear" -> context.sendMessage(Message.raw("Genetic Library emptied (" + library.clear() + " genes removed)."));
+                case "show" -> {
+                    List<String> lines = new ArrayList<>();
+                    for (com.genetics.library.GeneLibrary.Entry entry : library.getEntries()) {
+                        Gene gene = entry.getGene();
+                        lines.add(gene != null ? GeneText.describe(gene, playerRef.getLanguage()) : "?");
+                    }
+                    context.sendMessage(Message.raw("Genetic Library: " + (lines.isEmpty() ? "empty." : String.join(", ", lines) + ".")));
+                }
+                default -> context.sendMessage(Message.raw("Usage: /genetics library show|fill|flush"));
             }
-            context.sendMessage(Message.raw("Genetic Library: " + (lines.isEmpty() ? "empty." : String.join(", ", lines) + ".")));
+        }
+
+        /**
+         * The best of every gene the game can give: each profile stat and drawback at its maximum, every temporary
+         * effect at the timer cap, every profile permanent effect, and every mutation.
+         */
+        @Nonnull
+        private static List<Gene> bestGenes() {
+            List<Gene> genes = new ArrayList<>();
+            double cap = Math.min(com.genetics.codex.Balance.get().splicing().getMaxEffectDuration(), 30 * 60);
+            for (com.genetics.codex.MobGeneProfile profile : com.genetics.codex.MobGeneProfile.getAssetMap().getAssetMap().values()) {
+                for (com.genetics.codex.MobGeneProfile.StatRoll roll : profile.getStatPool()) {
+                    if (roll.getStat() != null) genes.add(new Gene.Stat(roll.getStat(), roll.getMax()));
+                }
+                for (com.genetics.codex.MobGeneProfile.Drawback drawback : profile.getDrawbacks()) {
+                    if (drawback.getStat() != null) genes.add(new Gene.Stat(drawback.getStat(), -drawback.getMax()));
+                }
+                if (profile.getTemporaryEffect() != null && profile.getTemporaryEffect().getId() != null) {
+                    genes.add(new Gene.Effect(profile.getTemporaryEffect().getId(), false, cap));
+                }
+                for (com.genetics.codex.MobGeneProfile.EffectRoll effect : profile.getPermanentEffects()) {
+                    if (effect.getId() != null) genes.add(new Gene.Effect(effect.getId(), true, 0));
+                }
+            }
+            for (String mutation : com.genetics.codex.MutationEntry.getAssetMap().getAssetMap().keySet()) genes.add(new Gene.Mutation(mutation));
+            return genes;
+        }
+    }
+
+    /** {@code /genetics catalogue show|complete|flush}: show, discover everything, or forget every discovery. */
+    private static final class CatalogueCommand extends AbstractPlayerCommand {
+        private final RequiredArg<String> action = withRequiredArg("action", "server.genetics.commands.catalogue.action.desc", ArgTypes.STRING);
+
+        CatalogueCommand() {
+            super("catalogue", "server.genetics.commands.catalogue.desc");
+            setPermissionGroups("hytale:Builder");
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
+            GeneJournal journal = Journal.of(ref, store);
+            switch (action.get(context).toLowerCase()) {
+                case "complete" -> {
+                    long now = System.currentTimeMillis();
+                    for (String species : com.genetics.journal.Catalogue.allSpecies()) {
+                        String name = com.genetics.journal.Catalogue.speciesName(species, playerRef.getLanguage(), species);
+                        journal.recordSample(species, name, new com.genetics.genome.Genome.Source(species, name, null,
+                                com.genetics.journal.Catalogue.speciesIcon(species), now));
+                        for (String key : com.genetics.journal.Catalogue.possibleGenes(species)) {
+                            journal.addSpeciesGene(species, key);
+                            if (key.startsWith(com.genetics.journal.Catalogue.EFFECT)) journal.addBuff(key.substring(com.genetics.journal.Catalogue.EFFECT.length()));
+                        }
+                        journal.markCompleted(species);
+                    }
+                    for (String mutation : com.genetics.codex.MutationEntry.getAssetMap().getAssetMap().keySet()) journal.addMutation(mutation);
+                    context.sendMessage(Message.raw("Catalogue complete: " + journal.speciesCount() + " species, " + journal.getBuffs().size()
+                            + " buffs, " + journal.getMutations().size() + " mutations. No Science was given (use /genetics science)."));
+                }
+                case "flush", "clear" -> {
+                    journal.clearDiscoveries();
+                    context.sendMessage(Message.raw("Catalogue emptied. Science (" + journal.getScience() + ") and research are kept."));
+                }
+                case "show" -> {
+                    TreeSet<String> names = new TreeSet<>();
+                    journal.getSpecies().values().forEach(entry -> names.add(entry.getName() + " x" + entry.getSamples()));
+                    context.sendMessage(Message.raw("Catalogue: " + journal.speciesCount() + " species, " + journal.getBuffs().size() + " buffs, "
+                            + journal.getMutations().size() + " mutations, " + journal.getScience() + " Science."));
+                    if (!names.isEmpty()) context.sendMessage(Message.raw("Species: " + String.join(", ", names) + "."));
+                }
+                default -> context.sendMessage(Message.raw("Usage: /genetics catalogue show|complete|flush"));
+            }
         }
     }
 

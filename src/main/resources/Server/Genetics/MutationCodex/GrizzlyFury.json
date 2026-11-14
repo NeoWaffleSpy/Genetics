@@ -1,0 +1,32 @@
+{
+  "Name": "server.genetics.mutations.GrizzlyFury.name",
+  "Description": "server.genetics.mutations.GrizzlyFury.desc",
+  "Complexity": 40,
+  "Species": [
+    "Predator_Bear"
+  ],
+  "Behaviors": [
+    {
+      "Type": "WhileHeld",
+      "Conditions": {
+        "HealthBelow": 0.4
+      },
+      "HoldTime": 0,
+      "Cooldown": 1,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Genetics_GrizzlyFury",
+          "Duration": 2
+        }
+      ]
+    },
+    {
+      "Type": "OnLowHealth",
+      "Threshold": 0.4,
+      "Message": "server.genetics.mutations.GrizzlyFury.trigger"
+    }
+  ],
+  "Weight": 4,
+  "MinTier": "Complex"
+}

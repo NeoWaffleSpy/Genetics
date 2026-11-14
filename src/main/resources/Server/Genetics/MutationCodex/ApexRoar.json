@@ -1,0 +1,35 @@
+{
+  "Name": "server.genetics.mutations.ApexRoar.name",
+  "Description": "server.genetics.mutations.ApexRoar.desc",
+  "Complexity": 45,
+  "Species": [
+    "Mythic_Rex"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnKill",
+      "Cooldown": 10,
+      "Actions": [
+        {
+          "Type": "AreaEffect",
+          "Id": "Slow",
+          "Duration": 5,
+          "Radius": 8
+        },
+        {
+          "Type": "AreaEffect",
+          "Id": "Genetics_Cowed",
+          "Duration": 5,
+          "Radius": 8
+        },
+        {
+          "Type": "CameraShake",
+          "Id": "Impact_Light"
+        }
+      ],
+      "Message": "server.genetics.mutations.ApexRoar.trigger"
+    }
+  ],
+  "Weight": 3,
+  "MinTier": "Complex"
+}

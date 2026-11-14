@@ -1,0 +1,67 @@
+{
+  "Name": "server.genetics.species.Livestock_Poultry.name",
+  "Roles": [
+    "Chicken",
+    "Chicken_Chick",
+    "Chicken_Desert",
+    "Chicken_Desert_Chick",
+    "Turkey",
+    "Turkey_Chick",
+    "Duck",
+    "Pigeon",
+    "Skrill",
+    "Skrill_Chick",
+    "Tamed_Chicken",
+    "Tamed_Chicken_Chick",
+    "Tamed_Chicken_Desert",
+    "Tamed_Chicken_Desert_Chick",
+    "Tamed_Turkey",
+    "Tamed_Turkey_Chick",
+    "Tamed_Skrill",
+    "Tamed_Skrill_Chick"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 7
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Immunity_Fall",
+    "Duration": 120
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Health",
+      "Chance": 0.3,
+      "Min": 3,
+      "Max": 5
+    }
+  ],
+  "Icons": {
+    "Chicken": "Icons/ModelsGenerated/Chicken.png",
+    "Chicken_Chick": "Icons/ModelsGenerated/Chick.png",
+    "Chicken_Desert": "Icons/ModelsGenerated/Chicken_Desert.png",
+    "Chicken_Desert_Chick": "Icons/ModelsGenerated/Chick_Desert.png",
+    "Turkey": "Icons/ModelsGenerated/Turkey.png",
+    "Turkey_Chick": "Icons/ModelsGenerated/Turkey_Chick.png",
+    "Duck": "Icons/ModelsGenerated/Duck.png",
+    "Pigeon": "Icons/ModelsGenerated/Pigeon.png",
+    "Skrill": "Icons/ModelsGenerated/Skrill.png",
+    "Skrill_Chick": "Icons/ModelsGenerated/Skrill_Chick.png",
+    "Tamed_Chicken": "Icons/ModelsGenerated/Chicken.png",
+    "Tamed_Chicken_Chick": "Icons/ModelsGenerated/Chick.png",
+    "Tamed_Chicken_Desert": "Icons/ModelsGenerated/Chicken_Desert.png",
+    "Tamed_Chicken_Desert_Chick": "Icons/ModelsGenerated/Chick_Desert.png",
+    "Tamed_Turkey": "Icons/ModelsGenerated/Turkey.png",
+    "Tamed_Turkey_Chick": "Icons/ModelsGenerated/Turkey_Chick.png",
+    "Tamed_Skrill": "Icons/ModelsGenerated/Skrill.png",
+    "Tamed_Skrill_Chick": "Icons/ModelsGenerated/Skrill_Chick.png"
+  }
+}

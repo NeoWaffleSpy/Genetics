@@ -1,26 +1,37 @@
 {
+  "Name": "server.genetics.species.Mythic_Yeti.name",
   "Roles": [
     "Yeti"
   ],
+  "Category": "Zone 3 wildlife",
+  "Zone": "Zone 3",
+  "SyringeTier": 3,
   "StatRolls": 2,
   "StatPool": [
     {
       "Stat": "Health",
       "Weight": 2,
-      "Min": 6,
-      "Max": 10
+      "Min": 10,
+      "Max": 16
     },
     {
       "Stat": "Stamina",
       "Weight": 1,
-      "Min": 5,
-      "Max": 8
+      "Min": 6,
+      "Max": 10
     }
   ],
   "TemporaryEffect": {
-    "Id": "Meat_Buff_T2",
-    "Duration": 180
+    "Id": "FruitVeggie_Buff_T3",
+    "Duration": 240
   },
+  "PermanentEffectChance": 0.25,
+  "PermanentEffects": [
+    {
+      "Id": "Immunity_Freeze",
+      "Weight": 1
+    }
+  ],
   "Drawbacks": [
     {
       "Stat": "Mana",
@@ -30,5 +41,9 @@
     }
   ],
   "Sound": "SFX_Yeti_Alerted",
-  "Zone": "Zone 3"
+  "Icons": {
+    "Yeti": "Icons/ModelsGenerated/Yeti.png"
+  },
+  "SignatureMutation": "ColdBlooded",
+  "SignatureChance": 0.5
 }

@@ -1,0 +1,63 @@
+{
+  "Name": "server.genetics.species.Void_Creature.name",
+  "Roles": [
+    "Crawler_Void",
+    "Crawler_Void_Anomaly",
+    "Crawler_Void_Surge",
+    "Eye_Void",
+    "Eye_Void_Surge",
+    "Larva_Void",
+    "Larva_Void_Surge",
+    "Void_Tentacle",
+    "Void_Tentacle_Surge",
+    "Void_Tentacle_Surge_Anomaly",
+    "Void_Spectre",
+    "Void_Spectre_Static",
+    "Voidtaken_Goblin_Surge"
+  ],
+  "Category": "Void",
+  "Zone": "Void",
+  "SyringeTier": 3,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Mana",
+      "Weight": 2,
+      "Min": 8,
+      "Max": 14
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_NightVision",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.6,
+      "Min": 5,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Crawler_Void": "Icons/ModelsGenerated/Crawler_Void.png",
+    "Crawler_Void_Anomaly": "Icons/ModelsGenerated/Crawler_Void.png",
+    "Crawler_Void_Surge": "Icons/ModelsGenerated/Crawler_Void.png",
+    "Eye_Void": "Icons/ModelsGenerated/Eye_Void.png",
+    "Eye_Void_Surge": "Icons/ModelsGenerated/Eye_Void.png",
+    "Larva_Void": "Icons/ModelsGenerated/Larva_Void.png",
+    "Larva_Void_Surge": "Icons/ModelsGenerated/Larva_Void.png",
+    "Void_Tentacle": "Icons/ModelsGenerated/Void_Tentacle.png",
+    "Void_Tentacle_Surge": "Icons/ModelsGenerated/Bear_Voidtaken.png",
+    "Void_Tentacle_Surge_Anomaly": "Icons/ModelsGenerated/Bear_Voidtaken.png",
+    "Void_Spectre": "Icons/ModelsGenerated/Void_Spectre.png",
+    "Void_Spectre_Static": "Icons/ModelsGenerated/Void_Spectre.png",
+    "Voidtaken_Goblin_Surge": "Icons/ModelsGenerated/Goblin_Scrapper.png"
+  }
+}

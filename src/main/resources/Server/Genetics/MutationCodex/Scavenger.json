@@ -1,0 +1,22 @@
+{
+  "Name": "server.genetics.mutations.Scavenger.name",
+  "Description": "server.genetics.mutations.Scavenger.desc",
+  "Complexity": 20,
+  "Species": [
+    "Faction_Goblin",
+    "Boss_Feastmaster"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnKill",
+      "Chance": 0.1,
+      "TargetActions": [
+        {
+          "Type": "DropLoot"
+        }
+      ]
+    }
+  ],
+  "Weight": 6,
+  "MinTier": "Simple"
+}

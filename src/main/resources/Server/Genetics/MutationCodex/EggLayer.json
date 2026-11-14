@@ -1,0 +1,29 @@
+{
+  "Name": "server.genetics.mutations.EggLayer.name",
+  "Description": "server.genetics.mutations.EggLayer.desc",
+  "Complexity": 5,
+  "Species": [
+    "Livestock_Poultry"
+  ],
+  "Behaviors": [
+    {
+      "Type": "WhileHeld",
+      "Conditions": {
+        "Crouching": true
+      },
+      "HoldTime": 5,
+      "Repeat": false,
+      "Cooldown": 600,
+      "Actions": [
+        {
+          "Type": "DropItem",
+          "ItemId": "Food_Egg",
+          "Quantity": 1
+        }
+      ],
+      "Message": "server.genetics.mutations.EggLayer.trigger"
+    }
+  ],
+  "Weight": 8,
+  "MinTier": "Simple"
+}

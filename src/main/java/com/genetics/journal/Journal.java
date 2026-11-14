@@ -38,19 +38,29 @@ public final class Journal {
             journal = new GeneJournal();
             accessor.putComponent(ref, GeneJournal.getComponentType(), journal);
         }
+        journal.migrateSpecies(Catalogue::speciesOf, (species, fallback) -> Catalogue.speciesName(species, null, fallback));
         return journal;
+    }
+
+    /** The Catalogue species of a fresh (not spliced) sample, or null. */
+    @Nullable
+    public static String speciesOf(@Nonnull Genome sample) {
+        Genome.Source source = sample.source();
+        return source != null && !source.spliced() ? Catalogue.speciesOf(source.mobId()) : null;
     }
 
     /** Records a fresh sample, paying Science for a new species. */
     public static void onSample(@Nonnull Ref<EntityStore> ref, @Nonnull ComponentAccessor<EntityStore> accessor, @Nonnull PlayerRef player,
                                 @Nonnull Genome sample) {
-        if (sample.source() == null) return;
+        String species = speciesOf(sample);
+        if (species == null) return;
         GeneJournal journal = of(ref, accessor);
-        boolean first = journal.recordSample(sample.source());
+        String name = Catalogue.speciesName(species, player.getLanguage(), sample.source().mobName());
+        boolean first = journal.recordSample(species, Catalogue.speciesName(species, null, sample.source().mobName()), sample.source());
         if (!first) return;
         int science = Balance.get().science().getFirstSample();
         journal.addScience(science);
-        notify(player, Message.raw("New species: " + sample.source().mobName()),
+        notify(player, Message.raw("New species: " + name),
                 Message.raw("+" + science + " Science  ·  Catalogue: " + journal.speciesCount() + " species. Process it at a Lab Station."),
                 sample.source().icon());
     }
@@ -64,14 +74,13 @@ public final class Journal {
         GeneJournal journal = of(ref, accessor);
         journal.recordGenes(sample);
         Balance.Science rewards = Balance.get().science();
-        Genome.Source source = sample.source();
-        String species = source != null && !source.spliced() ? source.mobId() : null;
+        String species = speciesOf(sample);
         int science = 0;
         List<String> found = new ArrayList<>();
         int newGenes = 0;
         for (Gene gene : sample.genes()) {
             String key = Catalogue.key(gene);
-            if (species != null && journal.addSpeciesGene(species, key)) {
+            if (species != null && !(gene instanceof Gene.Mutation) && journal.addSpeciesGene(species, key)) {
                 science += rewards.getNewGene();
                 newGenes++;
             }
@@ -89,7 +98,7 @@ public final class Journal {
             Set<String> possible = Catalogue.possibleGenes(species);
             if (!possible.isEmpty() && journal.genesOf(species).containsAll(possible) && journal.markCompleted(species)) {
                 science += rewards.getSpeciesComplete();
-                found.add(source.mobName() + " complete");
+                found.add(Catalogue.speciesName(species, player != null ? player.getLanguage() : null, species) + " complete");
             }
         }
         journal.addScience(science);
@@ -102,15 +111,14 @@ public final class Journal {
     /** Science the sample would earn when processed (shown before processing). */
     public static int scienceFor(@Nonnull GeneJournal journal, @Nonnull Genome sample) {
         Balance.Science rewards = Balance.get().science();
-        Genome.Source source = sample.source();
-        String species = source != null && !source.spliced() ? source.mobId() : null;
+        String species = speciesOf(sample);
         int science = 0;
         Set<String> speciesKnown = species != null ? new java.util.HashSet<>(journal.genesOf(species)) : Set.of();
         Set<String> buffs = new java.util.HashSet<>(journal.getBuffs());
         Set<String> mutations = new java.util.HashSet<>(journal.getMutations());
         for (Gene gene : sample.genes()) {
             String key = Catalogue.key(gene);
-            if (species != null && speciesKnown.add(key)) science += rewards.getNewGene();
+            if (species != null && !(gene instanceof Gene.Mutation) && speciesKnown.add(key)) science += rewards.getNewGene();
             if (gene instanceof Gene.Effect effect && buffs.add(effect.effect())) science += rewards.getNewBuff();
             if (gene instanceof Gene.Mutation mutation && mutations.add(mutation.mutation())) science += rewards.getNewMutation();
         }
@@ -123,8 +131,8 @@ public final class Journal {
 
     /** True if this gene would be new for its species (shown as NEW before processing). */
     public static boolean isNew(@Nonnull GeneJournal journal, @Nonnull Genome sample, @Nonnull Gene gene) {
-        Genome.Source source = sample.source();
-        if (source != null && !source.spliced()) return !journal.genesOf(source.mobId()).contains(Catalogue.key(gene));
+        String species = speciesOf(sample);
+        if (species != null && !(gene instanceof Gene.Mutation)) return !journal.genesOf(species).contains(Catalogue.key(gene));
         return switch (gene) {
             case Gene.Effect effect -> !journal.getBuffs().contains(effect.effect());
             case Gene.Mutation mutation -> !journal.getMutations().contains(mutation.mutation());

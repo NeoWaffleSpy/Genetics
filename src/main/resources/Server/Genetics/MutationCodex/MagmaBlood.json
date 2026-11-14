@@ -1,0 +1,31 @@
+{
+  "Name": "server.genetics.mutations.MagmaBlood.name",
+  "Description": "server.genetics.mutations.MagmaBlood.desc",
+  "Complexity": 25,
+  "Species": [
+    "Beast_Magma"
+  ],
+  "Behaviors": [
+    {
+      "Type": "OnHurt",
+      "Causes": [
+        "Fire"
+      ],
+      "Cooldown": 30,
+      "Actions": [
+        {
+          "Type": "ApplyEffect",
+          "Id": "Immunity_Fire",
+          "Duration": 6
+        },
+        {
+          "Type": "ApplyEffect",
+          "Id": "HealthRegen_Buff_T1",
+          "Duration": 6
+        }
+      ]
+    }
+  ],
+  "Weight": 5,
+  "MinTier": "Moderate"
+}

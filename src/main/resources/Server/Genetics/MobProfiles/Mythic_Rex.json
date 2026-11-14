@@ -1,27 +1,37 @@
 {
+  "Name": "server.genetics.species.Mythic_Rex.name",
   "Roles": [
     "Rex_Cave"
   ],
+  "Category": "Zone 4 wildlife",
+  "Zone": "Zone 4",
+  "SyringeTier": 4,
   "StatRolls": 2,
   "StatPool": [
     {
       "Stat": "Health",
       "Weight": 2,
-      "Min": 8,
-      "Max": 12
+      "Min": 14,
+      "Max": 20
     },
     {
       "Stat": "Stamina",
       "Weight": 1,
-      "Min": 6,
-      "Max": 9
+      "Min": 8,
+      "Max": 12
     }
   ],
   "TemporaryEffect": {
     "Id": "Meat_Buff_T3",
-    "Duration": 180
+    "Duration": 240
   },
-  "Sound": "SFX_Rex_Alerted",
+  "PermanentEffectChance": 0.25,
+  "PermanentEffects": [
+    {
+      "Id": "Genetics_Might_T1",
+      "Weight": 1
+    }
+  ],
   "Drawbacks": [
     {
       "Stat": "Mana",
@@ -30,5 +40,10 @@
       "Max": 15
     }
   ],
-  "Zone": "Zone 4"
+  "Sound": "SFX_Rex_Alerted",
+  "Icons": {
+    "Rex_Cave": "Icons/ModelsGenerated/Rex_Cave.png"
+  },
+  "SignatureMutation": "ApexRoar",
+  "SignatureChance": 0.5
 }

@@ -1,0 +1,22 @@
+{
+  "Name": "server.genetics.effects.Might_T2.name",
+  "Duration": 180,
+  "OverlapBehavior": "Overwrite",
+  "RemovalBehavior": "Complete",
+  "Debuff": false,
+  "OutgoingDamage": {
+    "Physical": [
+      {
+        "CalculationType": "Percent",
+        "Amount": 0.2
+      }
+    ],
+    "Projectile": [
+      {
+        "CalculationType": "Percent",
+        "Amount": 0.2
+      }
+    ]
+  },
+  "StatusEffectIcon": "Icons/ItemsGenerated/Potion_Signature.png"
+}

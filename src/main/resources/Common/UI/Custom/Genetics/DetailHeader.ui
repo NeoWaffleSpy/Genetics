@@ -1,0 +1,9 @@
+// A section title inside the Catalogue's detail list.
+Group {
+  LayoutMode: Top;
+  Padding: (Top: 10, Bottom: 5);
+
+  Label #Text {
+    Style: (FontSize: 12, RenderBold: true, RenderUppercase: true, TextColor: #a9b9c7, FontName: "Secondary");
+  }
+}

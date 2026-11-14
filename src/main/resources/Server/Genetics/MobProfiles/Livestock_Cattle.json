@@ -1,0 +1,48 @@
+{
+  "Name": "server.genetics.species.Livestock_Cattle.name",
+  "Roles": [
+    "Cow",
+    "Cow_Calf",
+    "Bison",
+    "Bison_Calf",
+    "Tamed_Cow",
+    "Tamed_Cow_Calf",
+    "Tamed_Bison",
+    "Tamed_Bison_Calf"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 4,
+      "Max": 9
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "HealthRegen_Buff_T1",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.3,
+      "Min": 3,
+      "Max": 5
+    }
+  ],
+  "Sound": "SFX_Cow_Idle",
+  "Icons": {
+    "Cow": "Icons/ModelsGenerated/Cow.png",
+    "Cow_Calf": "Icons/ModelsGenerated/Calf.png",
+    "Bison": "Icons/ModelsGenerated/Bison.png",
+    "Bison_Calf": "Icons/ModelsGenerated/Bison_Calf.png",
+    "Tamed_Cow": "Icons/ModelsGenerated/Cow.png",
+    "Tamed_Cow_Calf": "Icons/ModelsGenerated/Calf.png",
+    "Tamed_Bison": "Icons/ModelsGenerated/Bison.png",
+    "Tamed_Bison_Calf": "Icons/ModelsGenerated/Bison_Calf.png"
+  }
+}

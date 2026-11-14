@@ -1,14 +1,16 @@
 {
   "Name": "server.genetics.mutations.AdrenalSurge.name",
+  "Description": "server.genetics.mutations.AdrenalSurge.desc",
   "Complexity": 25,
-  "Stats": {},
-  "Effects": [],
+  "Species": [
+    "Mammal_Grazer",
+    "Livestock_Cattle"
+  ],
   "Behaviors": [
     {
       "Type": "OnLowHealth",
       "Threshold": 0.3,
       "Cooldown": 60,
-      "Message": "server.genetics.mutations.AdrenalSurge.trigger",
       "Actions": [
         {
           "Type": "ApplyEffect",
@@ -19,7 +21,8 @@
           "Type": "CameraShake",
           "Id": "Impact_Light"
         }
-      ]
+      ],
+      "Message": "server.genetics.mutations.AdrenalSurge.trigger"
     }
   ],
   "Weight": 5,

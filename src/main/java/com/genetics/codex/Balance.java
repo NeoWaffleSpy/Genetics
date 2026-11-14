@@ -230,6 +230,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .documentation("Chance of a new mutation, before Complexity.").add()
                 .append(new KeyedCodec<>("MutationPerComplexity", Codec.DOUBLE), (t, v) -> t.mutationPerComplexity = v, t -> t.mutationPerComplexity)
                 .documentation("Extra mutation chance per point of the two inputs' combined Complexity.").add()
+                .append(new KeyedCodec<>("ThemedMutationWeight", Codec.DOUBLE), (t, v) -> t.themedMutationWeight = v, t -> t.themedMutationWeight)
+                .documentation("Weight multiplier, when rolling a mutation, for those themed to an input's species.").add()
                 .build();
 
         private double effectReferenceDuration = 180;
@@ -239,6 +241,9 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         public double getMaxEffectDuration() { return maxEffectDuration > 0 ? maxEffectDuration : Double.MAX_VALUE; }
         private double mutationBaseChance = 0.02;
         private double mutationPerComplexity = 0.0005;
+        private double themedMutationWeight = 4;
+
+        public double getThemedMutationWeight() { return Math.max(1, themedMutationWeight); }
 
         public double getEffectReferenceDuration() { return effectReferenceDuration; }
         public double getMutationBaseChance() { return mutationBaseChance; }
@@ -314,9 +319,9 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
 
         private int firstSample = 3;
         private int newGene = 1;
-        private int speciesComplete = 5;
+        private int speciesComplete = 3;
         private int newBuff = 2;
-        private int newMutation = 10;
+        private int newMutation = 4;
 
         public int getFirstSample() { return firstSample; }
         public int getNewGene() { return newGene; }

@@ -1,0 +1,69 @@
+{
+  "Name": "server.genetics.species.Livestock_Swine.name",
+  "Roles": [
+    "Pig",
+    "Pig_Piglet",
+    "Pig_Wild",
+    "Pig_Wild_Piglet",
+    "Boar",
+    "Boar_Piglet",
+    "Warthog",
+    "Warthog_Piglet",
+    "Tamed_Pig",
+    "Tamed_Pig_Piglet",
+    "Tamed_Pig_Wild",
+    "Tamed_Pig_Wild_Piglet",
+    "Tamed_Boar",
+    "Tamed_Boar_Piglet",
+    "Tamed_Warthog",
+    "Tamed_Warthog_Piglet"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 2,
+      "Min": 3,
+      "Max": 7
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 2,
+      "Max": 5
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Meat_Buff_T1",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.3,
+      "Min": 4,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Pig": "Icons/ModelsGenerated/Pig.png",
+    "Pig_Piglet": "Icons/ModelsGenerated/Piglet.png",
+    "Pig_Wild": "Icons/ModelsGenerated/Pig_Wild.png",
+    "Pig_Wild_Piglet": "Icons/ModelsGenerated/Piglet_Wild.png",
+    "Boar": "Icons/ModelsGenerated/Boar.png",
+    "Boar_Piglet": "Icons/ModelsGenerated/Boar_Piglet.png",
+    "Warthog": "Icons/ModelsGenerated/Warthog.png",
+    "Warthog_Piglet": "Icons/ModelsGenerated/Warthog_Piglet.png",
+    "Tamed_Pig": "Icons/ModelsGenerated/Pig.png",
+    "Tamed_Pig_Piglet": "Icons/ModelsGenerated/Piglet.png",
+    "Tamed_Pig_Wild": "Icons/ModelsGenerated/Pig_Wild.png",
+    "Tamed_Pig_Wild_Piglet": "Icons/ModelsGenerated/Piglet_Wild.png",
+    "Tamed_Boar": "Icons/ModelsGenerated/Boar.png",
+    "Tamed_Boar_Piglet": "Icons/ModelsGenerated/Boar_Piglet.png",
+    "Tamed_Warthog": "Icons/ModelsGenerated/Warthog.png",
+    "Tamed_Warthog_Piglet": "Icons/ModelsGenerated/Warthog_Piglet.png"
+  }
+}

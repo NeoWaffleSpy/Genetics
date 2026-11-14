@@ -1,0 +1,57 @@
+{
+  "Name": "server.genetics.species.Aquatic_Hunter.name",
+  "Roles": [
+    "Shark_Hammerhead",
+    "Eel_Moray",
+    "Snapjaw",
+    "Frostgill",
+    "Jellyfish_Blue",
+    "Jellyfish_Cyan",
+    "Jellyfish_Green",
+    "Jellyfish_Red",
+    "Jellyfish_Yellow",
+    "Jellyfish_Man_Of_War"
+  ],
+  "Category": "Oceans",
+  "Zone": "Zone 0 - Oceans",
+  "SyringeTier": 2,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Oxygen",
+      "Weight": 2,
+      "Min": 15,
+      "Max": 30
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 4,
+      "Max": 8
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Might_T1",
+    "Duration": 120
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.4,
+      "Min": 5,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Shark_Hammerhead": "Icons/ModelsGenerated/Shark_Hammerhead.png",
+    "Eel_Moray": "Icons/ModelsGenerated/Eel_Moray.png",
+    "Snapjaw": "Icons/ModelsGenerated/Snapjaw.png",
+    "Frostgill": "Icons/ModelsGenerated/Frostgill.png",
+    "Jellyfish_Blue": "Icons/ModelsGenerated/Jellyfish_Blue.png",
+    "Jellyfish_Cyan": "Icons/ModelsGenerated/Jellyfish_Cyan.png",
+    "Jellyfish_Green": "Icons/ModelsGenerated/Jellyfish_Green.png",
+    "Jellyfish_Red": "Icons/ModelsGenerated/Jellyfish_Red.png",
+    "Jellyfish_Yellow": "Icons/ModelsGenerated/Jellyfish_Yellow.png",
+    "Jellyfish_Man_Of_War": "Icons/ModelsGenerated/Jellyfish_Man_Of_War.png"
+  }
+}

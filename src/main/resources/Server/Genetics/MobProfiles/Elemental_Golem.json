@@ -1,0 +1,52 @@
+{
+  "Name": "server.genetics.species.Elemental_Golem.name",
+  "Roles": [
+    "Golem_Firesteel",
+    "Golem_Crystal_Earth",
+    "Golem_Crystal_Flame",
+    "Golem_Crystal_Frost",
+    "Golem_Crystal_Sand",
+    "Golem_Crystal_Thunder"
+  ],
+  "Category": "Zone 4 wildlife",
+  "Zone": "Zone 4",
+  "SyringeTier": 4,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 10,
+      "Max": 16
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Hide_T2",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.2,
+  "PermanentEffects": [
+    {
+      "Id": "Genetics_Hide_T1",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.6,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "Icons": {
+    "Golem_Firesteel": "Icons/ModelsGenerated/Golem_Firesteel.png",
+    "Golem_Crystal_Earth": "Icons/ModelsGenerated/Golem_Crystal_Earth.png",
+    "Golem_Crystal_Flame": "Icons/ModelsGenerated/Golem_Crystal_Flame.png",
+    "Golem_Crystal_Frost": "Icons/ModelsGenerated/Golem_Crystal_Frost.png",
+    "Golem_Crystal_Sand": "Icons/ModelsGenerated/Golem_Crystal_Sand.png",
+    "Golem_Crystal_Thunder": "Icons/ModelsGenerated/Golem_Crystal_Thunder.png"
+  },
+  "SignatureMutation": "Bulwark",
+  "SignatureChance": 0.5
+}

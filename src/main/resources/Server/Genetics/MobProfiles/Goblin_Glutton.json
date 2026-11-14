@@ -1,0 +1,37 @@
+{
+  "Name": "server.genetics.species.Goblin_Glutton.name",
+  "Roles": [
+    "Goblin_Glutton",
+    "Coffer_Goblin_Glutton",
+    "Dungeon_Goblin_Glutton"
+  ],
+  "Category": "Goblins",
+  "Zone": "Zone 1",
+  "SyringeTier": 3,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 12,
+      "Max": 18
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "HealthRegen_Buff_T2",
+    "Duration": 240
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.9,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "Icons": {
+    "Goblin_Glutton": "Icons/ModelsGenerated/Goblin_Glutton.png",
+    "Coffer_Goblin_Glutton": "Icons/ModelsGenerated/Goblin_Glutton.png",
+    "Dungeon_Goblin_Glutton": "Icons/ModelsGenerated/Goblin_Glutton.png"
+  }
+}

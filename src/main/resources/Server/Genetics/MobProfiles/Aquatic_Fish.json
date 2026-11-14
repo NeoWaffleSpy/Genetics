@@ -1,0 +1,59 @@
+{
+  "Name": "server.genetics.species.Aquatic_Fish.name",
+  "Roles": [
+    "Bluegill",
+    "Catfish",
+    "Minnow",
+    "Pike",
+    "Salmon",
+    "Trout_Rainbow",
+    "Piranha",
+    "Piranha_Black",
+    "Clownfish",
+    "Tang_Blue",
+    "Tang_Chevron",
+    "Tang_Lemon_Peel",
+    "Tang_Sailfin",
+    "Pufferfish"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Oxygen",
+      "Weight": 1,
+      "Min": 10,
+      "Max": 25
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Food_Stamina_Regen_Small",
+    "Duration": 120
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.3,
+      "Min": 3,
+      "Max": 5
+    }
+  ],
+  "Icons": {
+    "Bluegill": "Icons/ModelsGenerated/Bluegill.png",
+    "Catfish": "Icons/ModelsGenerated/Catfish.png",
+    "Minnow": "Icons/ModelsGenerated/Minnow.png",
+    "Pike": "Icons/ModelsGenerated/Pike.png",
+    "Salmon": "Icons/ModelsGenerated/Salmon.png",
+    "Trout_Rainbow": "Icons/ModelsGenerated/Trout_Rainbow.png",
+    "Piranha": "Icons/ModelsGenerated/Piranha.png",
+    "Piranha_Black": "Icons/ModelsGenerated/Piranha_Black.png",
+    "Clownfish": "Icons/ModelsGenerated/Clownfish.png",
+    "Tang_Blue": "Icons/ModelsGenerated/Tang_Blue.png",
+    "Tang_Chevron": "Icons/ModelsGenerated/Tang_Chevron.png",
+    "Tang_Lemon_Peel": "Icons/ModelsGenerated/Tang_Lemon_Peel.png",
+    "Tang_Sailfin": "Icons/ModelsGenerated/Tang_Sailfin.png",
+    "Pufferfish": "Icons/ModelsGenerated/Pufferfish.png"
+  }
+}

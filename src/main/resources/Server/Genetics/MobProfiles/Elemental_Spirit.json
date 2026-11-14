@@ -1,0 +1,60 @@
+{
+  "Name": "server.genetics.species.Elemental_Spirit.name",
+  "Roles": [
+    "Fen_Stalker",
+    "Spirit_Root",
+    "Spark_Living",
+    "Cactee",
+    "Hatworm",
+    "Spirit_Ember",
+    "Spirit_Frost",
+    "Spirit_Thunder"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 2,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Mana",
+      "Weight": 2,
+      "Min": 5,
+      "Max": 12
+    },
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 2,
+      "Max": 5
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Immunity_Environmental",
+    "Duration": 150
+  },
+  "PermanentEffectChance": 0.1,
+  "PermanentEffects": [
+    {
+      "Id": "Immunity_Environmental",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.4,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "Icons": {
+    "Fen_Stalker": "Icons/ModelsGenerated/Fen_Stalker.png",
+    "Spirit_Root": "Icons/ModelsGenerated/Spirit_Root.png",
+    "Spark_Living": "Icons/ModelsGenerated/Spark_Living.png",
+    "Cactee": "Icons/ModelsGenerated/Cactee.png",
+    "Hatworm": "Icons/ModelsGenerated/Larva_Silk.png",
+    "Spirit_Ember": "Icons/ModelsGenerated/Spirit_Ember.png",
+    "Spirit_Frost": "Icons/ModelsGenerated/Spirit_Frost.png",
+    "Spirit_Thunder": "Icons/ModelsGenerated/Spirit_Thunder.png"
+  }
+}

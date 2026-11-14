@@ -1,0 +1,54 @@
+{
+  "Name": "server.genetics.species.Mammal_Canid.name",
+  "Roles": [
+    "Wolf_Black",
+    "Wolf_White",
+    "Fox",
+    "Hyena",
+    "Wolf_Trork_Hunter",
+    "Wolf_Trork_Shaman",
+    "Wolf_Outlander_Priest",
+    "Wolf_Outlander_Sorcerer"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 2,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 7
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 7
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Meat_Buff_T1",
+    "Duration": 180
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.4,
+      "Min": 8,
+      "Max": 10
+    }
+  ],
+  "Sound": "SFX_Wolf_Alerted",
+  "Icons": {
+    "Wolf_Black": "Icons/ModelsGenerated/Wolf_Black.png",
+    "Wolf_White": "Icons/ModelsGenerated/Wolf_White.png",
+    "Fox": "Icons/ModelsGenerated/Fox.png",
+    "Hyena": "Icons/ModelsGenerated/Hyena.png",
+    "Wolf_Trork_Hunter": "Icons/ModelsGenerated/Wolf_Black.png",
+    "Wolf_Trork_Shaman": "Icons/ModelsGenerated/Wolf_Black.png",
+    "Wolf_Outlander_Priest": "Icons/ModelsGenerated/Wolf_Black.png",
+    "Wolf_Outlander_Sorcerer": "Icons/ModelsGenerated/Wolf_Black.png"
+  }
+}

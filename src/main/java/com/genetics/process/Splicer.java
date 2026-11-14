@@ -136,7 +136,12 @@ public final class Splicer {
         Plan plan = plan(a, b, Integer.MAX_VALUE, keep);
         if (plan.mutationChance() <= 0 || random.nextDouble() >= plan.mutationChance()) return new Result(plan.result(), null);
 
-        MutationEntry entry = pickMutation(Tiers.rank(Tiers.forComplexity(plan.result().complexity())), random);
+        java.util.Set<String> species = new java.util.HashSet<>();
+        for (Genome input : List.of(a, b)) {
+            com.genetics.codex.MobGeneProfile profile = input.source() != null ? com.genetics.journal.Catalogue.profileOf(input.source().mobId()) : null;
+            if (profile != null) species.add(profile.getId());
+        }
+        MutationEntry entry = pickMutation(Tiers.rank(Tiers.forComplexity(plan.result().complexity())), species, random);
         if (entry == null) return new Result(plan.result(), null);
         List<Gene> genes = new ArrayList<>(plan.result().genes());
         genes.add(new Gene.Mutation(entry.getId()));
@@ -162,21 +167,34 @@ public final class Splicer {
         };
     }
 
-    /** A random mutation by Weight, among those whose MinTier is at or below this tier rank. */
+    /**
+     * A random mutation by Weight, among those whose MinTier is at or below this tier rank. Mutations themed to one of
+     * the inputs' {@code species} weigh {@code ThemedMutationWeight} times more.
+     */
     @Nullable
-    static MutationEntry pickMutation(int tierRank, @Nonnull Random random) {
+    static MutationEntry pickMutation(int tierRank, @Nonnull java.util.Set<String> species, @Nonnull Random random) {
         List<MutationEntry> candidates = new ArrayList<>();
+        List<Double> weights = new ArrayList<>();
+        double themed = Balance.get().splicing().getThemedMutationWeight();
         double total = 0;
         for (MutationEntry entry : MutationEntry.getAssetMap().getAssetMap().values()) {
             int minRank = Tiers.rank(entry.getMinTier());
             if (minRank < 0 || minRank > tierRank || entry.getWeight() <= 0) continue;
+            double weight = entry.getWeight();
+            for (String id : entry.getSpecies()) {
+                if (species.contains(id)) {
+                    weight *= themed;
+                    break;
+                }
+            }
             candidates.add(entry);
-            total += entry.getWeight();
+            weights.add(weight);
+            total += weight;
         }
         double roll = random.nextDouble() * total;
-        for (MutationEntry entry : candidates) {
-            roll -= entry.getWeight();
-            if (roll < 0) return entry;
+        for (int i = 0; i < candidates.size(); i++) {
+            roll -= weights.get(i);
+            if (roll < 0) return candidates.get(i);
         }
         return null;
     }

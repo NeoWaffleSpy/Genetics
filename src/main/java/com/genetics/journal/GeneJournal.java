@@ -75,6 +75,8 @@ public class GeneJournal implements Component<EntityStore> {
     private Set<String> completed = new LinkedHashSet<>();
     private int science;
     private Set<String> researched = new LinkedHashSet<>();
+    /** Set once {@link #migrateSpecies} has run for this loaded component (not saved). */
+    private boolean migrated;
 
     public static void setComponentType(@Nonnull ComponentType<EntityStore, GeneJournal> type) {
         componentType = type;
@@ -84,19 +86,59 @@ public class GeneJournal implements Component<EntityStore> {
         return componentType;
     }
 
-    /** Records a sample of a species. Returns true if it is the first sample of that species. */
-    public boolean recordSample(@Nonnull Genome.Source source) {
-        Species entry = species.get(source.mobId());
+    /** Records a sample of a species (a gene profile id). Returns true if it is the first sample of that species. */
+    public boolean recordSample(@Nonnull String speciesId, @Nonnull String name, @Nonnull Genome.Source source) {
+        Species entry = species.get(speciesId);
         boolean first = entry == null;
         if (first) {
             entry = new Species();
-            entry.name = source.mobName();
+            entry.name = name;
             entry.icon = source.icon();
             entry.firstSampled = source.sampledAt();
-            species.put(source.mobId(), entry);
+            species.put(speciesId, entry);
         }
         entry.samples++;
         return first;
+    }
+
+    /**
+     * Moves species saved under an NPC role (before species were grouped by gene profile) to their species id,
+     * merging samples, genes and completion. {@code speciesOf} maps a saved key to its species (null: leave it).
+     * Returns true if anything moved.
+     */
+    public boolean migrateSpecies(@Nonnull java.util.function.UnaryOperator<String> speciesOf,
+                                  @Nonnull java.util.function.BinaryOperator<String> nameOf) {
+        if (migrated) return false;
+        migrated = true;
+        boolean changed = false;
+        for (Set<String> found : speciesGenes.values()) changed |= found.removeIf(k -> k.startsWith("Mutation:"));
+        for (String key : new java.util.ArrayList<>(species.keySet())) {
+            String target = speciesOf.apply(key);
+            if (target == null) {
+                // Sampled before every creature had a profile (e.g. copies of a player): not a species any more.
+                species.remove(key);
+                speciesGenes.remove(key);
+                completed.remove(key);
+                changed = true;
+                continue;
+            }
+            if (target.equals(key)) continue;
+            Species old = species.remove(key);
+            Species into = species.get(target);
+            if (into == null) {
+                old.name = nameOf.apply(target, old.name);
+                species.put(target, old);
+            } else {
+                into.samples += old.samples;
+                into.firstSampled = Math.min(into.firstSampled, old.firstSampled);
+            }
+            Set<String> genesOld = speciesGenes.remove(key);
+            if (genesOld != null) speciesGenes.computeIfAbsent(target, k -> new LinkedHashSet<>()).addAll(genesOld);
+            // Completion is re-earned against the group's (larger) gene list.
+            completed.remove(key);
+            changed = true;
+        }
+        return changed;
     }
 
     /** Records the genes of an identified genome in the old-format list. Returns how many were new. */
@@ -195,6 +237,16 @@ public class GeneJournal implements Component<EntityStore> {
 
     public void resetResearch() {
         researched.clear();
+    }
+
+    /** Forgets every discovery (species, genes, buffs, mutations, completions). Science and research are kept. */
+    public void clearDiscoveries() {
+        species.clear();
+        genes.clear();
+        speciesGenes.clear();
+        buffs.clear();
+        mutations.clear();
+        completed.clear();
     }
 
     @Nonnull

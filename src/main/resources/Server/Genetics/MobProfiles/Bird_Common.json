@@ -1,0 +1,61 @@
+{
+  "Name": "server.genetics.species.Bird_Common.name",
+  "Roles": [
+    "Bluebird",
+    "Finch_Green",
+    "Sparrow",
+    "Woodpecker",
+    "Crow",
+    "Raven",
+    "Parrot",
+    "Flamingo",
+    "Penguin",
+    "Tetrabird",
+    "Hawk",
+    "Vulture"
+  ],
+  "Category": "Zone 1 wildlife",
+  "Zone": "Zone 1",
+  "SyringeTier": 1,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Stamina",
+      "Weight": 2,
+      "Min": 3,
+      "Max": 6
+    },
+    {
+      "Stat": "Oxygen",
+      "Weight": 1,
+      "Min": 6,
+      "Max": 12
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Immunity_Fall",
+    "Duration": 150
+  },
+  "Drawbacks": [
+    {
+      "Stat": "Health",
+      "Chance": 0.3,
+      "Min": 3,
+      "Max": 5
+    }
+  ],
+  "Icons": {
+    "Bluebird": "Icons/ModelsGenerated/Bluebird.png",
+    "Finch_Green": "Icons/ModelsGenerated/Finch_Green.png",
+    "Sparrow": "Icons/ModelsGenerated/Sparrow.png",
+    "Woodpecker": "Icons/ModelsGenerated/Woodpecker.png",
+    "Crow": "Icons/ModelsGenerated/Crow.png",
+    "Raven": "Icons/ModelsGenerated/Raven.png",
+    "Parrot": "Icons/ModelsGenerated/Parrot.png",
+    "Flamingo": "Icons/ModelsGenerated/Flamingo.png",
+    "Penguin": "Icons/ModelsGenerated/Penguin.png",
+    "Tetrabird": "Icons/ModelsGenerated/Tetrabird.png",
+    "Hawk": "Icons/ModelsGenerated/Hawk.png",
+    "Vulture": "Icons/ModelsGenerated/Vulture.png"
+  }
+}

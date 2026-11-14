@@ -749,6 +749,20 @@ $C.@DecoratedContainer #Panel {
                 }
               }
 
+              Group {
+                LayoutMode: Left;
+                Anchor: (Height: 30, Top: 8);
+
+                TextButton #LibSubStatsOn { Style: @SubOnStyle; Text: "Stats"; Anchor: (Width: 130); }
+                TextButton #LibSubStatsOff { Style: @SubOffStyle; Text: "Stats"; Anchor: (Width: 130); Visible: false; }
+                Group { Anchor: (Width: 8); }
+                TextButton #LibSubEffectsOn { Style: @SubOnStyle; Text: "Effects"; Anchor: (Width: 130); Visible: false; }
+                TextButton #LibSubEffectsOff { Style: @SubOffStyle; Text: "Effects"; Anchor: (Width: 130); }
+                Group { Anchor: (Width: 8); }
+                TextButton #LibSubMutationsOn { Style: @SubOnStyle; Text: "Mutations"; Anchor: (Width: 130); Visible: false; }
+                TextButton #LibSubMutationsOff { Style: @SubOffStyle; Text: "Mutations"; Anchor: (Width: 130); }
+              }
+
               Label #LibraryEmpty {
                 Padding: (Top: 8);
                 Text: "Empty. Put genetic material in the slot, open the Process tab and extract a gene with its Extract button.";
@@ -933,7 +947,7 @@ $C.@DecoratedContainer #Panel {
             OutlineSize: 1;
 
             AssetImage #DetailIcon {
-              Anchor: (Width: 64, Height: 64);
+              Anchor: (Width: 200, Height: 200);
               Visible: false;
             }
 
@@ -950,6 +964,12 @@ $C.@DecoratedContainer #Panel {
             Label #DetailGenesHeader {
               Padding: (Top: 12, Bottom: 6);
               Style: @SectionStyle;
+            }
+
+            Label #DetailText {
+              Padding: (Bottom: 10);
+              Style: (FontSize: 15, TextColor: #d6e2ea, Wrap: true);
+              Visible: false;
             }
 
             Group #DetailGenes {

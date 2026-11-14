@@ -3,7 +3,7 @@
   "Branch": "Syringes",
   "Order": 2,
   "Icon": "Syringe",
-  "Cost": 15,
+  "Cost": 75,
   "Requires": [
     "CopperSyringe"
   ],

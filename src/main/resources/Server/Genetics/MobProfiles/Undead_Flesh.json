@@ -1,0 +1,66 @@
+{
+  "Name": "server.genetics.species.Undead_Flesh.name",
+  "Roles": [
+    "Zombie",
+    "Zombie_Burnt",
+    "Zombie_Frost",
+    "Zombie_Sand",
+    "Ghoul",
+    "Cow_Undead",
+    "Pig_Undead",
+    "Chicken_Undead",
+    "Horse_Skeleton",
+    "Horse_Skeleton_Armored",
+    "Hound_Bleached"
+  ],
+  "Category": "Undead",
+  "Zone": "Zone 4",
+  "SyringeTier": 3,
+  "StatRolls": 1,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 6,
+      "Max": 12
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "HealthRegen_Buff_T1",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.1,
+  "PermanentEffects": [
+    {
+      "Id": "Immunity_Poison",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.7,
+      "Min": 5,
+      "Max": 10
+    },
+    {
+      "Stat": "Mana",
+      "Chance": 0.3,
+      "Min": 5,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Zombie": "Icons/ModelsGenerated/Zombie.png",
+    "Zombie_Burnt": "Icons/ModelsGenerated/Zombie_Burnt.png",
+    "Zombie_Frost": "Icons/ModelsGenerated/Zombie_Frost.png",
+    "Zombie_Sand": "Icons/ModelsGenerated/Zombie_Sand.png",
+    "Ghoul": "Icons/ModelsGenerated/Ghoul.png",
+    "Cow_Undead": "Icons/ModelsGenerated/Cow_Undead.png",
+    "Pig_Undead": "Icons/ModelsGenerated/Pig_Undead.png",
+    "Chicken_Undead": "Icons/ModelsGenerated/Chicken_Undead.png",
+    "Horse_Skeleton": "Icons/ModelsGenerated/Horse_Skeleton.png",
+    "Horse_Skeleton_Armored": "Icons/ModelsGenerated/Horse_Skeleton_Armored.png",
+    "Hound_Bleached": "Icons/ModelsGenerated/Hound_Bleached.png"
+  }
+}

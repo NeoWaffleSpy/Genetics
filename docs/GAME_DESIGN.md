@@ -21,7 +21,8 @@ paid for with rare resources.
 3. **Control is earned.** You go from chance (Phase 1), to steering the odds (Phase 2), to choosing the
    outcome (Phase 3). Each step costs more.
 4. **Uses the base game.** Gating follows vanilla zones, materials and bench tiers, and genes only use
-   vanilla stats and effects. The mod has no separate tech tree of its own.
+   vanilla stats and effects. The mod's own Research tree (§9.5) only decides *what* can be crafted; the
+   materials still come from vanilla progression.
 
 ## 2. Terminology
 
@@ -38,7 +39,7 @@ paid for with rare resources.
 | **Genetic Sickness** | An entity stat that builds up with each injection and decays over time. Causes temporary debuffs. See §9.2. |
 | **Genome Expansion** | A crafted consumable that permanently raises Genome Capacity, one per Complexity tier. |
 | **Complexity tier** | A band of Complexity values. Each tier has its own processing materials and acts as a progression gate. See §4. |
-| **Mutation** | A special gene that never appears on a source mob. Defined in the Mutation Codex. |
+| **Mutation** | A special, active gene themed to some species. It comes from splicing, or from a boss's signature. Defined in the Mutation Codex. |
 | **Effect Codex / Mutation Codex** | Data files that give every effect and mutation its Complexity value (and, for mutations, its behavior). See §3.2 and §3.3. |
 | **Identification** | Revealing a sample's genes at the Lab Station. It is part of processing. |
 | **Catalogue** | The per-player record of every creature, gene, buff and mutation discovered (formerly the Gene Journal). A tab of the Lab Station. See §9.4. |
@@ -96,70 +97,80 @@ drawback then makes a genome cheaper to process and easier to fit under the play
 
 ### 3.2 Effect Codex (Decided)
 
-A data file that gives every status effect an arbitrary Complexity value. It is the base for the effect
-part of the calculation. **Proposal:** it also holds the weight of each stat, so all base values are in
-one file.
+Data assets that give every status effect a Complexity value, and every stat its weight, so all base
+values are tuned in one place. One file per entry (implemented as Hytale asset types, so resource packs
+can extend them):
 
 ```jsonc
-// Server/Genetics/EffectCodex.json
-{
-  "Stats": {
-    "Health":  { "WeightPerPercent": 0.8 },
-    "Stamina": { "WeightPerPercent": 0.6 },
-    "Mana":    { "WeightPerPercent": 0.6 },
-    "Oxygen":  { "WeightPerPercent": 0.2 }
-  },
-  "Effects": {
-    "Regeneration": { "Temporary": 3, "Permanent": 25 },
-    "NightVision":  { "Temporary": 1, "Permanent": 10 },
-    "Speed":        { "Temporary": 4, "Permanent": 30 }
-  },
-  "DefaultEffect": { "Temporary": 5, "Permanent": 40 }
-}
+// Server/Genetics/EffectCodex/Stats/Health.json
+{ "WeightPerPercent": 0.8 }          // Stamina 0.6, Mana 0.6, Oxygen 0.2, Default 0.5
+
+// Server/Genetics/EffectCodex/Effects/HealthRegen_Buff_T1.json
+{ "Temporary": 3, "Permanent": 100, "Name": "server.genetics.effects.Regen_T1.name" }
 ```
 
-**Proposal:** each effect has separate values for its temporary and permanent forms, since a permanent
-effect is worth far more. Effects missing from the Codex use `DefaultEffect`, so new or modded effects
+Each effect has separate values for its temporary and permanent forms, since a permanent effect is worth
+far more. Effects missing from the Codex use `Effects/Default.json` (5 / 40), so new or modded effects
 work without an entry (and the server logs a warning so they get one).
 
 ### 3.3 Mutation Codex (Decided)
 
-A separate data file that stores each mutation's **behavior**, **stats** and **Complexity value**.
+Separate data assets (`Server/Genetics/MutationCodex/<Id>.json`, one per mutation) that store each
+mutation's **behavior**, **stats** and **Complexity value**. Illustrative shape (the live values are in
+the files):
 
 ```jsonc
-// Server/Genetics/MutationCodex.json
+// Server/Genetics/MutationCodex/Bloodfang.json
 {
-  "Mutations": {
-    "TitanBlood": {
-      "Name": "server.genetics.mutations.TitanBlood.name",
-      "Complexity": 35,
-      "Stats":   { "Health": 20 },
-      "Effects": [],
-      "Behaviors": [],
-      "Weight": 10,
-      "MinTier": "Complex"
-    },
-    "AdrenalSurge": {
-      "Name": "server.genetics.mutations.AdrenalSurge.name",
-      "Complexity": 45,
-      "Stats":   {},
-      "Effects": [],
-      "Behaviors": [
-        { "Type": "OnLowHealth", "Threshold": 0.25, "Apply": "Speed", "Duration": 6, "Cooldown": 60 }
-      ],
-      "Weight": 5,
-      "MinTier": "Advanced"
-    }
-  }
+  "Name": "server.genetics.mutations.Bloodfang.name",
+  "Description": "server.genetics.mutations.Bloodfang.desc",
+  "Complexity": 30,
+  "Species": [ "Mammal_Canid", "Undead_Werewolf" ],
+  "Behaviors": [
+    { "Type": "OnHit", "HealFraction": 0.08 },
+    { "Type": "OnHit", "HealFraction": 0.07, "Conditions": { "Night": true } }
+  ],
+  "Weight": 6,
+  "MinTier": "Moderate"
 }
 ```
 
 - **Stats** and **Effects** use the same vanilla stats and effects as normal genes.
 - **Behaviors** are small reusable triggers coded in Java and referenced by `Type`, so new mutations can
-  mostly be made in data. A starting set (Proposal): `OnLowHealth`, `OnHit`, `OnKill`, `InWater`,
-  `AtNight`, each applying an effect.
-- **Weight** is how likely the mutation is to be picked when one is rolled. **MinTier** (Proposal) keeps
-  powerful mutations from appearing on simple genomes.
+  mostly be made in data.
+- **Weight** is how likely the mutation is to be picked when one is rolled. **MinTier** keeps powerful
+  mutations from appearing on simple genomes.
+
+**Decided 2026-11-14: mutations are active, themed and never flat.**
+- **Active or reactive.** Every mutation reacts to something: a hit, a kill, getting hurt, a killing blow, a
+  fall, a charged jump, crouching, daylight, a debuff. Nothing purely passive.
+- **No flat stats.** A mutation never adds a stat genes can already raise. At most it *multiplies* the stat
+  while its condition holds (Grizzly Fury: max Health ×1.15 below 40% health).
+- **Not all powerful.** Some are combat tools, some utility (Featherfall, Photosynthesis), some gimmicks
+  (Egg Layer).
+- **Themed.** Each mutation lists the species it belongs to (`Species`). Splicing favours mutations themed
+  to the two inputs' species (×4 weight), and bosses carry their **signature mutation** on 50% of samples.
+  A mob with a signature can only be sampled **once**; trying again says it is too angry to be sampled again.
+
+**Triggers** (behavior `Type`), all accepting `Cooldown`, `Actions`, `Message` and shared `Conditions`
+(`Night`, `Day`, `InWater`, `Airborne`, `SprintJump`, `Crouching`, `Still`, `HealthBelow`, `HealthAbove`):
+
+| Trigger | Fires | Extra fields |
+| --- | --- | --- |
+| `OnHit` | when the entity damages another (effect ticks don't count) | `Chance`, `EveryNth` (same target), `Melee`, `TargetHealthBelow`, `Unnoticed`, `DamageBonus`, `HealFraction`, `TargetActions`, stacks |
+| `OnKill` | on a kill | `Chance`, `TargetSpecies`, `TargetActions` |
+| `OnHurt` | when hit | `Causes`, `FromEntity`, `Melee`, `MinFraction`, `MinDamage`, `EveryNth` + `Window`, `AttackerActions`, stacks |
+| `OnLethal` | instead of dying | `Invulnerable` (seconds) |
+| `WhileHeld` | once the Conditions held for `HoldTime` | `Repeat` |
+| `OnFall` | once per fall past `MinDistance` blocks | |
+| `OnChargedJump` | jumping after crouching `CrouchTime` | |
+| `OnEffect` | while one of `Effects` is on the entity | |
+| `OnLowHealth`, `OnDamaged`, `AtNight`, `Periodic` | as before | |
+
+**Actions** (shared with sickness events): `ApplyEffect`, `RemoveEffect`, `RestoreStat`, `AreaEffect`,
+`AreaImpulse`, `PushAway`, `Impulse` (can add to velocity), `DropItem`, `DropLoot`, `PlaySound`,
+`PlaySourceMobSound`, `ApplySourceMobEffect`, `CameraShake`, `MorphIntoSourceMob`. The 24 mutations are
+listed in [MOB_GENETICS.md](MOB_GENETICS.md).
 
 ### 3.4 Genome Capacity (Decided)
 
@@ -238,17 +249,18 @@ Complexity values are grouped into **tiers**. Each tier requires different mater
 amounts, to process a sample in it. The Lab Station's own tier limits which Complexity tiers it can
 handle, which is what gates the phases.
 
-### 4.1 Example tiers (placeholder values and materials)
+### 4.1 Tiers (implemented; numbers are tunable)
 
-| Tier | Complexity | Station tier needed | Processing materials (example) | Capacity after its Genome Expansion |
+| Tier | Complexity | Station tier needed | Processing materials | Capacity after its Genome Expansion |
 | --- | --- | --- | --- | --- |
-| Simple | 0–20 | Lab Station T2 | Plant fibre, Essence | 20 (base, no expansion needed) |
-| Moderate | 21–45 | Lab Station T2 | Copper or iron bars, Essence | 45 |
-| Complex | 46–80 | Lab Station T3 | Thorium or cobalt bars, crystals | 80 |
-| Advanced | 81–130 | Lab Station T3 | Adamantite, rare zone drops | 130 |
-| Exotic | 131+ | Lab Station T3 | Mithril, boss drops | 200 |
+| Simple | 0–20 | Lab Station T1 | Plant fibre, Life Essence | 20 (base, no expansion needed) |
+| Moderate | 21–45 | Lab Station T2 | Copper bars, Life Essence | 45 |
+| Complex | 46–80 | Lab Station T3 | Thorium bars, cyan crystals | 80 |
+| Advanced | 81–130 | Lab Station T3 | Adamantite bars, concentrated Life Essence | 130 |
+| Exotic | 131+ | Lab Station T3 | Mithril bars, Voidstone | 200 |
+| *(Supreme expansion)* | — | — | — | +50 per use (the first lifts anything below 200 to 250), up to `Capacity.HardCap` |
 
-Material names follow the vanilla progression and should be checked against the current game data.
+Every processing cost also includes one Identification Reagent (§6).
 
 ### 4.2 Modular implementation (Proposal)
 
@@ -260,7 +272,7 @@ names a scaling rule, so a tier can charge a fixed amount, an amount that grows 
 tier, or both:
 
 ```jsonc
-// Server/Genetics/ComplexityTiers.json
+// Server/Genetics/ComplexityTiers/*.json (one file per tier, shown together; Balance/Default.json holds BaseCapacity and the Library multiplier)
 {
   "Tiers": [
     {
@@ -360,16 +372,18 @@ give Burn genes). Instead, each mob gets a **gene profile** in data (one per rol
 - an optional **permanent effect** pool (unlocked later in Phase 1, or by mob tier);
 - optional **negative genes**: drawbacks that can roll alongside the positives.
 
-Mobs without a profile fall back to a generic pool built from their stats. Without new stats, much of
-what makes a creature distinctive has to come from **effects**. Example profiles (placeholders, effect
-names need checking against the vanilla list):
+Without new stats, much of what makes a creature distinctive has to come from **effects**.
 
-| Mob | Stat pool | Effect | Possible drawback |
-| --- | --- | --- | --- |
-| Cow | Max Health +3–8% | Regeneration (temporary) | Max Stamina −5% |
-| Rabbit | Max Stamina +5–10% | Speed (temporary) | Max Health −5% |
-| Fish / aquatic | Max Oxygen +10–25% | Water breathing (temporary) | Max Stamina −5% |
-| Wolf | Max Health +2–4%, Max Stamina +2–4% | Strength (temporary) | Max Mana −10% |
+**Implemented (2026-11-13, updated 2026-11-14): every creature has a profile.** 42 gene profiles cover every finished
+creature role. Each creature is its own **species** in the Catalogue (264 of them, listed in collapsible biome and
+tribe groups); tamed, young, patrol, dungeon and boss-phase variants fold into it. Unfinished mobs (placeholder
+models such as the dragons, and the Voidtaken Grizzly) are left out. Rolls scale with
+zone and strength (about 3–10% in Zone 1, 7–16% in Zone 4, up to 30% on bosses), and each group has its own
+buff, from food buffs and immunities to two new families: **Might** (more damage) and **Hide** (less
+physical damage taken). Permanent effects now roll where players can afford them. Major objectives (bosses
+and rare mobs) carry the best genes and the best permanent-effect chances. The full inventory, scaling rules
+and objective list are in [MOB_GENETICS.md](MOB_GENETICS.md). Props and cinematic actors stay on the
+Default profile and pay no species Science.
 
 **Proposal: making Phase 1 feel rewarding** (review item E1)
 
@@ -438,14 +452,16 @@ Meat Buff T3). Higher tiers cost more Complexity in the Effect Codex.
   injected in a controlled way). Every round of splicing therefore costs a processing step.
 - **Splicing cost** uses the Complexity tier system (§4). The tier is picked from the **average** of the
   two samples' Complexity.
-- Only **one mutation** can exist in a sample, or on the player, at a time.
+- Splicing never mixes mutations: the result keeps one input's mutations. Several mutations in one genome
+  only come from the Genetic Library (§8.1).
 - **Permanent effects from temporary ones (duration threshold).** Splicing adds timers together; once a
   temporary effect lasts at least `Permanence.MinDuration` (30:00 by default, ten 3:00 rolls), processing
   offers a "Make permanent" tickbox for it. It then costs its permanent Complexity (Effect Codex) and one
   **Gene Stabilizer** (a rare crafted catalyst: cyan crystals, concentrated Life Essence and reagents) on
   top of the usual cost. Capacity is the real limit: permanent effects cost 40–220 Complexity.
-- **New mutations only come from splicing.** Processing never creates a mutation: it only keeps one that
-  is already in the source sample.
+- **New mutations come from splicing and bosses.** Processing never creates a mutation: it only keeps one
+  that is already in the sample. Splicing rolls new ones (favouring those themed to the inputs' species),
+  and bosses carry their signature mutation on 50% of samples (§3.3).
 
 **Proposal: details**
 - Phase 2 is the Lab Station's tier 2 upgrade (vanilla benches already upgrade this way), so the player
@@ -455,7 +471,8 @@ Meat Buff T3). Higher tiers cost more Complexity in the Effect Codex.
   kept once.
 - Mutation chance on splice: `2% + 0.05% × combined Complexity`, so two Complexity 20 samples give 4% and
   two Complexity 80 samples give 10%. The mutation is drawn from the Mutation Codex by `Weight`, among
-  mutations whose `MinTier` the result reaches.
+  mutations whose `MinTier` the result reaches; those themed to an input's species weigh 4 times more
+  (`Splicing.ThemedMutationWeight`).
 - When both inputs carry a mutation, the higher-Complexity input's is kept. A new mutation is only rolled
   when neither input has one.
 
@@ -570,7 +587,7 @@ has a weight, a minimum band, a cooldown, and one or more actions. Many events u
 the last injection**, so sickness is different for every creature and stays funny:
 
 ```jsonc
-// Server/Genetics/SicknessEvents.json
+// Server/Genetics/SicknessEvents/*.json (one file per event, shown together; illustrative)
 {
   "Events": {
     "MobCall":    { "MinBand": "Mild",     "Weight": 10, "Cooldown": 30,
@@ -625,12 +642,17 @@ counter, saved with the Catalogue. Placeholder rewards:
 | --- | --- |
 | First sample of a species | +3 |
 | Each new gene of a species | +1 |
-| Every gene of a species found (species complete) | +5 |
+| Every gene of a species found (species complete) | +3 |
 | New buff (first time any species shows it) | +2 |
-| New mutation | +10 |
+| New mutation | +4 (was +10, lowered when 24 mutations made them a large pool) |
 
 The rewards live in the Balance file, like the old milestones did. Repeating a discovery pays nothing, so
-Science can't be farmed by sampling the same mob.
+Science can't be farmed by sampling the same mob. A species is a gene profile, not an NPC role, so variants
+of one creature pay once (saved Catalogues are migrated).
+
+**Economy (implemented 2026-11-13, updated 2026-11-14).** Everything discoverable pays about **twice** the
+Research tree: 2782 Science against 1300 (264 creatures 2638, 24 buffs 48, 24 mutations 96). Since 2026-11-14 every creature is its own species (variants fold into it), and Research costs were multiplied by 5 to match. Players can research everything without
+finding everything. `ScienceEconomyTest` fails if data changes push the ratio out of 1.8–2.4.
 
 ### 9.5 Research (Decided; tree contents are Proposal)
 
@@ -641,10 +663,10 @@ station upgrade still costs its materials.
 
 | Branch | Nodes, in order (placeholder costs) |
 | --- | --- |
-| Lab | Processing (starter) → Splicing (10, unlocks the Splice tab and the Lab Station T2 upgrade) → Make Permanent (15) → Genetic Library (25, unlocks the Library tab and the T3 upgrade) |
-| Reagents | Identification Reagent (starter) → Gene Stabilizer (12, needs Make Permanent). The Gene Enhancer recipe comes with Genetic Library. Idea for later: Mutagen (raises the mutation chance of one splice) |
-| Syringes | Crude (starter) → Copper (5) → Thorium (15) → Adamantite (30) |
-| Genome | Expansion · Moderate (8, capacity 45) → Complex (15, 80) → Advanced (25, 130) → Exotic (40, 200) → Supreme (60: +50 per use, again and again up to `Capacity.HardCap`, 10 000; the first one lifts a capacity below 200 to 250) |
+| Lab | Processing (starter) → Splicing (50, unlocks the Splice tab and the Lab Station T2 upgrade) → Make Permanent (75) → Genetic Library (125, unlocks the Library tab and the T3 upgrade) |
+| Reagents | Identification Reagent (starter) → Gene Stabilizer (60, needs Make Permanent). The Gene Enhancer recipe comes with Genetic Library. Idea for later: Mutagen (raises the mutation chance of one splice) |
+| Syringes | Crude (starter) → Copper (25) → Thorium (75) → Adamantite (150) |
+| Genome | Expansion · Moderate (40, capacity 45) → Complex (75, 80) → Advanced (125, 130) → Exotic (200, 200) → Supreme (300: +50 per use, again and again up to `Capacity.HardCap`, 10 000; the first one lifts a capacity below 200 to 250) |
 
 - Starter nodes are researched from the beginning, so the first loop (sample, process, inject raw) needs
   no Science.
@@ -664,7 +686,7 @@ station upgrade still costs its materials.
 | 1 | Workbench → Syringe and Lab Station T1 (Zone 1) | Basic materials, ID reagent | Raw injection, Simple processing, copying; capacity 20 |
 | 1+ | Research: better syringes (ore tiers) | Science, ores, glass | Stronger mobs, first permanent effects, riskier raw injections |
 | 2 | Research: Splicing, then the Lab Station T2 upgrade | Science, Simple and Moderate tier materials | Moderate processing, splicing, making effects permanent, single mutation; capacity up to 45 |
-| 3 | Research: Lab Station T3 | Science, Complex, Advanced and Exotic tier materials | Genetic Library: extract, combine, fuse and refine genes; multiple mutations; capacity up to 200 |
+| 3 | Research: Genetic Library, then the Lab Station T3 upgrade | Science, Gene Enhancers, Complex, Advanced and Exotic tier materials | Genetic Library: extract genes and combine them at chosen amounts; multiple mutations; capacity 200, then Supreme expansions |
 
 ## 11. Balancing levers
 
@@ -715,7 +737,7 @@ where it stands after the author's answers.
 | # | Risk | Status |
 | --- | --- | --- |
 | E1 | **Phase 1 rewards feel small.** With vanilla stats only, early injections were barely noticeable. | **Proposal** in §6: bigger rolls, 2–5 minute effects, an early permanent utility effect, discovery moments, and discoveries that pay Science for the Research tree (decided, §9.4–9.5). |
-| E2 | **The late-game spike had no source.** Splicing and processing never made a stat bigger than the best mob roll. | **Addressed** by the Genetic Library (§8.1): stat fusion and refining let stats grow, with Complexity and capacity still limiting them. |
+| E2 | **The late-game spike had no source.** Splicing and processing never made a stat bigger than the best mob roll. | **Addressed:** additive splicing pushes values past any single roll, and the Genetic Library (§8.1) stores the best of each gene and mixes them freely, with Complexity and capacity still limiting them. |
 | E3 | **Mid game has long stretches of chance.** Every splice is random per stat, and every round needs a processing step. | **Addressed:** splicing is no longer random; it adds both inputs together, and the screen shows the result before paying. |
 | E4 | **Splicing rules had gaps.** | **Decided:** cost uses the tier of the two samples' average Complexity, and a gene only one input has always carries over. |
 
@@ -727,9 +749,10 @@ where it stands after the author's answers.
 | X2 | **Gifted expansions.** A high-level player can give a new player end-game expansions and genetic material. | **Accepted as a feature.** The base game lets players gift end-game items too. |
 | X3 | **Free drawbacks.** A drawback on an unused stat (−Mana, −Oxygen) costs nothing but lowers Complexity. This matters more now that negative genes may be extracted into the library. | **Open.** Recommendation: give each stat its own drawback weight in the Effect Codex, low for stats that are easy to ignore. |
 | X4 | **Dying cures sickness.** | **Addressed:** sickness persists through death (§9.2). Check once the stat exists, because it depends on how vanilla handles stats on respawn. |
-| X5 | **Mutation farming** by splicing cheap materials for the mutation roll. | **Mostly handled** by `MinTier`. Recommendation: make `MinTier` required for every mutation. |
+| X5 | **Mutation farming** by splicing cheap materials for the mutation roll. | **Mostly handled:** `MinTier` is required for every mutation. Two weak mutations are still `Simple`, so they can come from cheap splices; acceptable as long as they stay weak. |
 | X6 | **Lucky raw injections** giving processed quality for free. | **No change needed:** the odds are very low, capacity still applies, and raw sickness limits retries. |
-| X7 | **Library power creep.** Reusable library entries plus stat fusion could, in theory, build very large genomes. | **Handled by design:** fusion has diminishing returns, Complexity counts the full value of every copy, and capacity caps what the player can carry. This is the intended late-game spike. |
+| X7 | **Library power creep.** Reusable library entries could, in theory, build very large genomes. | **Handled by design:** one entry per gene (no stacking copies), temporary timers capped at 30:00, and capacity caps what the player can carry. This is the intended late-game spike. |
+| X8 | **Science from role variants.** Calves, tamed and coloured variants of one creature could each pay first-sample Science. | **Addressed:** the Catalogue counts a species per gene profile, not per role (§9.4). |
 
 ### 13.3 Early and mid game balance
 
@@ -743,10 +766,13 @@ where it stands after the author's answers.
 
 ## 14. Open questions
 
-1. **E1:** adopt the remaining Phase 1 changes in §6 (bigger rolls, longer temporary effects, early
-   permanent effects)? The discovery change is decided: discoveries pay Science (§9.4).
-2. **Science:** final name ("Science" is a placeholder), and the reward and cost numbers in §9.4 / §9.5.
+1. **E1 / B2:** bigger Phase 1 rolls and an early permanent effect that fits in the starting capacity
+   (today Night Vision costs 40 and Fall Immunity 100, both above 20).
+2. **Science:** final name ("Science" is a placeholder). The economy is sized so that every discovery pays
+   about twice what the whole Research tree costs (§9.4); to be tuned in playtests.
 3. **X3:** give each stat its own drawback weight?
+4. **Supreme expansion:** a flat cost all the way to the 10 000 hard cap gives no reason to stop; scale the
+   cost, or lower the cap until content needs more capacity.
 
 ## 15. Implementation status
 
@@ -757,7 +783,8 @@ where it stands after the author's answers.
 | Effect Codex, Mutation Codex, Complexity tiers (data + loaders) | Done (tiers with Flat, Linear and Exponential Scaling rules, station gate) |
 | Complexity calculation | Done (raw samples, with drawback limits) |
 | Genome Capacity stat, Genome Expansion, degradation | Done (stat, over-capacity check and degradation, warning screen, Moderate expansion) |
-| Mob gene profiles | Done (placeholder profiles for cow, rabbit, wolf, fish, frog, bat/owl, and a default) |
+| Mob gene profiles | Done (45 species covering every creature role, scaled by zone and strength; Might and Hide buffs; see MOB_GENETICS.md) |
+| Automated tests | Done (JUnit, test source set only, never in the mod jar: data files decode and cross-reference, Complexity, splicing, Library, degradation, tiers, Science economy, profile coverage of the installed game, UI selector spacing) |
 | Raw self-injection and active genome | Done (quality roll, override rule, kept through death, syringe emptied) |
 | Copying your genome | Done |
 | Genetic Sickness stat and debuffs | Done (stat, bands, decay, kept through death; shared Action system; 10 events across the three bands) |
@@ -767,15 +794,16 @@ where it stands after the author's answers.
 | Identification and reagent | Done (merged into processing; the reagent is part of every processing cost) |
 | Syringe tiers | Done (Crude, Copper, Thorium, Adamantite; tier from profile or max health) |
 | Phase 2 processing and splicing | Done (Lab Station T2 upgrade; processing screen to choose genes; additive splicing with the result shown before paying, spliced samples named after their tier; new mutations only when none is inherited) |
-| Mutations and behaviors | Done (MinTier required; behaviors OnLowHealth, OnDamaged, AtNight, Periodic, running the shared actions; 4 mutations) |
+| Mutations and behaviors | Done (24 themed, active mutations; 12 triggers incl. hit, kill, hurt, killing blow, hold, fall, charged jump, effect; shared conditions and stacks; boss signature mutations at 50%, bosses sampled once each; themed splicing rolls) |
 | Phase 3 Genetic Library | Done (Lab Station T3; Library tab; extract any gene with Gene Enhancers; one entry per gene at its best value; combine at chosen amounts, drawbacks as reducers; several mutations with the x3 cost multiplier; Complex, Advanced and Exotic expansions) |
 
 ## 16. TODO
 
 Planned work, noted 2026-11-12, in no particular order:
 
-- [ ] **More genetic profiles**, especially per faction: Abyss, Goblins, Trorks, Ferans and others.
-- [ ] **More mutations** with unique effects.
+- [x] **More genetic profiles**: every creature, factions included (MOB_GENETICS.md). Still to do: signature
+      mutations on bosses (a proposal in MOB_GENETICS.md).
+- [x] **More mutations** with unique effects: 24, themed to species, with boss signatures (MOB_GENETICS.md).
 - [x] **UI rework** of the Lab Station: one panel with Process, Splice, Catalogue and Research tabs, and the
       Genetics visual identity (lab teal, helix ornament), from the Hytale-UI Figma proposal. Still to do:
       real textures for the panels and buttons (today flat colours).

@@ -3,7 +3,7 @@
   "Branch": "Reagents",
   "Order": 1,
   "Icon": "Effect",
-  "Cost": 12,
+  "Cost": 60,
   "Requires": [
     "IdentificationReagent",
     "MakePermanent"

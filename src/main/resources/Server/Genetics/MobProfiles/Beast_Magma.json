@@ -1,0 +1,60 @@
+{
+  "Name": "server.genetics.species.Beast_Magma.name",
+  "Roles": [
+    "Emberwulf",
+    "Toad_Rhino",
+    "Toad_Rhino_Magma",
+    "Slug_Magma",
+    "Snail_Magma",
+    "Snail_Frost",
+    "Trillodon",
+    "Snapdragon"
+  ],
+  "Category": "Zone 4 wildlife",
+  "Zone": "Zone 4",
+  "SyringeTier": 4,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 2,
+      "Min": 8,
+      "Max": 14
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 4,
+      "Max": 8
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Immunity_Fire",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.15,
+  "PermanentEffects": [
+    {
+      "Id": "Immunity_Fire",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Oxygen",
+      "Chance": 0.5,
+      "Min": 10,
+      "Max": 15
+    }
+  ],
+  "Icons": {
+    "Emberwulf": "Icons/ModelsGenerated/Emberwulf.png",
+    "Toad_Rhino": "Icons/ModelsGenerated/Toad_Rhino.png",
+    "Toad_Rhino_Magma": "Icons/ModelsGenerated/Toad_Rhino_Magma.png",
+    "Slug_Magma": "Icons/ModelsGenerated/Slug_Magma.png",
+    "Snail_Magma": "Icons/ModelsGenerated/Snail_Magma.png",
+    "Snail_Frost": "Icons/ModelsGenerated/Snail_Frost.png",
+    "Trillodon": "Icons/ModelsGenerated/Trillodon.png",
+    "Snapdragon": "Icons/ModelsGenerated/Snapdragon.png"
+  }
+}

@@ -3,7 +3,7 @@
   "Branch": "Lab",
   "Order": 2,
   "Icon": "Effect",
-  "Cost": 15,
+  "Cost": 75,
   "Requires": [
     "Splicing"
   ],

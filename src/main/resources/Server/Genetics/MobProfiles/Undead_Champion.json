@@ -1,0 +1,62 @@
+{
+  "Name": "server.genetics.species.Undead_Champion.name",
+  "Roles": [
+    "Skeleton_Elite",
+    "Skeleton_Elite_Phase_2",
+    "Skeleton_Burnt_Praetorian",
+    "Shadow_Knight",
+    "Wraith",
+    "Wraith_Lantern",
+    "Skeleton_Burnt_Praetorian_Patrol",
+    "Skeleton_Burnt_Praetorian_Wander"
+  ],
+  "Category": "Undead",
+  "Zone": "Zone 4",
+  "SyringeTier": 4,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 10,
+      "Max": 16
+    },
+    {
+      "Stat": "Mana",
+      "Weight": 1,
+      "Min": 6,
+      "Max": 10
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Might_T2",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.2,
+  "PermanentEffects": [
+    {
+      "Id": "Immunity_Poison",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Stamina",
+      "Chance": 0.5,
+      "Min": 5,
+      "Max": 8
+    }
+  ],
+  "Icons": {
+    "Skeleton_Elite": "Icons/ModelsGenerated/Skeleton_Elite.png",
+    "Skeleton_Elite_Phase_2": "Icons/ModelsGenerated/Skeleton_Elite.png",
+    "Skeleton_Burnt_Praetorian": "Icons/ModelsGenerated/Skeleton_Burnt_Praetorian.png",
+    "Shadow_Knight": "Icons/ModelsGenerated/Shadow_Knight.png",
+    "Wraith": "Icons/ModelsGenerated/Wraith.png",
+    "Wraith_Lantern": "Icons/ModelsGenerated/Wraith.png",
+    "Skeleton_Burnt_Praetorian_Patrol": "Icons/ModelsGenerated/Skeleton_Burnt_Praetorian.png",
+    "Skeleton_Burnt_Praetorian_Wander": "Icons/ModelsGenerated/Skeleton_Burnt_Praetorian.png"
+  },
+  "SignatureMutation": "Undying",
+  "SignatureChance": 0.5
+}

@@ -1,0 +1,48 @@
+{
+  "Name": "server.genetics.species.Undead_Werewolf.name",
+  "Roles": [
+    "Werewolf"
+  ],
+  "Category": "Undead",
+  "Zone": "Zone 4",
+  "SyringeTier": 4,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 1,
+      "Min": 12,
+      "Max": 18
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Speed_T3",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.4,
+  "PermanentEffects": [
+    {
+      "Id": "Genetics_NightVision",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Mana",
+      "Chance": 0.6,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "Icons": {
+    "Werewolf": "Icons/ModelsGenerated/Werewolf.png"
+  },
+  "SignatureMutation": "Bloodfang",
+  "SignatureChance": 0.5
+}

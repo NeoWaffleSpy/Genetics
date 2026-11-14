@@ -1,0 +1,52 @@
+{
+  "Name": "server.genetics.species.Reptile_Armored.name",
+  "Roles": [
+    "Lizard_Sand",
+    "Tortoise",
+    "Armadillo",
+    "Crocodile"
+  ],
+  "Category": "Zone 2 wildlife",
+  "Zone": "Zone 2",
+  "SyringeTier": 2,
+  "StatRolls": 2,
+  "StatPool": [
+    {
+      "Stat": "Health",
+      "Weight": 2,
+      "Min": 5,
+      "Max": 9
+    },
+    {
+      "Stat": "Stamina",
+      "Weight": 1,
+      "Min": 3,
+      "Max": 6
+    }
+  ],
+  "TemporaryEffect": {
+    "Id": "Genetics_Hide_T1",
+    "Duration": 180
+  },
+  "PermanentEffectChance": 0.15,
+  "PermanentEffects": [
+    {
+      "Id": "Genetics_Hide_T1",
+      "Weight": 1
+    }
+  ],
+  "Drawbacks": [
+    {
+      "Stat": "Oxygen",
+      "Chance": 0.4,
+      "Min": 8,
+      "Max": 12
+    }
+  ],
+  "Icons": {
+    "Lizard_Sand": "Icons/ModelsGenerated/Lizard_Sand.png",
+    "Tortoise": "Icons/ModelsGenerated/Tortoise.png",
+    "Armadillo": "Icons/ModelsGenerated/Armadillo.png",
+    "Crocodile": "Icons/ModelsGenerated/Crocodile.png"
+  }
+}

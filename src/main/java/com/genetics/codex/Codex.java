@@ -121,7 +121,11 @@ public final class Codex {
             for (String effect : mutation.getEffects()) problems += checkEffect(effect, where);
             if (mutation.getMinTier() == null) problems += warn(where + ": has no MinTier, so splicing will never roll it.");
             else if (com.genetics.tier.Tiers.rank(mutation.getMinTier()) < 0) problems += warn(where + ": unknown MinTier '" + mutation.getMinTier() + "'.");
-            for (com.genetics.mutation.Behavior behavior : mutation.getBehaviors()) problems += checkActions(behavior.getActions(), where);
+            if (mutation.getBehaviors().length == 0) problems += warn(where + ": has no behavior; mutations must react to something.");
+            for (com.genetics.mutation.Behavior behavior : mutation.getBehaviors()) {
+                for (com.genetics.action.Action[] list : behavior.allActions()) problems += checkActions(list, where);
+                if (behavior instanceof com.genetics.mutation.Behavior.OnEffect onEffect) for (String id : onEffect.getEffects()) problems += checkEffect(id, where);
+            }
         }
         for (com.genetics.tier.ComplexityTier tier : com.genetics.tier.Tiers.all()) {
             for (com.genetics.tier.ComplexityTier.Cost cost : tier.getCosts()) {
@@ -200,6 +204,11 @@ public final class Codex {
         for (com.genetics.action.Action action : actions) {
             if (action instanceof com.genetics.action.ApplyEffectAction apply) problems += checkEffect(apply.getId(), where);
             if (action instanceof com.genetics.action.PlaySoundAction sound) problems += checkSound(sound.getId(), where);
+            if (action instanceof com.genetics.action.AreaEffectAction area) problems += checkEffect(area.getId(), where);
+            if (action instanceof com.genetics.action.RemoveEffectAction remove) for (String id : remove.getIds()) problems += checkEffect(id, where);
+            if (action instanceof com.genetics.action.DropItemAction drop && com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAsset(String.valueOf(drop.getItemId())) == null) {
+                problems += warn(where + ": unknown item '" + drop.getItemId() + "'.");
+            }
             if (action instanceof com.genetics.action.CameraShakeAction shake && com.hypixel.hytale.server.core.asset.type.camera.CameraEffect.getAssetMap().getAsset(String.valueOf(shake.getId())) == null) {
                 problems += warn(where + ": unknown camera effect '" + shake.getId() + "'.");
             }
