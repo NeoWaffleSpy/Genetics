@@ -273,7 +273,7 @@ names a scaling rule, so a tier can charge a fixed amount, an amount that grows 
 tier, or both:
 
 ```jsonc
-// Server/Genetics/ComplexityTiers/*.json (one file per tier, shown together; Balance/Default.json holds BaseCapacity and the Library multiplier)
+// Server/Genetics/ComplexityTiers/*.json (one file per tier, shown together; Balance/Default.json holds BaseCapacity)
 {
   "Tiers": [
     {
@@ -314,7 +314,7 @@ tier, or both:
 | Piece | Job |
 | --- | --- |
 | `Action` (interface) with `ApplyEffect`, `PlaySound`, `Impulse`, … | Small effects registered by `Type` name, shared by mutation behaviors and sickness events. |
-| `GeneLibrary` (player component) | Stores the player's extracted genes for Phase 3 (§8.1). |
+| `GeneJournal` (player component) | The Catalogue, and the player's Genome Tree nodes (§8.3). |
 | `EffectCodex`, `MutationCodex`, `SicknessEvents`, `ComplexityTiers` | Load and validate the data files at startup. Ideally registered as Hytale asset types so resource packs and other mods can extend them; plain JSON resources otherwise. |
 | `ComplexityCalculator` | Genome → Complexity, using the two Codices. Has no knowledge of tiers or costs. |
 | `TierResolver` | Complexity → tier. |
@@ -454,7 +454,7 @@ Meat Buff T3). Higher tiers cost more Complexity in the Effect Codex.
 - **Splicing cost** uses the Complexity tier system (§4). The tier is picked from the **average** of the
   two samples' Complexity.
 - Splicing never mixes mutations: the result keeps one input's mutations. Several mutations in one genome
-  only come from the Genetic Library (§8.1).
+  only come from the Genome Tree (§8.3).
 - **Permanent effects from temporary ones (duration threshold).** Splicing adds timers together; once a
   temporary effect lasts at least `Permanence.MinDuration` (30:00 by default, ten 3:00 rolls), processing
   offers a "Make permanent" tickbox for it. It then costs its permanent Complexity (Effect Codex) and one
@@ -483,64 +483,16 @@ Meat Buff T3). Higher tiers cost more Complexity in the Effect Codex.
 - The player has fine control over processing, at a higher resource cost.
 - Multiple mutations can coexist, at a cost that grows **exponentially** with each extra mutation.
 
-### 8.1 Genetic Library (Decided)
+### 8.1 Genetic Library (removed 2026-11-17)
 
-Fine control comes from a **Genetic Library**. The player **extracts** specific stats, effects or
-mutations from samples into the library, then **combines** them at will into new genetic material. The
-cost scales with the Complexity of what's combined.
+The first Phase 3 design let players **extract** genes from genetic material into a personal library (paid
+with Gene Enhancers) and **combine** them at chosen amounts. The Genome Tree (§8.3) replaced it: what a player
+can build now follows what they have **discovered** in the Catalogue, so there is nothing left to extract.
+Extraction, the Library tab, the Gene Enhancer and the `/genetics library` command are gone. Genetic material
+made by the Library ("Designed Gene") still works.
 
-This replaces random splicing as the late-game way to build genomes. Splicing stays useful (it's the only
-way to create new mutations), but once a gene is in the library, the player no longer has to gamble for it.
-
-**Decided 2026-11-13: how it works** (implemented; changed after the first playtest; numbers are in
-`Balance/Default.json` → `Library`)
-
-- **Unlock.** The Genetic Library research (Lab branch, after Make Permanent) unlocks the Library tab and the
-  Lab Station T3 upgrade (thorium, cyan crystals, concentrated Life Essence), and teaches the Gene Enhancer.
-- **Extract.** Put a genetic material in the Lab Station T3 and pick **one** gene from it (its Extract
-  button on the Process tab). The material is consumed. Any gene can be extracted: stats, drawbacks,
-  effects (temporary or permanent) and mutations. The cost is the materials of that gene's Complexity tier,
-  plus **Gene Enhancers** for stats and effects: one per 10 points of the gene's Complexity (at least one).
-- **One entry per gene, at its best value.** The library keeps a single entry per stat, drawback, effect
-  form and mutation. Extracting a better version raises the entry; a weaker or equal one can't be
-  extracted (the button says why). Entries are knowledge, not items: they are never used up.
-- **Combine.** Tick entries in the Library tab and choose **how much** of each to use, from 0 to the
-  entry's best value (a slider, for stats and temporary effects; permanent effects and mutations are all
-  or nothing). The result goes into an empty syringe in the station's slot, named "<Tier> Designed Gene",
-  and its cost uses the Complexity tier of the result.
-- **Fine control.** Each amount has a slider and a number field (one decimal): percent for stats, minutes
-  for temporary effects.
-- **Timer cap.** A temporary effect never lasts more than 30:00 when timers add up (splicing, the Library),
-  so nobody builds a near-permanent buff for a temporary one's price (`Splicing.MaxEffectDuration`).
-- **Rules.** A bonus and a drawback of the same stat can't be combined; two tiers of the same buff
-  conflict; a permanent effect replaces its temporary form.
-- **Several mutations.** Only the Library can put several mutations in one genome (up to 4); the material
-  cost is multiplied by 3 per extra mutation. Splicing keeps all of one input's mutations, never a mix, and
-  every mutation's behaviors run on the player.
-- **Dropped after the playtest:** stat fusion (several copies of a stat stacking at falling rates) and
-  refining entries past their creature's range. The late-game spike now comes from extracting better
-  versions (splicing pushes values up) and from mixing genes and mutations freely, with capacity and
-  Complexity as the limits. Genes fused by the first version keep their full Complexity (`Cost`).
-- **Storage.** The library belongs to the player (a `GeneLibrary` component, like the Catalogue), so it's
-  never lost with a block. Players share genes by giving each other genetic material to extract.
-
-### 8.2 Negative genes in the library (Decided 2026-11-13: option 1, Complexity reducers)
-
-Being able to extract **negative stats** too is an interesting idea, but the implementation isn't
-decided yet. Three possible uses, which can be combined:
-
-1. **Complexity reducers.** Adding a negative entry to a combination lowers its Complexity, so more power
-   fits under capacity. The drawback limits from §3.1 still apply (per-stat drawback weight and the 30%
-   cap), so this can't go infinite. This uses the existing rule that drawbacks lower Complexity, and
-   needs no new system.
-2. **Bad luck becomes a resource.** Negative genes mostly come from raw injections that went wrong.
-   Copying that genome, processing it and extracting the drawback turns a failed gamble into something
-   useful. This gives Phase 1's failures a late-game value.
-3. **Weapons, later.** Once genomes can be applied to mobs (§12), a genome made only of negative genes
-   could weaken hostile mobs, e.g. as a syringe dart.
-
-Decided: **1**, which gives **2** for free; **3** waits for the mob features. A drawback entry lowers
-the combination's Complexity like any drawback, and the 30% drawback cap still applies.
+The earlier idea of negative genes as library entries (§8.2 in older versions) went with it. Drawbacks still
+lower Complexity in processed and spliced genomes (§3.1).
 
 ### 8.3 Genome Tree (Decided 2026-11-17: replaces the Library tab; numbers are Proposal)
 
@@ -566,13 +518,16 @@ around them. They stay in Phases 1 and 2.
 - **Cores.** Each buff has one Core per tier, spread far apart: Might ×3, Speed ×3, Hide ×2, Night Vision ×1.
 - **Layout rules.** Notables and Cores sit at the **end of a side branch**, hanging off a Small or Big node, never on a
   path. Sinks end the four main arms. A ring around the Origin links the arms, so there's more than one route.
-- **Library.** Extracting still happens on the Process tab. With `RequireLibrary`, a Notable needs its mutation in the
-  Genetic Library, and a Core needs any form (any tier, temporary or permanent) of its buff. Locked nodes show dimmed.
+- **Catalogue discoveries** (`RequireDiscovery`). A Notable needs its mutation discovered. A buff's Cores can be
+  claimed up to the **highest tier of that buff discovered**, in any form: with Might T1 and T2 discovered, two of the
+  three Might Cores. Locked nodes show dimmed, and hovering one says what to discover. At most `MaxMutations` (4)
+  Notables. The Catalogue's buff and mutation pages say what each discovery opens on the tree.
 - **Special stats.** `Genetics_DamageResistance` and `Genetics_KnockbackResistance` are stat genes that aren't entity
   stats: a damage system applies them after armor, capped at 60% and 90%.
 - **Crafting.** The sidebar holds the syringe slot, the capacity the tree spends, the genes the owned nodes give and
   the crafting cost (the materials of the tree cost's Complexity tier). Craft fills the empty syringe; the allocation
   is kept, so the same genome can be crafted again.
+- **Saved with the Catalogue.** The owned nodes live in the player's `GeneJournal`.
 - **Data.** The tree is `Server/Genetics/GenomeTree/Default.json` (a grid position, links and data per node), checked
   by `GenomeTree.check` at load and in the tests. A pack can replace it.
 
@@ -698,8 +653,8 @@ station upgrade still costs its materials.
 
 | Branch | Nodes, in order (placeholder costs) |
 | --- | --- |
-| Lab | Processing (starter) → Splicing (50, unlocks the Splice tab and the Lab Station T2 upgrade) → Make Permanent (75) → Genetic Library (125, unlocks the Library tab and the T3 upgrade) |
-| Reagents | Identification Reagent (starter) → Gene Stabilizer (60, needs Make Permanent). The Gene Enhancer recipe comes with Genetic Library. Idea for later: Mutagen (raises the mutation chance of one splice) |
+| Lab | Processing (starter) → Splicing (50, unlocks the Splice tab and the Lab Station T2 upgrade) → Make Permanent (75) → Genome Tree (125, unlocks the Genome Tree tab and the T3 upgrade; saved id `GeneticLibrary`) |
+| Reagents | Identification Reagent (starter) → Gene Stabilizer (60, needs Make Permanent). Idea for later: Mutagen (raises the mutation chance of one splice) |
 | Syringes | Crude (starter) → Copper (25) → Thorium (75) → Adamantite (150) |
 | Genome | Expansion · Moderate (40, capacity 45) → Complex (75, 80) → Advanced (125, 130) → Exotic (200, 200) → Supreme (300: +50 per use, again and again up to `Capacity.HardCap`, 10 000; the first one lifts a capacity below 200 to 250) |
 
@@ -707,7 +662,7 @@ station upgrade still costs its materials.
   no Science.
 - A node shows as Researched, Available (affordable or not, with its price) or Locked (with what it needs).
   Cross-branch prerequisites are allowed (Gene Stabilizer needs Make Permanent).
-- More branches can be added later (Phase 3 Library features, faction-specific reagents), since the tree
+- More branches can be added later (Phase 3 tree features, faction-specific reagents), since the tree
   is data.
 - **Data:** a `ResearchNode` asset type (`Server/Genetics/Research/`) with `Branch`, `Cost`, `Requires`
   (node ids), and what it `Unlocks` (recipe ids and/or feature flags such as `Splicing`,
@@ -721,7 +676,7 @@ station upgrade still costs its materials.
 | 1 | Workbench → Syringe and Lab Station T1 (Zone 1) | Basic materials, ID reagent | Raw injection, Simple processing, copying; capacity 20 |
 | 1+ | Research: better syringes (ore tiers) | Science, ores, glass | Stronger mobs, first permanent effects, riskier raw injections |
 | 2 | Research: Splicing, then the Lab Station T2 upgrade | Science, Simple and Moderate tier materials | Moderate processing, splicing, making effects permanent, single mutation; capacity up to 45 |
-| 3 | Research: Genetic Library, then the Lab Station T3 upgrade | Science, Gene Enhancers, Complex, Advanced and Exotic tier materials | Genetic Library: extract genes and combine them at chosen amounts; multiple mutations; capacity 200, then Supreme expansions |
+| 3 | Research: Genome Tree, then the Lab Station T3 upgrade | Science, Complex, Advanced and Exotic tier materials, Catalogue discoveries | Genome Tree: spend capacity on stats, mutations and permanent buffs, opened by discoveries; capacity 200, then Supreme expansions |
 
 ## 11. Balancing levers
 
@@ -734,7 +689,7 @@ All of these live in data files or config rather than code:
 - Drawback discount (60%) and cap (30%)
 - Raw injection curve (C0) and what a failed gene turns into
 - Sickness per Complexity point (raw and processed), decay rate, band thresholds, event weights and cooldowns
-- Library: extraction cost (Gene Enhancers per Complexity), combination costs, mutation multiplier
+- Genome Tree: node costs, Notable and Core multipliers, Sink growth, discovery requirement, most mutations, resistance caps
 - Splice effect reference duration; mutation base chance and Complexity factor
 - Roll counts and ranges per mob profile
 - Science rewards per discovery; Research node costs and prerequisites
@@ -761,10 +716,10 @@ where it stands after the author's answers.
 - **Exploring is rewarded.** Every new zone brings new mobs, so new genes, and the syringe tiers make
   sampling follow the vanilla progression.
 - **Each phase changes how the player plays.** Phase 1 is a gamble, Phase 2 is choosing and combining,
-  Phase 3 is building exactly what you want from the Genetic Library. That's three different activities,
+  Phase 3 is building exactly what you want on the Genome Tree. That's three different activities,
   not one activity with bigger numbers.
 - **There are clear goals at every stage:** the next syringe tier, the next Research node, the next Lab
-  Station tier, the next Genome Expansion, the next mutation, the next library entry.
+  Station tier, the next Genome Expansion, the next mutation, the next tree node.
 - **The design can grow.** The Codices, tiers and mob profiles are all data, so content can be added
   without code.
 - **Sickness adds personality.** Events based on the source mob make every injection a little story.
@@ -772,7 +727,7 @@ where it stands after the author's answers.
 | # | Risk | Status |
 | --- | --- | --- |
 | E1 | **Phase 1 rewards feel small.** With vanilla stats only, early injections were barely noticeable. | **Proposal** in §6: bigger rolls, 2–5 minute effects, an early permanent utility effect, discovery moments, and discoveries that pay Science for the Research tree (decided, §9.4–9.5). |
-| E2 | **The late-game spike had no source.** Splicing and processing never made a stat bigger than the best mob roll. | **Addressed:** additive splicing pushes values past any single roll, and the Genetic Library (§8.1) stores the best of each gene and mixes them freely, with Complexity and capacity still limiting them. |
+| E2 | **The late-game spike had no source.** Splicing and processing never made a stat bigger than the best mob roll. | **Addressed:** additive splicing pushes values past any single roll, and the Genome Tree (§8.3) turns capacity into stats, mutations and permanent buffs, with discoveries and escalating costs limiting them. |
 | E3 | **Mid game has long stretches of chance.** Every splice is random per stat, and every round needs a processing step. | **Addressed:** splicing is no longer random; it adds both inputs together, and the screen shows the result before paying. |
 | E4 | **Splicing rules had gaps.** | **Decided:** cost uses the tier of the two samples' average Complexity, and a gene only one input has always carries over. |
 
@@ -782,11 +737,11 @@ where it stands after the author's answers.
 | --- | --- | --- |
 | X1 | **Free potions.** Reusable syringes, unlimited mobs and temporary effects that survive an override could make cheap raw samples a free potion supply. | **Addressed.** Raw injections build up a lot of sickness, so spamming them quickly reaches Severe. Processed samples cause less, but syringes don't stack and processing costs resources, so a player can't carry many. **Proposal kept:** copies of yourself carry no temporary effect, so copying can't be used as a free buff either. |
 | X2 | **Gifted expansions.** A high-level player can give a new player end-game expansions and genetic material. | **Accepted as a feature.** The base game lets players gift end-game items too. |
-| X3 | **Free drawbacks.** A drawback on an unused stat (−Mana, −Oxygen) costs nothing but lowers Complexity. This matters more now that negative genes may be extracted into the library. | **Open.** Recommendation: give each stat its own drawback weight in the Effect Codex, low for stats that are easy to ignore. |
+| X3 | **Free drawbacks.** A drawback on an unused stat (−Mana, −Oxygen) costs nothing but lowers Complexity. | **Open.** Recommendation: give each stat its own drawback weight in the Effect Codex, low for stats that are easy to ignore. |
 | X4 | **Dying cures sickness.** | **Addressed:** sickness persists through death (§9.2). Check once the stat exists, because it depends on how vanilla handles stats on respawn. |
 | X5 | **Mutation farming** by splicing cheap materials for the mutation roll. | **Mostly handled:** `MinTier` is required for every mutation. Two weak mutations are still `Simple`, so they can come from cheap splices; acceptable as long as they stay weak. |
 | X6 | **Lucky raw injections** giving processed quality for free. | **No change needed:** the odds are very low, capacity still applies, and raw sickness limits retries. |
-| X7 | **Library power creep.** Reusable library entries could, in theory, build very large genomes. | **Handled by design:** one entry per gene (no stacking copies), temporary timers capped at 30:00, and capacity caps what the player can carry. This is the intended late-game spike. |
+| X7 | **Tree power creep.** Sinks have no rank limit. | **Handled by design:** each rank costs more than the last, Notables and Cores escalate, resistances are capped, and capacity caps everything. |
 | X8 | **Science from role variants.** Calves, tamed and coloured variants of one creature could each pay first-sample Science. | **Addressed:** the Catalogue counts a species per gene profile, not per role (§9.4). |
 
 ### 13.3 Early and mid game balance
@@ -819,7 +774,7 @@ where it stands after the author's answers.
 | Complexity calculation | Done (raw samples, with drawback limits) |
 | Genome Capacity stat, Genome Expansion, degradation | Done (stat, over-capacity check and degradation, warning screen, Moderate expansion) |
 | Mob gene profiles | Done (45 species covering every creature role, scaled by zone and strength; Might and Hide buffs; see MOB_GENETICS.md) |
-| Automated tests | Done (JUnit, test source set only, never in the mod jar: data files decode and cross-reference, Complexity, splicing, Library, degradation, tiers, Science economy, profile coverage of the installed game, UI selector spacing) |
+| Automated tests | Done (JUnit, test source set only, never in the mod jar: data files decode and cross-reference, Complexity, splicing, Genome Tree, degradation, tiers, Science economy, profile coverage of the installed game, UI selector spacing) |
 | Raw self-injection and active genome | Done (quality roll, override rule, kept through death, syringe emptied) |
 | Copying your genome | Done |
 | Genetic Sickness stat and debuffs | Done (stat, bands, decay, kept through death; shared Action system; 10 events across the three bands) |
@@ -831,7 +786,7 @@ where it stands after the author's answers.
 | Phase 2 processing and splicing | Done (Lab Station T2 upgrade; processing screen to choose genes; additive splicing with the result shown before paying, spliced samples named after their tier; new mutations only when none is inherited) |
 | Mutations and behaviors | Done (24 themed, active mutations; 12 triggers incl. hit, kill, hurt, killing blow, hold, fall, charged jump, effect; shared conditions and stacks; boss signature mutations at 50%, bosses sampled once each; themed splicing rolls) |
 | Phase 3 Genome Tree | First version (Genome Tree tab replaces the Library tab: nodes paid in Complexity, Notables x2 and Cores x3, Sinks, special stats, crafting from the sidebar; not yet checked in game) |
-| Phase 3 Genetic Library | Done (Lab Station T3; extraction on the Process tab; extract any gene with Gene Enhancers; one entry per gene at its best value; combine at chosen amounts, drawbacks as reducers; several mutations with the x3 cost multiplier; Complex, Advanced and Exotic expansions) |
+| Phase 3 Genetic Library | Removed 2026-11-17 (replaced by the Genome Tree; extraction, the Library tab and the Gene Enhancer are gone) |
 
 ## 16. TODO
 

@@ -4,7 +4,7 @@ import com.genetics.codex.Balance;
 import com.genetics.genome.ComplexityCalculator;
 import com.genetics.genome.Gene;
 import com.genetics.genome.Genome;
-import com.genetics.library.GeneLibrary;
+import com.genetics.journal.GeneJournal;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 /**
  * The Genome Tree rules (design doc §8.3). Nodes are paid in Complexity, so a player's Genome Capacity is the tree's
@@ -28,6 +28,9 @@ import java.util.function.Predicate;
  *   <li>one mutation per Notable.</li>
  * </ul>
  * Its Complexity is the tree's cost, not the Codex sum: injecting it checks capacity against that cost.
+ * <p>
+ * What may be claimed follows the Catalogue: a Notable needs its mutation discovered, and a buff's Cores can be
+ * claimed up to the highest tier of that buff discovered (tier 2 discovered: two Cores).
  */
 public final class GenomeTree {
     /** Source id of genetic material made on the tree. */
@@ -129,40 +132,61 @@ public final class GenomeTree {
     /**
      * Why the node (or a Sink's next rank) can't be taken, or null if it can.
      *
-     * @param unlocked     whether the player may take a Notable or Core (see {@link #unlockedBy})
-     * @param maxMutations most Notables at once
+     * @param unlocks how many of a node the player may claim (see {@link #unlocksFrom}): a Notable 0 or 1, a Core's
+     *                buff its highest discovered tier
      */
     @Nullable
     public static String whyNot(@Nonnull TreeLayout layout, @Nonnull TreeAllocation allocation, @Nonnull TreeNode node, double capacity,
-                                @Nonnull Balance.GenomeTree balance, @Nonnull Predicate<TreeNode> unlocked, int maxMutations) {
+                                @Nonnull Balance.GenomeTree balance, @Nonnull ToIntFunction<TreeNode> unlocks) {
         TreeNode.Kind kind = node.kind();
         if (kind == null) return "This node is broken (unknown type).";
         if (kind == TreeNode.Kind.ORIGIN) return "The origin is always yours.";
         if (allocation.owns(node.getId()) && kind != TreeNode.Kind.SINK) return "Already taken.";
         if (!allocation.owns(node.getId()) && !reachable(layout, allocation, node.getId())) return "Not linked to your nodes yet.";
-        if (!unlocked.test(node)) {
-            return kind == TreeNode.Kind.NOTABLE
-                    ? "Extract " + nodeName(node) + " into your Genetic Library first."
-                    : "Extract any form of " + nodeName(node) + " into your Genetic Library first.";
-        }
+        String locked = lockReason(layout, allocation, node, unlocks);
+        if (locked != null) return locked;
         if (kind == TreeNode.Kind.NOTABLE) {
             long owned = allocation.ids().stream().map(layout::node).filter(n -> n != null && n.kind() == TreeNode.Kind.NOTABLE).count();
-            if (owned >= maxMutations) return "At most " + maxMutations + " mutations in one genome.";
+            if (owned >= balance.getMaxMutations()) return "At most " + balance.getMaxMutations() + " mutations in one genome.";
         }
         if (kind == TreeNode.Kind.CORE) {
             int owned = buffCount(layout, allocation, node.getBuff());
-            if (owned >= node.getTiers().size()) return nodeName(node) + " has no higher tier.";
+            if (owned >= node.getTiers().size()) return idName(node) + " has no higher tier.";
         }
         double total = cost(layout, allocation, balance).total() + nextCost(layout, allocation, node, balance);
         if (total > capacity + 1e-9) return "Over your Genome Capacity (" + format(total) + " / " + format(capacity) + ").";
         return null;
     }
 
+    /**
+     * Why the Catalogue doesn't let the player claim this unowned node yet, or null if it does: a Notable whose mutation
+     * isn't discovered, a Core whose buff has no more discovered tiers than Cores already claimed.
+     */
+    @Nullable
+    public static String lockReason(@Nonnull TreeLayout layout, @Nonnull TreeAllocation allocation, @Nonnull TreeNode node,
+                                    @Nonnull ToIntFunction<TreeNode> unlocks) {
+        if (allocation.owns(node.getId())) return null;
+        if (node.kind() == TreeNode.Kind.NOTABLE && unlocks.applyAsInt(node) <= 0) {
+            return "Discover " + idName(node) + " in the Catalogue first (sample or splice a creature that carries it).";
+        }
+        if (node.kind() == TreeNode.Kind.CORE) {
+            int owned = buffCount(layout, allocation, node.getBuff());
+            int discovered = unlocks.applyAsInt(node);
+            List<String> tiers = node.getTiers();
+            if (owned < tiers.size() && owned >= discovered) {
+                String buff = idName(node);
+                return discovered <= 0 ? "Discover " + buff + " in the Catalogue first."
+                        : "You've discovered " + buff + " up to tier " + discovered + ": discover tier " + (owned + 1) + " to claim another Core.";
+            }
+        }
+        return null;
+    }
+
     /** Takes the node (or a Sink's next rank) if allowed. Returns why not, or null when done. */
     @Nullable
     public static String take(@Nonnull TreeLayout layout, @Nonnull TreeAllocation allocation, @Nonnull TreeNode node, double capacity,
-                              @Nonnull Balance.GenomeTree balance, @Nonnull Predicate<TreeNode> unlocked, int maxMutations) {
-        String why = whyNot(layout, allocation, node, capacity, balance, unlocked, maxMutations);
+                              @Nonnull Balance.GenomeTree balance, @Nonnull ToIntFunction<TreeNode> unlocks) {
+        String why = whyNot(layout, allocation, node, capacity, balance, unlocks);
         if (why != null) return why;
         allocation.set(node.getId(), node.kind() == TreeNode.Kind.SINK ? allocation.rank(node.getId()) + 1 : 1);
         return null;
@@ -298,27 +322,29 @@ public final class GenomeTree {
     }
 
     /**
-     * Whether the player may take a Notable or Core: with {@code RequireLibrary}, a Notable needs its mutation in the
-     * library and a Core any form (temporary or permanent, any tier) of its buff.
+     * How many of a node the Catalogue lets the player claim: a Notable 1 once its mutation is discovered (else 0); a
+     * Core's buff the highest of its tiers discovered (any form); other nodes no limit. Without
+     * {@code RequireDiscovery}, everything is open.
      */
     @Nonnull
-    public static Predicate<TreeNode> unlockedBy(@Nonnull GeneLibrary library, boolean requireLibrary) {
-        if (!requireLibrary) return node -> true;
-        Set<String> mutations = new HashSet<>();
-        Set<String> effects = new HashSet<>();
-        for (GeneLibrary.Entry entry : library.getEntries()) {
-            switch (entry.getGene()) {
-                case Gene.Mutation mutation -> mutations.add(mutation.mutation());
-                case Gene.Effect effect -> effects.add(effect.effect());
-                case null, default -> {
-                }
-            }
-        }
+    public static ToIntFunction<TreeNode> unlocksFrom(@Nonnull GeneJournal journal, boolean requireDiscovery) {
+        return unlocksFrom(journal.getBuffs(), journal.getMutations(), requireDiscovery);
+    }
+
+    /** {@link #unlocksFrom(GeneJournal, boolean)} from the discovered effect and mutation ids. */
+    @Nonnull
+    public static ToIntFunction<TreeNode> unlocksFrom(@Nonnull Set<String> buffs, @Nonnull Set<String> mutations, boolean requireDiscovery) {
+        if (!requireDiscovery) return node -> Integer.MAX_VALUE;
         return node -> switch (node.kind()) {
-            case NOTABLE -> node.getMutation() != null && mutations.contains(node.getMutation());
-            case CORE -> node.getTiers().stream().anyMatch(effects::contains);
-            case null -> false;
-            default -> true;
+            case NOTABLE -> node.getMutation() != null && mutations.contains(node.getMutation()) ? 1 : 0;
+            case CORE -> {
+                int highest = 0;
+                List<String> tiers = node.getTiers();
+                for (int i = 0; i < tiers.size(); i++) if (buffs.contains(tiers.get(i))) highest = i + 1;
+                yield highest;
+            }
+            case null -> 0;
+            default -> Integer.MAX_VALUE;
         };
     }
 
@@ -393,6 +419,13 @@ public final class GenomeTree {
         Set<String> reached = connected(layout, all);
         for (String id : all.ids()) if (!reached.contains(id)) problems.add(id + ": can't be reached from the Origin.");
         return problems;
+    }
+
+    /** A Notable's or Core's name from its ids alone ("GrizzlyFury" → "Grizzly Fury"), without game assets. */
+    @Nonnull
+    static String idName(@Nonnull TreeNode node) {
+        String id = node.kind() == TreeNode.Kind.NOTABLE ? node.getMutation() : node.getBuff();
+        return id != null ? com.genetics.genome.GeneText.cleanEffectId(id) : node.getId();
     }
 
     /** A node's display name: its mutation, buff or stat. */

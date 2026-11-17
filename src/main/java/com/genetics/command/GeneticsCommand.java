@@ -43,7 +43,7 @@ import java.util.TreeSet;
  * /genetics science &lt;amount&gt;   add Science (negative removes it)
  * /genetics research &lt;id&gt;      research a node for free; "all" researches every node, "reset" forgets them
  * /genetics nodes              list the research node ids
- * /genetics library            list your Genetic Library
+ * /genetics catalogue &lt;show|complete|flush&gt;  show, discover everything (opens every tree node), or forget discoveries
  * /genetics mutation &lt;id&gt;      give your active genome this mutation (replacing its mutation), "none" removes it
  * /genetics mutations          list the mutation ids
  * </pre>
@@ -60,7 +60,6 @@ public class GeneticsCommand extends AbstractCommandCollection {
         addSubCommand(new AddScience());
         addSubCommand(new GrantResearch());
         addSubCommand(new ListNodes());
-        addSubCommand(new LibraryCommand());
         addSubCommand(new CatalogueCommand());
         addSubCommand(new SetMutation());
         addSubCommand(new ListMutations());
@@ -220,66 +219,6 @@ public class GeneticsCommand extends AbstractCommandCollection {
         }
     }
 
-    /** {@code /genetics library show|fill|flush}: list, fill with the best of every gene, or empty the Genetic Library. */
-    private static final class LibraryCommand extends AbstractPlayerCommand {
-        private final RequiredArg<String> action = withRequiredArg("action", "server.genetics.commands.library.action.desc", ArgTypes.STRING);
-
-        LibraryCommand() {
-            super("library", "server.genetics.commands.library.desc");
-            setPermissionGroups("hytale:Builder");
-        }
-
-        @Override
-        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
-                               @Nonnull PlayerRef playerRef, @Nonnull World world) {
-            com.genetics.library.GeneLibrary library = com.genetics.library.Library.of(ref, store);
-            switch (action.get(context).toLowerCase()) {
-                case "fill" -> {
-                    int added = 0;
-                    for (Gene gene : bestGenes()) if (library.add(gene, "Command")) added++;
-                    context.sendMessage(Message.raw("Genetic Library filled: " + added + " genes added or improved ("
-                            + library.getEntries().size() + " in total)."));
-                }
-                case "flush", "clear" -> context.sendMessage(Message.raw("Genetic Library emptied (" + library.clear() + " genes removed)."));
-                case "show" -> {
-                    List<String> lines = new ArrayList<>();
-                    for (com.genetics.library.GeneLibrary.Entry entry : library.getEntries()) {
-                        Gene gene = entry.getGene();
-                        lines.add(gene != null ? GeneText.describe(gene, playerRef.getLanguage()) : "?");
-                    }
-                    context.sendMessage(Message.raw("Genetic Library: " + (lines.isEmpty() ? "empty." : String.join(", ", lines) + ".")));
-                }
-                default -> context.sendMessage(Message.raw("Usage: /genetics library show|fill|flush"));
-            }
-        }
-
-        /**
-         * The best of every gene the game can give: each profile stat and drawback at its maximum, every temporary
-         * effect at the timer cap, every profile permanent effect, and every mutation.
-         */
-        @Nonnull
-        private static List<Gene> bestGenes() {
-            List<Gene> genes = new ArrayList<>();
-            double cap = Math.min(com.genetics.codex.Balance.get().splicing().getMaxEffectDuration(), 30 * 60);
-            for (com.genetics.codex.MobGeneProfile profile : com.genetics.codex.MobGeneProfile.getAssetMap().getAssetMap().values()) {
-                for (com.genetics.codex.MobGeneProfile.StatRoll roll : profile.getStatPool()) {
-                    if (roll.getStat() != null) genes.add(new Gene.Stat(roll.getStat(), roll.getMax()));
-                }
-                for (com.genetics.codex.MobGeneProfile.Drawback drawback : profile.getDrawbacks()) {
-                    if (drawback.getStat() != null) genes.add(new Gene.Stat(drawback.getStat(), -drawback.getMax()));
-                }
-                if (profile.getTemporaryEffect() != null && profile.getTemporaryEffect().getId() != null) {
-                    genes.add(new Gene.Effect(profile.getTemporaryEffect().getId(), false, cap));
-                }
-                for (com.genetics.codex.MobGeneProfile.EffectRoll effect : profile.getPermanentEffects()) {
-                    if (effect.getId() != null) genes.add(new Gene.Effect(effect.getId(), true, 0));
-                }
-            }
-            for (String mutation : com.genetics.codex.MutationEntry.getAssetMap().getAssetMap().keySet()) genes.add(new Gene.Mutation(mutation));
-            return genes;
-        }
-    }
-
     /** {@code /genetics catalogue show|complete|flush}: show, discover everything, or forget every discovery. */
     private static final class CatalogueCommand extends AbstractPlayerCommand {
         private final RequiredArg<String> action = withRequiredArg("action", "server.genetics.commands.catalogue.action.desc", ArgTypes.STRING);
@@ -307,6 +246,8 @@ public class GeneticsCommand extends AbstractCommandCollection {
                         journal.markCompleted(species);
                     }
                     for (String mutation : com.genetics.codex.MutationEntry.getAssetMap().getAssetMap().keySet()) journal.addMutation(mutation);
+                    // Every tier the Genome Tree's Cores use, so all of them can be claimed.
+                    for (com.genetics.tree.TreeNode node : com.genetics.tree.TreeLayout.get().getNodes()) node.getTiers().forEach(journal::addBuff);
                     context.sendMessage(Message.raw("Catalogue complete: " + journal.speciesCount() + " species, " + journal.getBuffs().size()
                             + " buffs, " + journal.getMutations().size() + " mutations. No Science was given (use /genetics science)."));
                 }

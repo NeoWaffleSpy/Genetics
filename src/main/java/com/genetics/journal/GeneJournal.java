@@ -59,6 +59,8 @@ public class GeneJournal implements Component<EntityStore> {
             .append(new KeyedCodec<>("Completed", Codec.STRING_ARRAY), (t, v) -> t.completed = set(v), t -> t.completed.toArray(String[]::new)).add()
             .append(new KeyedCodec<>("Science", Codec.INTEGER), (t, v) -> t.science = v != null ? v : 0, t -> t.science).add()
             .append(new KeyedCodec<>("Researched", Codec.STRING_ARRAY), (t, v) -> t.researched = set(v), t -> t.researched.toArray(String[]::new)).add()
+            .append(new KeyedCodec<>("TreeNodes", Codec.STRING_ARRAY),
+                    (t, v) -> t.tree = com.genetics.tree.TreeAllocation.load(v), t -> t.getTree().save()).add()
             .build();
 
     private static ComponentType<EntityStore, GeneJournal> componentType;
@@ -75,6 +77,8 @@ public class GeneJournal implements Component<EntityStore> {
     private Set<String> completed = new LinkedHashSet<>();
     private int science;
     private Set<String> researched = new LinkedHashSet<>();
+    /** The player's Genome Tree nodes (design doc §8.3); what they may claim follows the discoveries above. */
+    private com.genetics.tree.TreeAllocation tree = new com.genetics.tree.TreeAllocation();
     /** Set once {@link #migrateSpecies} has run for this loaded component (not saved). */
     private boolean migrated;
 
@@ -249,6 +253,13 @@ public class GeneJournal implements Component<EntityStore> {
         completed.clear();
     }
 
+    /** The player's Genome Tree allocation (changed in place). */
+    @Nonnull
+    public com.genetics.tree.TreeAllocation getTree() {
+        if (tree == null) tree = new com.genetics.tree.TreeAllocation();
+        return tree;
+    }
+
     @Nonnull
     public Set<String> getResearched() {
         return Collections.unmodifiableSet(researched);
@@ -293,6 +304,7 @@ public class GeneJournal implements Component<EntityStore> {
         speciesGenes.forEach((k, v) -> copy.speciesGenes.put(k, new LinkedHashSet<>(v)));
         copy.buffs = new LinkedHashSet<>(buffs);
         copy.mutations = new LinkedHashSet<>(mutations);
+        copy.tree = new com.genetics.tree.TreeAllocation(getTree());
         copy.completed = new LinkedHashSet<>(completed);
         copy.science = science;
         copy.researched = new LinkedHashSet<>(researched);

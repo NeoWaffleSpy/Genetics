@@ -453,13 +453,6 @@ $C.@DecoratedContainer #Panel {
             Visible: false;
           }
 
-          TextButton #ExtractButton {
-            Style: @PrimaryStyle;
-            Text: "Extract";
-            Anchor: (Width: 160, Height: 44);
-            Visible: false;
-          }
-
           TextButton #UpgradeStationButton {
             Style: @SecondaryStyle;
             Text: "Upgrade...";

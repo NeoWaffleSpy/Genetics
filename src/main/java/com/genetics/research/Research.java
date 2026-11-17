@@ -26,15 +26,16 @@ import java.util.Set;
 public final class Research {
     public static final String SPLICING = "Splicing";
     public static final String MAKE_PERMANENT = "MakePermanent";
-    public static final String GENETIC_LIBRARY = "GeneticLibrary";
-    public static final Set<String> FEATURES = Set.of(SPLICING, MAKE_PERMANENT, GENETIC_LIBRARY);
+    /** The Genome Tree tab (saved id kept from the Genetic Library it replaced). */
+    public static final String GENOME_TREE = "GeneticLibrary";
+    public static final Set<String> FEATURES = Set.of(SPLICING, MAKE_PERMANENT, GENOME_TREE);
 
     /** The feature that must be researched before upgrading a Lab Station to this tier, or null. */
     @Nullable
     public static String featureForStationTier(int tier) {
         return switch (tier) {
             case 2 -> SPLICING;
-            case 3 -> GENETIC_LIBRARY;
+            case 3 -> GENOME_TREE;
             default -> null;
         };
     }

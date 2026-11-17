@@ -225,7 +225,7 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .documentation("Seconds a temporary effect lasts at its Effect Codex Complexity. Longer effects (splices add timers "
                         + "together) cost proportionally more. 0 turns the scaling off.").add()
                 .append(new KeyedCodec<>("MaxEffectDuration", Codec.DOUBLE), (t, v) -> t.maxEffectDuration = v, t -> t.maxEffectDuration)
-                .documentation("Cap, in seconds, on a temporary effect's duration when timers add up (splicing, the Library). 0: no cap.").add()
+                .documentation("Cap, in seconds, on a temporary effect's duration when timers add up (splicing). 0: no cap.").add()
                 .append(new KeyedCodec<>("MutationBaseChance", Codec.DOUBLE), (t, v) -> t.mutationBaseChance = v, t -> t.mutationBaseChance)
                 .documentation("Chance of a new mutation, before Complexity.").add()
                 .append(new KeyedCodec<>("MutationPerComplexity", Codec.DOUBLE), (t, v) -> t.mutationPerComplexity = v, t -> t.mutationPerComplexity)
@@ -237,7 +237,7 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         private double effectReferenceDuration = 180;
         private double maxEffectDuration = 1800;
 
-        /** Longest a temporary effect can last when timers are added together (splicing, the Library). */
+        /** Longest a temporary effect can last when timers are added together (splicing). */
         public double getMaxEffectDuration() { return maxEffectDuration > 0 ? maxEffectDuration : Double.MAX_VALUE; }
         private double mutationBaseChance = 0.02;
         private double mutationPerComplexity = 0.0005;
@@ -278,30 +278,6 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         public int getCatalystPerEffect() { return Math.max(0, catalystPerEffect); }
     }
 
-    /** The Genetic Library (design doc §8.1): extraction cost and several mutations. */
-    public static final class Library {
-        public static final BuilderCodec<Library> CODEC = BuilderCodec.builder(Library.class, Library::new)
-                .append(new KeyedCodec<>("ExtractItem", Codec.STRING), (t, v) -> t.extractItem = v, t -> t.extractItem)
-                .documentation("Item consumed when extracting a stat or an effect.").add()
-                .append(new KeyedCodec<>("ComplexityPerEnhancer", Codec.DOUBLE), (t, v) -> t.complexityPerEnhancer = v, t -> t.complexityPerEnhancer)
-                .documentation("One ExtractItem per this many points of the extracted gene's Complexity (at least one). 0: none.").add()
-                .append(new KeyedCodec<>("MutationCostBase", Codec.DOUBLE), (t, v) -> t.mutationCostBase = v, t -> t.mutationCostBase)
-                .documentation("Material cost multiplier per extra mutation (3: x1, x3, x9, x27).").add()
-                .append(new KeyedCodec<>("MaxMutations", Codec.INTEGER), (t, v) -> t.maxMutations = v, t -> t.maxMutations)
-                .documentation("Most mutations in one genome.").add()
-                .build();
-
-        private String extractItem = "Genetics_Gene_Enhancer";
-        private double complexityPerEnhancer = 10;
-        private double mutationCostBase = 3;
-        private int maxMutations = 4;
-
-        @Nonnull public String getExtractItem() { return extractItem != null ? extractItem : "Genetics_Gene_Enhancer"; }
-        public double getComplexityPerEnhancer() { return Math.max(0, complexityPerEnhancer); }
-        public double getMutationCostBase() { return Math.max(1, mutationCostBase); }
-        public int getMaxMutations() { return Math.max(1, maxMutations); }
-    }
-
     /**
      * The Genome Tree (design doc §8.3): what each kind of node costs, in Complexity, and how Notables and Cores get
      * dearer. With k Notables owned, the next costs NotableCost x NotableMultiplier^k (Cores the same with their own
@@ -325,8 +301,10 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
                 .documentation("Complexity of a Sink's first rank.").add()
                 .append(new KeyedCodec<>("SinkCostGrowth", Codec.DOUBLE), (t, v) -> t.sinkCostGrowth = v, t -> t.sinkCostGrowth)
                 .documentation("Each further rank of a Sink costs this much more than the one before.").add()
-                .append(new KeyedCodec<>("RequireLibrary", Codec.BOOLEAN), (t, v) -> t.requireLibrary = v, t -> t.requireLibrary)
-                .documentation("Notables need their mutation, and Cores their buff (any form), in the Genetic Library.").add()
+                .append(new KeyedCodec<>("RequireDiscovery", Codec.BOOLEAN), (t, v) -> t.requireDiscovery = v, t -> t.requireDiscovery)
+                .documentation("Notables need their mutation discovered in the Catalogue; a buff's Cores can be claimed up to its highest discovered tier.").add()
+                .append(new KeyedCodec<>("MaxMutations", Codec.INTEGER), (t, v) -> t.maxMutations = v, t -> t.maxMutations)
+                .documentation("Most Notables (mutations) in one genome.").add()
                 .append(new KeyedCodec<>("DamageResistanceCap", Codec.DOUBLE), (t, v) -> t.damageResistanceCap = v, t -> t.damageResistanceCap)
                 .documentation("Most damage resistance a genome can give, in percent.").add()
                 .append(new KeyedCodec<>("KnockbackResistanceCap", Codec.DOUBLE), (t, v) -> t.knockbackResistanceCap = v, t -> t.knockbackResistanceCap)
@@ -341,7 +319,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         private double coreMultiplier = 3;
         private double sinkCost = 3;
         private double sinkCostGrowth = 1;
-        private boolean requireLibrary = true;
+        private boolean requireDiscovery = true;
+        private int maxMutations = 4;
         private double damageResistanceCap = 60;
         private double knockbackResistanceCap = 90;
 
@@ -353,7 +332,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         public double getCoreMultiplier() { return Math.max(1, coreMultiplier); }
         public double getSinkCost() { return Math.max(0, sinkCost); }
         public double getSinkCostGrowth() { return Math.max(0, sinkCostGrowth); }
-        public boolean isRequireLibrary() { return requireLibrary; }
+        public boolean isRequireDiscovery() { return requireDiscovery; }
+        public int getMaxMutations() { return Math.max(1, maxMutations); }
         public double getDamageResistanceCap() { return Math.clamp(damageResistanceCap, 0, 100); }
         public double getKnockbackResistanceCap() { return Math.clamp(knockbackResistanceCap, 0, 100); }
     }
@@ -420,8 +400,6 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
             .documentation("Legacy: Gene Journal milestones, replaced by Science and Research. Kept so old files still load.").add()
             .append(new KeyedCodec<>("Science", Science.CODEC), (t, v) -> t.science = v, t -> t.science)
             .documentation("Science paid for Catalogue discoveries.").add()
-            .append(new KeyedCodec<>("Library", Library.CODEC), (t, v) -> t.library = v, t -> t.library)
-            .documentation("Genetic Library: fusion, several mutations, refining.").add()
             .append(new KeyedCodec<>("GenomeTree", GenomeTree.CODEC), (t, v) -> t.genomeTree = v, t -> t.genomeTree)
             .documentation("Genome Tree: node costs and how Notables and Cores get dearer.").add()
             .append(new KeyedCodec<>("Splicing", Splicing.CODEC), (t, v) -> t.splicing = v, t -> t.splicing).add()
@@ -441,7 +419,6 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     private Syringes syringes = new Syringes();
     private Milestone[] milestones = new Milestone[0];
     private Science science = new Science();
-    private Library library = new Library();
     private GenomeTree genomeTree = new GenomeTree();
     private Splicing splicing = new Splicing();
     private Permanence permanence = new Permanence();
@@ -500,11 +477,6 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     @Nonnull
     public Syringes syringes() {
         return syringes != null ? syringes : BUILT_IN.syringes;
-    }
-
-    @Nonnull
-    public Library library() {
-        return library != null ? library : BUILT_IN.library;
     }
 
     @Nonnull

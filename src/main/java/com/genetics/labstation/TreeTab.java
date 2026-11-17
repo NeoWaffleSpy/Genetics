@@ -11,8 +11,6 @@ import com.genetics.interaction.Syringes;
 import com.genetics.journal.Catalogue;
 import com.genetics.journal.GeneJournal;
 import com.genetics.journal.Journal;
-import com.genetics.library.GeneLibrary;
-import com.genetics.library.Library;
 import com.genetics.research.Research;
 import com.genetics.research.ResearchNode;
 import com.genetics.tier.ComplexityTier;
@@ -37,13 +35,13 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 /**
  * The Genome Tree tab (design doc §8.3), which replaced the Library tab: the tree on the left, where a click takes a
  * node (or a Sink's next rank) and a right click gives it back; the sidebar on the right with the syringe slot, the
- * capacity the tree spends, the genes the owned nodes give and what crafting them costs. Needs the Genetic Library
- * research and a Lab Station T3, like the Library did.
+ * capacity the tree spends, the genes the owned nodes give and what crafting them costs. Notables and Cores open up
+ * with Catalogue discoveries. Needs the Genome Tree research and a Lab Station T3.
  */
 final class TreeTab {
     private static final String NODE = "Genetics/TreeNode.ui";
@@ -57,14 +55,15 @@ final class TreeTab {
     /** Node states, matching the state groups of TreeNode.ui. */
     static final List<String> STATES = List.of("Off", "Avail", "Locked", "OnStat", "OnBig", "OnNotable", "OnCore", "OnSink", "OnOrigin");
     private static final String HELP = "Click a node linked to yours to take it, right click to give it back. Sinks take a rank per click."
-            + " Notables (mutations) and Cores (permanent buffs) sit at the end of side branches, and each one owned makes the next dearer.";
+            + " Notables (mutations) and Cores (permanent buffs) sit at the end of side branches and open up as you discover them in the Catalogue;"
+            + " each one owned makes the next dearer.";
 
     private TreeTab() {
     }
 
-    /** True once the tree can be used here: the Genetic Library research, and a T3 station. */
+    /** True once the tree can be used here: the Genome Tree research, and a T3 station. */
     static boolean open(@Nonnull LabStationPage page, @Nonnull GeneJournal journal) {
-        return Research.hasFeature(journal, Research.GENETIC_LIBRARY) && page.station.tier() >= 3;
+        return Research.hasFeature(journal, Research.GENOME_TREE) && page.station.tier() >= 3;
     }
 
     static void build(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
@@ -82,7 +81,7 @@ final class TreeTab {
             return;
         }
         TreeLayout layout = TreeLayout.get();
-        GenomeTree.prune(layout, Library.of(ref, store).getTree());
+        GenomeTree.prune(layout, journal.getTree());
         int cell = layout.getCell();
         c.clear("#TreeCanvas");
         int index = 0;
@@ -122,9 +121,9 @@ final class TreeTab {
 
     private static void locked(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
                                @Nonnull UICommandBuilder c, @Nonnull GeneJournal journal) {
-        boolean researched = Research.hasFeature(journal, Research.GENETIC_LIBRARY);
-        ResearchNode node = Research.grantingNode(Research.GENETIC_LIBRARY);
-        String name = node != null ? node.getName() : "Genetic Library";
+        boolean researched = Research.hasFeature(journal, Research.GENOME_TREE);
+        ResearchNode node = Research.grantingNode(Research.GENOME_TREE);
+        String name = node != null ? node.getName() : "Genome Tree";
         boolean needsT2 = page.station.tier() < 2;
         Balance.StationUpgrade upgrade = needsT2 ? null : Balance.get().stationUpgrade(3);
         List<MaterialQuantity> cost = upgrade != null ? upgrade.getMaterials() : List.of();
@@ -144,18 +143,17 @@ final class TreeTab {
     static void update(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull UICommandBuilder c) {
         if (!open(page, Journal.of(ref, store)) || page.treeRows.isEmpty()) return;
         TreeLayout layout = TreeLayout.get();
-        GeneLibrary library = Library.of(ref, store);
-        TreeAllocation allocation = library.getTree();
+        GeneJournal journal = Journal.of(ref, store);
+        TreeAllocation allocation = journal.getTree();
         Balance.GenomeTree balance = Balance.get().genomeTree();
         double capacity = GenomeCapacity.capacity(ref, store);
-        Predicate<TreeNode> unlocked = GenomeTree.unlockedBy(library, balance.isRequireLibrary());
-        int maxMutations = Balance.get().library().getMaxMutations();
+        ToIntFunction<TreeNode> unlocks = GenomeTree.unlocksFrom(journal, balance.isRequireDiscovery());
 
         for (TreeNode node : layout.getNodes()) {
             Integer index = page.treeRows.get(node.getId());
             if (index == null) continue;
             String row = "#TreeCanvas[" + index + "]";
-            String state = state(layout, allocation, node, capacity, balance, unlocked, maxMutations);
+            String state = state(layout, allocation, node, capacity, balance, unlocks);
             String previous = page.treeStates.put(node.getId(), state);
             if (!state.equals(previous)) for (String s : STATES) c.set(row + " #" + s + ".Visible", s.equals(state));
             if (node.kind() == TreeNode.Kind.SINK) c.set(row + " #TOnSink.Text", String.valueOf(allocation.rank(node.getId())));
@@ -172,7 +170,7 @@ final class TreeTab {
         }
 
         TreeNode hovered = layout.node(page.treeHover);
-        String info = hovered != null ? describe(layout, allocation, hovered, capacity, balance, unlocked, maxMutations, page.player().getLanguage()) : HELP;
+        String info = hovered != null ? describe(layout, allocation, hovered, capacity, balance, unlocks, page.player().getLanguage()) : HELP;
         if (page.treeMessage != null) info = page.treeMessage + "\n" + info;
         c.set("#TreeInfo.Text", info);
         sidebar(page, ref, store, c, layout, allocation, balance, capacity);
@@ -184,7 +182,7 @@ final class TreeTab {
         capacityGauge(c, total, capacity);
         long notables = allocation.ids().stream().map(layout::node).filter(n -> n != null && n.kind() == TreeNode.Kind.NOTABLE).count();
         long cores = allocation.ids().stream().map(layout::node).filter(n -> n != null && n.kind() == TreeNode.Kind.CORE).count();
-        c.set("#TreeNext.Text", "Mutations " + notables + " / " + Balance.get().library().getMaxMutations() + "  ·  next "
+        c.set("#TreeNext.Text", "Mutations " + notables + " / " + balance.getMaxMutations() + "  ·  next "
                 + GeneText.number(GenomeTree.nextDefault(layout, allocation, TreeNode.Kind.NOTABLE, balance))
                 + "\nCores " + cores + "  ·  next " + GeneText.number(GenomeTree.nextDefault(layout, allocation, TreeNode.Kind.CORE, balance)));
 
@@ -266,7 +264,7 @@ final class TreeTab {
 
     @Nonnull
     private static String state(@Nonnull TreeLayout layout, @Nonnull TreeAllocation allocation, @Nonnull TreeNode node, double capacity,
-                                @Nonnull Balance.GenomeTree balance, @Nonnull Predicate<TreeNode> unlocked, int maxMutations) {
+                                @Nonnull Balance.GenomeTree balance, @Nonnull ToIntFunction<TreeNode> unlocks) {
         TreeNode.Kind kind = node.kind();
         if (kind == null) return "Off";
         if (kind == TreeNode.Kind.ORIGIN) return "OnOrigin";
@@ -279,8 +277,8 @@ final class TreeTab {
                 default -> "OnStat";
             };
         }
-        if ((kind == TreeNode.Kind.NOTABLE || kind == TreeNode.Kind.CORE) && !unlocked.test(node)) return "Locked";
-        return GenomeTree.whyNot(layout, allocation, node, capacity, balance, unlocked, maxMutations) == null ? "Avail" : "Off";
+        if (GenomeTree.lockReason(layout, allocation, node, unlocks) != null) return "Locked";
+        return GenomeTree.whyNot(layout, allocation, node, capacity, balance, unlocks) == null ? "Avail" : "Off";
     }
 
     private static boolean owned(@Nonnull TreeAllocation allocation, @Nullable TreeNode origin, @Nonnull String id) {
@@ -290,7 +288,7 @@ final class TreeTab {
     /** The hover line: what the node gives, its cost, and why it can't be taken. */
     @Nonnull
     private static String describe(@Nonnull TreeLayout layout, @Nonnull TreeAllocation allocation, @Nonnull TreeNode node, double capacity,
-                                   @Nonnull Balance.GenomeTree balance, @Nonnull Predicate<TreeNode> unlocked, int maxMutations, @Nullable String language) {
+                                   @Nonnull Balance.GenomeTree balance, @Nonnull ToIntFunction<TreeNode> unlocks, @Nullable String language) {
         TreeNode.Kind kind = node.kind();
         if (kind == null) return node.getId();
         String what = switch (kind) {
@@ -315,7 +313,7 @@ final class TreeTab {
         };
         if (kind == TreeNode.Kind.ORIGIN) return what;
         if (allocation.owns(node.getId()) && kind != TreeNode.Kind.SINK) return what + "  ·  owned (right click to give back)";
-        String why = GenomeTree.whyNot(layout, allocation, node, capacity, balance, unlocked, maxMutations);
+        String why = GenomeTree.whyNot(layout, allocation, node, capacity, balance, unlocks);
         String cost = "  ·  costs " + GeneText.number(GenomeTree.nextCost(layout, allocation, node, balance)) + " Complexity";
         return what + cost + (why != null ? "  ·  " + why : "");
     }
@@ -389,10 +387,10 @@ final class TreeTab {
         TreeLayout layout = TreeLayout.get();
         TreeNode node = layout.node(id);
         if (node == null) return null;
-        GeneLibrary library = Library.of(ref, store);
+        GeneJournal journal = Journal.of(ref, store);
         Balance.GenomeTree balance = Balance.get().genomeTree();
-        return GenomeTree.take(layout, library.getTree(), node, GenomeCapacity.capacity(ref, store), balance,
-                GenomeTree.unlockedBy(library, balance.isRequireLibrary()), Balance.get().library().getMaxMutations());
+        return GenomeTree.take(layout, journal.getTree(), node, GenomeCapacity.capacity(ref, store), balance,
+                GenomeTree.unlocksFrom(journal, balance.isRequireDiscovery()));
     }
 
     /** Gives back a node (or a Sink's top rank). Returns why it couldn't, or null. */
@@ -401,11 +399,11 @@ final class TreeTab {
         if (!open(page, Journal.of(ref, store))) return null;
         TreeLayout layout = TreeLayout.get();
         TreeNode node = layout.node(id);
-        return node != null ? GenomeTree.refund(layout, Library.of(ref, store).getTree(), node) : null;
+        return node != null ? GenomeTree.refund(layout, Journal.of(ref, store).getTree(), node) : null;
     }
 
     static void reset(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        Library.of(ref, store).getTree().clear();
+        Journal.of(ref, store).getTree().clear();
     }
 
     /** Crafts the owned nodes into the empty syringe in the slot. Returns a message for the player, or null. */
@@ -413,7 +411,7 @@ final class TreeTab {
     static String craft(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         if (!open(page, Journal.of(ref, store))) return null;
         TreeLayout layout = TreeLayout.get();
-        TreeAllocation allocation = Library.of(ref, store).getTree();
+        TreeAllocation allocation = Journal.of(ref, store).getTree();
         Balance.GenomeTree balance = Balance.get().genomeTree();
         Genome genome = GenomeTree.genome(layout, allocation, balance);
         if (genome == null) return "Take nodes on the tree first.";

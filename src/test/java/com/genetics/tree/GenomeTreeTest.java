@@ -5,7 +5,6 @@ import com.genetics.codex.Balance;
 import com.genetics.genome.Gene;
 import com.genetics.genome.Genome;
 import com.genetics.interaction.Injection;
-import com.genetics.library.GeneLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +15,8 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Set;
+import java.util.function.ToIntFunction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Design doc §8.3: the Genome Tree. */
 class GenomeTreeTest {
-    private static final Predicate<TreeNode> ALL = node -> true;
+    private static final ToIntFunction<TreeNode> ALL = node -> Integer.MAX_VALUE;
 
     @BeforeAll
     static void load() {
@@ -95,8 +95,8 @@ class GenomeTreeTest {
         TreeAllocation allocation = new TreeAllocation();
         String near = layout.neighbours(layout.origin().getId()).iterator().next();
         String far = nodesOf(layout, TreeNode.Kind.CORE, "Might").getFirst();
-        assertNull(GenomeTree.whyNot(layout, allocation, layout.node(near), 1000, balance(), ALL, 4));
-        assertNotNull(GenomeTree.whyNot(layout, allocation, layout.node(far), 1000, balance(), ALL, 4));
+        assertNull(GenomeTree.whyNot(layout, allocation, layout.node(near), 1000, balance(), ALL));
+        assertNotNull(GenomeTree.whyNot(layout, allocation, layout.node(far), 1000, balance(), ALL));
     }
 
     @Test
@@ -155,24 +155,42 @@ class GenomeTreeTest {
         TreeLayout layout = tree();
         TreeAllocation allocation = new TreeAllocation();
         String near = layout.neighbours(layout.origin().getId()).iterator().next();
-        assertNotNull(GenomeTree.whyNot(layout, allocation, layout.node(near), 1, balance(), ALL, 4));
-        assertNull(GenomeTree.take(layout, allocation, layout.node(near), 20, balance(), ALL, 4));
+        assertNotNull(GenomeTree.whyNot(layout, allocation, layout.node(near), 1, balance(), ALL));
+        assertNull(GenomeTree.take(layout, allocation, layout.node(near), 20, balance(), ALL));
         assertTrue(allocation.owns(near));
     }
 
     @Test
-    void notablesAndCoresNeedTheirLibraryEntry() {
+    void notablesNeedTheirMutationDiscovered() {
         TreeLayout layout = tree();
         TreeNode bloodfang = layout.node(nodesOf(layout, TreeNode.Kind.NOTABLE, "Bloodfang").getFirst());
-        TreeNode might = layout.node(nodesOf(layout, TreeNode.Kind.CORE, "Might").getFirst());
-        GeneLibrary library = new GeneLibrary();
-        Predicate<TreeNode> unlocked = GenomeTree.unlockedBy(library, true);
-        assertTrue(!unlocked.test(bloodfang) && !unlocked.test(might));
-        library.add(new Gene.Mutation("Bloodfang"), "test");
-        library.add(new Gene.Effect("Genetics_Might_T1", false, 180), "test");
-        unlocked = GenomeTree.unlockedBy(library, true);
-        assertTrue(unlocked.test(bloodfang) && unlocked.test(might), "a temporary form of any tier unlocks the buff");
-        assertTrue(GenomeTree.unlockedBy(new GeneLibrary(), false).test(bloodfang));
+        TreeAllocation allocation = new TreeAllocation();
+        own(layout, allocation, bloodfang.getId());
+        allocation.remove(bloodfang.getId());
+        assertNotNull(GenomeTree.lockReason(layout, allocation, bloodfang, GenomeTree.unlocksFrom(Set.of(), Set.of(), true)));
+        assertNull(GenomeTree.take(layout, allocation, bloodfang, 1000, balance(), GenomeTree.unlocksFrom(Set.of(), Set.of("Bloodfang"), true)));
+        assertNull(GenomeTree.lockReason(layout, new TreeAllocation(), bloodfang, GenomeTree.unlocksFrom(Set.of(), Set.of(), false)));
+    }
+
+    @Test
+    void coresFollowTheHighestDiscoveredTier() {
+        TreeLayout layout = tree();
+        List<String> cores = nodesOf(layout, TreeNode.Kind.CORE, "Might");
+        TreeAllocation allocation = new TreeAllocation();
+        for (String core : cores) {
+            own(layout, allocation, core);
+            allocation.remove(core);
+        }
+        // Tiers 1 and 2 discovered: two Might Cores, not three.
+        ToIntFunction<TreeNode> unlocks = GenomeTree.unlocksFrom(Set.of("Genetics_Might_T1", "Genetics_Might_T2"), Set.of(), true);
+        assertNull(GenomeTree.take(layout, allocation, layout.node(cores.get(0)), 1000, balance(), unlocks));
+        assertNull(GenomeTree.take(layout, allocation, layout.node(cores.get(1)), 1000, balance(), unlocks));
+        String third = GenomeTree.take(layout, allocation, layout.node(cores.get(2)), 1000, balance(), unlocks);
+        assertNotNull(third);
+        assertTrue(third.contains("tier 2"), third);
+        // Only tier 2 discovered still counts as two: the highest tier is what matters.
+        assertEquals(2, GenomeTree.unlocksFrom(Set.of("Genetics_Might_T2"), Set.of(), true).applyAsInt(layout.node(cores.get(0))));
+        assertEquals(0, GenomeTree.unlocksFrom(Set.of(), Set.of(), true).applyAsInt(layout.node(cores.get(0))));
     }
 
     @Test

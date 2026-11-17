@@ -102,8 +102,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     short bSlot = -1;
     boolean[] spliceKeep = new boolean[0];
     String sub = "Creatures";
-    /** Gene of the genetic material picked for extraction, or -1. */
-    int extractIndex = -1;
     /** Genome Tree: canvas row of each node, the links in canvas order, and the states last sent. */
     final java.util.Map<String, Integer> treeRows = new java.util.HashMap<>();
     final List<String[]> treeLinks = new ArrayList<>();
@@ -153,7 +151,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         if (!sampleKey.equals(builtSample)) {
             Genome sample = sample();
             keep = new boolean[sample != null ? sample.genes().size() : 0];
-            extractIndex = -1;
             Arrays.fill(keep, true);
             permanent = new boolean[keep.length];
         }
@@ -181,7 +178,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 .append("Tab", station.tier() < 2 ? "Splice" : "Tree"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceButton", new EventData().append("Action", "Splice"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ResearchButton", new EventData().append("Action", "Research"), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#ExtractButton", new EventData().append("Action", "Extract"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#TreeCraftButton", new EventData().append("Action", "TreeCraft"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#TreeResetButton", new EventData().append("Action", "TreeReset"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#TreeUpgradeButton", new EventData().append("Action", "Upgrade"), false);
@@ -258,7 +254,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             commands.set("#SpeciesName.Text", "No sample");
             commands.set("#SpeciesMeta.Text", "Drag a filled syringe into the slot.");
         } else if (a.source() == null || a.source().spliced()) {
-            boolean designed = a.source() != null && com.genetics.library.Library.SOURCE_ID.equals(a.source().mobId());
+            boolean designed = a.source() != null && Genome.LEGACY_DESIGNED_ID.equals(a.source().mobId());
             boolean tree = com.genetics.tree.GenomeTree.isTreeGenome(a);
             commands.set("#SpeciesName.Text", designed || tree ? "Designed" : a.source() != null ? "Spliced" : "Unknown");
             commands.set("#SpeciesMeta.Text", tree ? "Crafted on the Genome Tree" : designed ? "Combined in the Genetic Library"
@@ -334,16 +330,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             }
             case "Process" -> {
                 String message = ProcessTab.process(this, ref, store);
-                if (message != null) playerRef.sendMessage(Message.raw(message));
-                rebuild();
-            }
-            case "PickExtract" -> {
-                int i = parse(data.index);
-                extractIndex = i == extractIndex ? -1 : i;
-                partial(ref, store);
-            }
-            case "Extract" -> {
-                String message = ProcessTab.extract(this, ref, store);
                 if (message != null) playerRef.sendMessage(Message.raw(message));
                 rebuild();
             }
