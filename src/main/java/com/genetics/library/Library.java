@@ -43,12 +43,7 @@ public final class Library {
 
     @Nonnull
     public static GeneLibrary of(@Nonnull Ref<EntityStore> ref, @Nonnull ComponentAccessor<EntityStore> accessor) {
-        GeneLibrary library = accessor.getComponent(ref, GeneLibrary.getComponentType());
-        if (library == null) {
-            library = new GeneLibrary();
-            accessor.putComponent(ref, GeneLibrary.getComponentType(), library);
-        }
-        return library;
+        return com.genetics.util.Components.getOrCreate(ref, accessor, GeneLibrary.getComponentType(), GeneLibrary::new);
     }
 
     // ---- Extract
