@@ -714,7 +714,8 @@ $C.@DecoratedContainer #Panel {
           FlexWeight: 1;
 
           // The tree: nodes and links are placed on #TreeCanvas by TreeTab (absolute Anchors), which also sizes it
-          // to the tree. The view scrolls both ways (wheel and scrollbars): #TreeView up and down, #TreeRow sideways.
+          // to the tree. #TreeRow scrolls sideways and fills the panel, so its scrollbar stays at the panel's bottom;
+          // inside it, #TreeView (as wide as the tree) scrolls up and down with the mouse wheel.
           Group {
             LayoutMode: Top;
             FlexWeight: 1;
@@ -723,14 +724,14 @@ $C.@DecoratedContainer #Panel {
             OutlineColor: #273748;
             OutlineSize: 1;
 
-            Group #TreeView {
-              LayoutMode: TopScrolling;
+            Group #TreeRow {
+              LayoutMode: LeftScrolling;
               FlexWeight: 1;
               ScrollbarStyle: $C.@DefaultScrollbarStyle;
 
-              Group #TreeRow {
-                LayoutMode: LeftScrolling;
-                Anchor: (Height: 480);
+              Group #TreeView {
+                LayoutMode: TopScrolling;
+                Anchor: (Width: 880);
                 ScrollbarStyle: $C.@DefaultScrollbarStyle;
 
                 Group #TreeCanvas {

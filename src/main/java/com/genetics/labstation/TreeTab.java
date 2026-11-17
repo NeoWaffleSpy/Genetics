@@ -51,7 +51,7 @@ final class TreeTab {
     private static final int TRACK = 166;
     /** Space between the canvas edge and the first grid cell. */
     private static final int MARGIN = 2;
-    /** Room under the canvas for the sideways scrollbar. */
+    /** Room beside the canvas for the up-and-down scrollbar. */
     private static final int SCROLLBAR = 14;
     private static final int LINK_WIDTH = 2;
     /** Node states, matching the state groups of TreeNode.ui. */
@@ -99,9 +99,9 @@ final class TreeTab {
         canvas.setWidth(Value.of(canvasWidth));
         canvas.setHeight(Value.of(canvasHeight));
         c.setObject("#TreeCanvas.Anchor", canvas);
-        Anchor treeRow = new Anchor();
-        treeRow.setHeight(Value.of(canvasHeight + SCROLLBAR));
-        c.setObject("#TreeRow.Anchor", treeRow);
+        Anchor treeView = new Anchor();
+        treeView.setWidth(Value.of(canvasWidth + SCROLLBAR));
+        c.setObject("#TreeView.Anchor", treeView);
         c.clear("#TreeCanvas");
         int index = 0;
         // Links first, so the nodes are drawn over them.
