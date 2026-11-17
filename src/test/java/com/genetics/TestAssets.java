@@ -54,6 +54,7 @@ public final class TestAssets {
         load(Balance.class, Balance.PATH, Balance.CODEC, Balance::getId);
         load(ComplexityTier.class, ComplexityTier.PATH, ComplexityTier.CODEC, ComplexityTier::getId);
         load(ResearchNode.class, ResearchNode.PATH, ResearchNode.CODEC, ResearchNode::getId);
+        load(com.genetics.tree.TreeLayout.class, com.genetics.tree.TreeLayout.PATH, com.genetics.tree.TreeLayout.CODEC, com.genetics.tree.TreeLayout::getId);
         return FAILURES;
     }
 

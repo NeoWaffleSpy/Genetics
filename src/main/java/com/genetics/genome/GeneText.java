@@ -16,7 +16,7 @@ public final class GeneText {
     @Nonnull
     public static String describe(@Nonnull Gene gene, @Nullable String language) {
         return switch (gene) {
-            case Gene.Stat stat -> "Max " + prettify(stat.stat()) + " " + (stat.percent() > 0 ? "+" : "") + number(stat.percent()) + "%";
+            case Gene.Stat stat -> statName(stat.stat()) + " " + (stat.percent() > 0 ? "+" : "") + number(stat.percent()) + "%";
             case Gene.Effect effect -> effectName(effect.effect(), language) + (effect.permanent() ? " (permanent)" : " (" + duration(effect.duration()) + ")");
             case Gene.Mutation mutation -> mutationName(mutation.mutation(), language) + " (mutation)";
         };
@@ -30,9 +30,23 @@ public final class GeneText {
         return Translations.resolve(language, entry != null ? entry.getName() : null, fallback);
     }
 
+    /**
+     * A stat's name: "Max Health" for a vanilla stat (genes raise its max), or the plain name of one of the mod's
+     * special stats ("Genetics_DamageResistance" → "Damage Resistance"), which aren't entity stats.
+     */
+    @Nonnull
+    public static String statName(@Nonnull String stat) {
+        return isSpecialStat(stat) ? cleanEffectId(stat) : "Max " + prettify(stat);
+    }
+
+    /** True for the mod's special stats (damage and knockback resistance), applied by the damage systems. */
+    public static boolean isSpecialStat(@Nonnull String stat) {
+        return stat.startsWith("Genetics_");
+    }
+
     /** "HealthRegen_Buff_T1" → "Health Regen T1": drops Buff/Food/Genetics words and splits words. */
     @Nonnull
-    static String cleanEffectId(@Nonnull String effectId) {
+    public static String cleanEffectId(@Nonnull String effectId) {
         java.util.List<String> words = new java.util.ArrayList<>();
         for (String part : effectId.split("_")) {
             if (part.isEmpty() || part.equals("Buff") || part.equals("Food") || part.equals("Genetics")) continue;

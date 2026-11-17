@@ -41,7 +41,7 @@ final class ProcessTab {
         if (sample != null) {
             boolean editable = !sample.processed();
             boolean permanentAllowed = Research.hasFeature(Journal.of(ref, store), Research.MAKE_PERMANENT);
-            boolean extract = !editable && LibraryTab.open(page, Journal.of(ref, store));
+            boolean extract = !editable && TreeTab.open(page, Journal.of(ref, store));
             for (int i = 0; i < sample.genes().size(); i++) {
                 String row = "#GeneList[" + i + "]";
                 c.append("#GeneList", Widgets.GENE_ROW);
@@ -157,7 +157,7 @@ final class ProcessTab {
         for (int i = 0; i < sample.genes().size(); i++) {
             c.set("#GeneList[" + i + "] #Extract.Text", i == picked ? "Picked" : "Extract");
         }
-        if (picked < 0 || picked >= sample.genes().size() || !LibraryTab.open(page, Journal.of(ref, store))) return;
+        if (picked < 0 || picked >= sample.genes().size() || !TreeTab.open(page, Journal.of(ref, store))) return;
         com.genetics.library.Library.ExtractPlan plan = com.genetics.library.Library.extractPlan(sample.genes().get(picked), page.station.tier(), com.genetics.library.Library.of(ref, store));
         c.set("#ProcessStatus.Visible", false);
         c.set("#SpliceWithButton.Visible", false);
@@ -177,7 +177,7 @@ final class ProcessTab {
     static String extract(@Nonnull LabStationPage page, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         ItemStack stack = page.sampleStack();
         Genome sample = page.sample();
-        if (stack == null || sample == null || !sample.processed() || !LibraryTab.open(page, Journal.of(ref, store))) return null;
+        if (stack == null || sample == null || !sample.processed() || !TreeTab.open(page, Journal.of(ref, store))) return null;
         int picked = page.extractIndex;
         if (picked < 0 || picked >= sample.genes().size()) return "Pick a gene to extract.";
         Gene gene = sample.genes().get(picked);

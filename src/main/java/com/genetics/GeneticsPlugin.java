@@ -66,6 +66,7 @@ public class GeneticsPlugin extends JavaPlugin {
         entities.registerSystem(new MutationSystem());
         entities.registerSystem(new com.genetics.mutation.MutationDamageSystems.Filter());
         entities.registerSystem(new com.genetics.mutation.MutationDamageSystems.Inspect());
+        entities.registerSystem(new com.genetics.tree.SpecialStats.Filter());
         LOGGER.atInfo().log("Genetics set up.");
     }
 

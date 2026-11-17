@@ -109,11 +109,15 @@ public class GeneLibrary implements Component<EntityStore> {
     public static final BuilderCodec<GeneLibrary> CODEC = BuilderCodec.builder(GeneLibrary.class, GeneLibrary::new)
             .append(new KeyedCodec<>("Entries", new ArrayCodec<>(Entry.CODEC, Entry[]::new)),
                     (t, v) -> t.entries = v != null ? new ArrayList<>(List.of(v)) : new ArrayList<>(), t -> t.entries.toArray(Entry[]::new)).add()
+            .append(new KeyedCodec<>("TreeNodes", Codec.STRING_ARRAY),
+                    (t, v) -> t.tree = com.genetics.tree.TreeAllocation.load(v), t -> t.tree.save()).add()
             .build();
 
     private static ComponentType<EntityStore, GeneLibrary> componentType;
 
     private List<Entry> entries = new ArrayList<>();
+    /** The player's Genome Tree nodes (design doc §8.3), kept with the library so both travel with the player. */
+    private com.genetics.tree.TreeAllocation tree = new com.genetics.tree.TreeAllocation();
     private boolean normalized;
 
     public static void setComponentType(@Nonnull ComponentType<EntityStore, GeneLibrary> type) {
@@ -184,6 +188,13 @@ public class GeneLibrary implements Component<EntityStore> {
         return true;
     }
 
+    /** The player's Genome Tree allocation (changed in place). */
+    @Nonnull
+    public com.genetics.tree.TreeAllocation getTree() {
+        if (tree == null) tree = new com.genetics.tree.TreeAllocation();
+        return tree;
+    }
+
     /** Removes every entry. Returns how many there were. */
     public int clear() {
         int n = entries.size();
@@ -213,6 +224,7 @@ public class GeneLibrary implements Component<EntityStore> {
     public Component<EntityStore> clone() {
         GeneLibrary copy = new GeneLibrary();
         for (Entry entry : entries) copy.entries.add(entry.copy());
+        copy.tree = new com.genetics.tree.TreeAllocation(getTree());
         return copy;
     }
 }

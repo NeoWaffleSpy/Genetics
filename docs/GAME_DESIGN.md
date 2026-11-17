@@ -37,6 +37,7 @@ paid for with rare resources.
 | **Complexity** | A score that scales the risk of injection, the sickness it causes and the cost of processing. See §3. |
 | **Genome Capacity** | An entity stat: the most Complexity an entity's body can carry. Raised by crafted Genome Expansions. See §3.4. |
 | **Genetic Sickness** | An entity stat that builds up with each injection and decays over time. Causes temporary debuffs. See §9.2. |
+| **Genome Tree** | The end-game genome builder, a tab of the Lab Station: nodes paid in Complexity, up to the player's Genome Capacity. See §8.3. |
 | **Genome Expansion** | A crafted consumable that permanently raises Genome Capacity, one per Complexity tier. |
 | **Complexity tier** | A band of Complexity values. Each tier has its own processing materials and acts as a progression gate. See §4. |
 | **Mutation** | A special, active gene themed to some species. It comes from splicing, or from a boss's signature. Defined in the Mutation Codex. |
@@ -541,6 +542,40 @@ decided yet. Three possible uses, which can be combined:
 Decided: **1**, which gives **2** for free; **3** waits for the mob features. A drawback entry lowers
 the combination's Complexity like any drawback, and the 30% drawback cap still applies.
 
+### 8.3 Genome Tree (Decided 2026-11-17: replaces the Library tab; numbers are Proposal)
+
+Building a genome is now a passive-skill tree, so genes are no longer equal: mutations and permanent buffs are rare,
+expensive landmarks that a build is planned around. Temporary effects are left out: at this stage nobody builds
+around them. They stay in Phases 1 and 2.
+
+- **Budget.** Nodes are paid in **Complexity**, so **Genome Capacity is the tree's budget**. The genetic material the
+  tree makes carries the tree's cost as its Complexity, and injecting it checks capacity against that cost (degradation
+  scales with it).
+- **Paths.** Owned nodes must stay connected to the Origin. Click a linked node to take it, right click to give it back
+  (a node that holds others up can't be given back).
+- **Node types.**
+
+  | Node | Gives | Cost (Balance → `GenomeTree`) |
+  | --- | --- | --- |
+  | Small | a basic stat: +2% Max Health, Stamina or Mana | 2 |
+  | Big | a special stat: +2% damage resistance, +8% knockback resistance, +10% Max Oxygen | 4 |
+  | Notable | a mutation | 12, doubled by each Notable owned (12, 24, 48, 96) |
+  | Core | one tier of a permanent buff: owning n Cores of a buff gives tier n | 15, tripled by each Core owned (15, 45, 135) |
+  | Sink | a stat per rank, without limit | rank r costs 3 + (r − 1) |
+
+- **Cores.** Each buff has one Core per tier, spread far apart: Might ×3, Speed ×3, Hide ×2, Night Vision ×1.
+- **Layout rules.** Notables and Cores sit at the **end of a side branch**, hanging off a Small or Big node, never on a
+  path. Sinks end the four main arms. A ring around the Origin links the arms, so there's more than one route.
+- **Library.** Extracting still happens on the Process tab. With `RequireLibrary`, a Notable needs its mutation in the
+  Genetic Library, and a Core needs any form (any tier, temporary or permanent) of its buff. Locked nodes show dimmed.
+- **Special stats.** `Genetics_DamageResistance` and `Genetics_KnockbackResistance` are stat genes that aren't entity
+  stats: a damage system applies them after armor, capped at 60% and 90%.
+- **Crafting.** The sidebar holds the syringe slot, the capacity the tree spends, the genes the owned nodes give and
+  the crafting cost (the materials of the tree cost's Complexity tier). Craft fills the empty syringe; the allocation
+  is kept, so the same genome can be crafted again.
+- **Data.** The tree is `Server/Genetics/GenomeTree/Default.json` (a grid position, links and data per node), checked
+  by `GenomeTree.check` at load and in the tests. A pack can replace it.
+
 ## 9. Cross-cutting systems
 
 ### 9.1 Copying your genome (Decided)
@@ -795,7 +830,8 @@ where it stands after the author's answers.
 | Syringe tiers | Done (Crude, Copper, Thorium, Adamantite; tier from profile or max health) |
 | Phase 2 processing and splicing | Done (Lab Station T2 upgrade; processing screen to choose genes; additive splicing with the result shown before paying, spliced samples named after their tier; new mutations only when none is inherited) |
 | Mutations and behaviors | Done (24 themed, active mutations; 12 triggers incl. hit, kill, hurt, killing blow, hold, fall, charged jump, effect; shared conditions and stacks; boss signature mutations at 50%, bosses sampled once each; themed splicing rolls) |
-| Phase 3 Genetic Library | Done (Lab Station T3; Library tab; extract any gene with Gene Enhancers; one entry per gene at its best value; combine at chosen amounts, drawbacks as reducers; several mutations with the x3 cost multiplier; Complex, Advanced and Exotic expansions) |
+| Phase 3 Genome Tree | First version (Genome Tree tab replaces the Library tab: nodes paid in Complexity, Notables x2 and Cores x3, Sinks, special stats, crafting from the sidebar; not yet checked in game) |
+| Phase 3 Genetic Library | Done (Lab Station T3; extraction on the Process tab; extract any gene with Gene Enhancers; one entry per gene at its best value; combine at chosen amounts, drawbacks as reducers; several mutations with the x3 cost multiplier; Complex, Advanced and Exotic expansions) |
 
 ## 16. TODO
 

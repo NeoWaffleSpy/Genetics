@@ -1,0 +1,15 @@
+// One link between two Genome Tree nodes: a thin bar placed by TreeTab. Lit (#On) when both ends are owned.
+Group {
+  LayoutMode: Top;
+
+  Group #On {
+    FlexWeight: 1;
+    Background: #3ec9a7;
+    Visible: false;
+  }
+
+  Group #Off {
+    FlexWeight: 1;
+    Background: #2c3d50;
+  }
+}

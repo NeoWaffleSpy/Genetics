@@ -1,0 +1,1078 @@
+{
+  "Cell": 28,
+  "Nodes": [
+    {
+      "Id": "Origin",
+      "Type": "Origin",
+      "X": 11,
+      "Y": 6,
+      "Links": [
+        "N10_6",
+        "N11_5",
+        "N11_7",
+        "N12_6"
+      ]
+    },
+    {
+      "Id": "N11_5",
+      "Type": "Small",
+      "X": 11,
+      "Y": 5,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_4",
+        "Origin"
+      ]
+    },
+    {
+      "Id": "N11_4",
+      "Type": "Small",
+      "X": 11,
+      "Y": 4,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_3",
+        "N11_5"
+      ]
+    },
+    {
+      "Id": "N11_3",
+      "Type": "Big",
+      "X": 11,
+      "Y": 3,
+      "Stat": "Genetics_DamageResistance",
+      "Value": 2,
+      "Links": [
+        "N10_3",
+        "N11_2",
+        "N11_4",
+        "N12_3"
+      ]
+    },
+    {
+      "Id": "N11_2",
+      "Type": "Small",
+      "X": 11,
+      "Y": 2,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N10_2",
+        "N11_1",
+        "N11_3",
+        "N12_2"
+      ]
+    },
+    {
+      "Id": "N11_1",
+      "Type": "Small",
+      "X": 11,
+      "Y": 1,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_0",
+        "N11_2"
+      ]
+    },
+    {
+      "Id": "N11_0",
+      "Type": "Sink",
+      "X": 11,
+      "Y": 0,
+      "Stat": "Health",
+      "Value": 1,
+      "Links": [
+        "N11_1"
+      ]
+    },
+    {
+      "Id": "N9_2",
+      "Type": "Core",
+      "X": 9,
+      "Y": 2,
+      "Buff": "Hide",
+      "Tiers": [
+        "Genetics_Hide_T1",
+        "Genetics_Hide_T2"
+      ],
+      "Links": [
+        "N10_2"
+      ]
+    },
+    {
+      "Id": "N10_2",
+      "Type": "Small",
+      "X": 10,
+      "Y": 2,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_2",
+        "N9_2"
+      ]
+    },
+    {
+      "Id": "N13_2",
+      "Type": "Notable",
+      "X": 13,
+      "Y": 2,
+      "Mutation": "Undying",
+      "Links": [
+        "N12_2"
+      ]
+    },
+    {
+      "Id": "N12_2",
+      "Type": "Small",
+      "X": 12,
+      "Y": 2,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_2",
+        "N13_2"
+      ]
+    },
+    {
+      "Id": "N11_7",
+      "Type": "Small",
+      "X": 11,
+      "Y": 7,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N11_8",
+        "Origin"
+      ]
+    },
+    {
+      "Id": "N11_8",
+      "Type": "Small",
+      "X": 11,
+      "Y": 8,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_7",
+        "N11_9"
+      ]
+    },
+    {
+      "Id": "N11_9",
+      "Type": "Big",
+      "X": 11,
+      "Y": 9,
+      "Stat": "Genetics_DamageResistance",
+      "Value": 2,
+      "Links": [
+        "N10_9",
+        "N11_10",
+        "N11_8",
+        "N12_9"
+      ]
+    },
+    {
+      "Id": "N11_10",
+      "Type": "Small",
+      "X": 11,
+      "Y": 10,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N10_10",
+        "N11_11",
+        "N11_9",
+        "N12_10"
+      ]
+    },
+    {
+      "Id": "N11_11",
+      "Type": "Small",
+      "X": 11,
+      "Y": 11,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_10",
+        "N11_12"
+      ]
+    },
+    {
+      "Id": "N11_12",
+      "Type": "Sink",
+      "X": 11,
+      "Y": 12,
+      "Stat": "Genetics_DamageResistance",
+      "Value": 0.5,
+      "Links": [
+        "N11_11"
+      ]
+    },
+    {
+      "Id": "N9_10",
+      "Type": "Core",
+      "X": 9,
+      "Y": 10,
+      "Buff": "Might",
+      "Tiers": [
+        "Genetics_Might_T1",
+        "Genetics_Might_T2",
+        "Genetics_Might_T3"
+      ],
+      "Links": [
+        "N10_10"
+      ]
+    },
+    {
+      "Id": "N10_10",
+      "Type": "Small",
+      "X": 10,
+      "Y": 10,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_10",
+        "N9_10"
+      ]
+    },
+    {
+      "Id": "N13_10",
+      "Type": "Notable",
+      "X": 13,
+      "Y": 10,
+      "Mutation": "Bloodfang",
+      "Links": [
+        "N12_10"
+      ]
+    },
+    {
+      "Id": "N12_10",
+      "Type": "Small",
+      "X": 12,
+      "Y": 10,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N11_10",
+        "N13_10"
+      ]
+    },
+    {
+      "Id": "N12_6",
+      "Type": "Small",
+      "X": 12,
+      "Y": 6,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N13_6",
+        "Origin"
+      ]
+    },
+    {
+      "Id": "N13_6",
+      "Type": "Small",
+      "X": 13,
+      "Y": 6,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N12_6",
+        "N14_6"
+      ]
+    },
+    {
+      "Id": "N14_6",
+      "Type": "Big",
+      "X": 14,
+      "Y": 6,
+      "Stat": "Genetics_KnockbackResistance",
+      "Value": 8,
+      "Links": [
+        "N13_6",
+        "N14_5",
+        "N14_7",
+        "N15_6"
+      ]
+    },
+    {
+      "Id": "N15_6",
+      "Type": "Small",
+      "X": 15,
+      "Y": 6,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N14_6",
+        "N16_6"
+      ]
+    },
+    {
+      "Id": "N16_6",
+      "Type": "Small",
+      "X": 16,
+      "Y": 6,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N15_6",
+        "N16_5",
+        "N16_7",
+        "N17_6"
+      ]
+    },
+    {
+      "Id": "N17_6",
+      "Type": "Big",
+      "X": 17,
+      "Y": 6,
+      "Stat": "Genetics_KnockbackResistance",
+      "Value": 8,
+      "Links": [
+        "N16_6",
+        "N18_6"
+      ]
+    },
+    {
+      "Id": "N18_6",
+      "Type": "Small",
+      "X": 18,
+      "Y": 6,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N17_6",
+        "N18_5",
+        "N18_7",
+        "N19_6"
+      ]
+    },
+    {
+      "Id": "N19_6",
+      "Type": "Small",
+      "X": 19,
+      "Y": 6,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N18_6",
+        "N20_6"
+      ]
+    },
+    {
+      "Id": "N20_6",
+      "Type": "Small",
+      "X": 20,
+      "Y": 6,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N19_6",
+        "N20_5",
+        "N20_7",
+        "N21_6"
+      ]
+    },
+    {
+      "Id": "N21_6",
+      "Type": "Small",
+      "X": 21,
+      "Y": 6,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N20_6",
+        "N22_6"
+      ]
+    },
+    {
+      "Id": "N22_6",
+      "Type": "Sink",
+      "X": 22,
+      "Y": 6,
+      "Stat": "Stamina",
+      "Value": 1,
+      "Links": [
+        "N21_6"
+      ]
+    },
+    {
+      "Id": "N16_4",
+      "Type": "Core",
+      "X": 16,
+      "Y": 4,
+      "Buff": "Speed",
+      "Tiers": [
+        "Genetics_Speed",
+        "Genetics_Speed_T2",
+        "Genetics_Speed_T3"
+      ],
+      "Links": [
+        "N16_5"
+      ]
+    },
+    {
+      "Id": "N16_5",
+      "Type": "Small",
+      "X": 16,
+      "Y": 5,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N16_4",
+        "N16_6"
+      ]
+    },
+    {
+      "Id": "N16_8",
+      "Type": "Notable",
+      "X": 16,
+      "Y": 8,
+      "Mutation": "SpringLegs",
+      "Links": [
+        "N16_7"
+      ]
+    },
+    {
+      "Id": "N16_7",
+      "Type": "Small",
+      "X": 16,
+      "Y": 7,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N16_6",
+        "N16_8"
+      ]
+    },
+    {
+      "Id": "N18_4",
+      "Type": "Notable",
+      "X": 18,
+      "Y": 4,
+      "Mutation": "Featherfall",
+      "Links": [
+        "N18_5"
+      ]
+    },
+    {
+      "Id": "N18_5",
+      "Type": "Small",
+      "X": 18,
+      "Y": 5,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N18_4",
+        "N18_6"
+      ]
+    },
+    {
+      "Id": "N18_8",
+      "Type": "Core",
+      "X": 18,
+      "Y": 8,
+      "Buff": "Might",
+      "Tiers": [
+        "Genetics_Might_T1",
+        "Genetics_Might_T2",
+        "Genetics_Might_T3"
+      ],
+      "Links": [
+        "N18_7"
+      ]
+    },
+    {
+      "Id": "N18_7",
+      "Type": "Small",
+      "X": 18,
+      "Y": 7,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N18_6",
+        "N18_8"
+      ]
+    },
+    {
+      "Id": "N20_4",
+      "Type": "Core",
+      "X": 20,
+      "Y": 4,
+      "Buff": "Speed",
+      "Tiers": [
+        "Genetics_Speed",
+        "Genetics_Speed_T2",
+        "Genetics_Speed_T3"
+      ],
+      "Links": [
+        "N20_5"
+      ]
+    },
+    {
+      "Id": "N20_5",
+      "Type": "Small",
+      "X": 20,
+      "Y": 5,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N20_4",
+        "N20_6"
+      ]
+    },
+    {
+      "Id": "N20_8",
+      "Type": "Core",
+      "X": 20,
+      "Y": 8,
+      "Buff": "Hide",
+      "Tiers": [
+        "Genetics_Hide_T1",
+        "Genetics_Hide_T2"
+      ],
+      "Links": [
+        "N20_7"
+      ]
+    },
+    {
+      "Id": "N20_7",
+      "Type": "Small",
+      "X": 20,
+      "Y": 7,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N20_6",
+        "N20_8"
+      ]
+    },
+    {
+      "Id": "N10_6",
+      "Type": "Small",
+      "X": 10,
+      "Y": 6,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N9_6",
+        "Origin"
+      ]
+    },
+    {
+      "Id": "N9_6",
+      "Type": "Small",
+      "X": 9,
+      "Y": 6,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N10_6",
+        "N8_6"
+      ]
+    },
+    {
+      "Id": "N8_6",
+      "Type": "Big",
+      "X": 8,
+      "Y": 6,
+      "Stat": "Oxygen",
+      "Value": 10,
+      "Links": [
+        "N7_6",
+        "N8_5",
+        "N8_7",
+        "N9_6"
+      ]
+    },
+    {
+      "Id": "N7_6",
+      "Type": "Small",
+      "X": 7,
+      "Y": 6,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N6_6",
+        "N8_6"
+      ]
+    },
+    {
+      "Id": "N6_6",
+      "Type": "Small",
+      "X": 6,
+      "Y": 6,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N5_6",
+        "N6_5",
+        "N6_7",
+        "N7_6"
+      ]
+    },
+    {
+      "Id": "N5_6",
+      "Type": "Big",
+      "X": 5,
+      "Y": 6,
+      "Stat": "Oxygen",
+      "Value": 10,
+      "Links": [
+        "N4_6",
+        "N6_6"
+      ]
+    },
+    {
+      "Id": "N4_6",
+      "Type": "Small",
+      "X": 4,
+      "Y": 6,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N3_6",
+        "N4_5",
+        "N4_7",
+        "N5_6"
+      ]
+    },
+    {
+      "Id": "N3_6",
+      "Type": "Small",
+      "X": 3,
+      "Y": 6,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N2_6",
+        "N4_6"
+      ]
+    },
+    {
+      "Id": "N2_6",
+      "Type": "Small",
+      "X": 2,
+      "Y": 6,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N1_6",
+        "N2_5",
+        "N2_7",
+        "N3_6"
+      ]
+    },
+    {
+      "Id": "N1_6",
+      "Type": "Small",
+      "X": 1,
+      "Y": 6,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N0_6",
+        "N2_6"
+      ]
+    },
+    {
+      "Id": "N0_6",
+      "Type": "Sink",
+      "X": 0,
+      "Y": 6,
+      "Stat": "Mana",
+      "Value": 1,
+      "Links": [
+        "N1_6"
+      ]
+    },
+    {
+      "Id": "N6_4",
+      "Type": "Core",
+      "X": 6,
+      "Y": 4,
+      "Buff": "NightVision",
+      "Tiers": [
+        "Genetics_NightVision"
+      ],
+      "Links": [
+        "N6_5"
+      ]
+    },
+    {
+      "Id": "N6_5",
+      "Type": "Small",
+      "X": 6,
+      "Y": 5,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N6_4",
+        "N6_6"
+      ]
+    },
+    {
+      "Id": "N6_8",
+      "Type": "Notable",
+      "X": 6,
+      "Y": 8,
+      "Mutation": "Photosynthesis",
+      "Links": [
+        "N6_7"
+      ]
+    },
+    {
+      "Id": "N6_7",
+      "Type": "Small",
+      "X": 6,
+      "Y": 7,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N6_6",
+        "N6_8"
+      ]
+    },
+    {
+      "Id": "N4_4",
+      "Type": "Notable",
+      "X": 4,
+      "Y": 4,
+      "Mutation": "SilentHunter",
+      "Links": [
+        "N4_5"
+      ]
+    },
+    {
+      "Id": "N4_5",
+      "Type": "Small",
+      "X": 4,
+      "Y": 5,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N4_4",
+        "N4_6"
+      ]
+    },
+    {
+      "Id": "N4_8",
+      "Type": "Core",
+      "X": 4,
+      "Y": 8,
+      "Buff": "Speed",
+      "Tiers": [
+        "Genetics_Speed",
+        "Genetics_Speed_T2",
+        "Genetics_Speed_T3"
+      ],
+      "Links": [
+        "N4_7"
+      ]
+    },
+    {
+      "Id": "N4_7",
+      "Type": "Small",
+      "X": 4,
+      "Y": 7,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N4_6",
+        "N4_8"
+      ]
+    },
+    {
+      "Id": "N2_4",
+      "Type": "Core",
+      "X": 2,
+      "Y": 4,
+      "Buff": "Might",
+      "Tiers": [
+        "Genetics_Might_T1",
+        "Genetics_Might_T2",
+        "Genetics_Might_T3"
+      ],
+      "Links": [
+        "N2_5"
+      ]
+    },
+    {
+      "Id": "N2_5",
+      "Type": "Small",
+      "X": 2,
+      "Y": 5,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N2_4",
+        "N2_6"
+      ]
+    },
+    {
+      "Id": "N2_8",
+      "Type": "Notable",
+      "X": 2,
+      "Y": 8,
+      "Mutation": "GrizzlyFury",
+      "Links": [
+        "N2_7"
+      ]
+    },
+    {
+      "Id": "N2_7",
+      "Type": "Small",
+      "X": 2,
+      "Y": 7,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N2_6",
+        "N2_8"
+      ]
+    },
+    {
+      "Id": "N12_3",
+      "Type": "Small",
+      "X": 12,
+      "Y": 3,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_3",
+        "N13_3"
+      ]
+    },
+    {
+      "Id": "N13_3",
+      "Type": "Small",
+      "X": 13,
+      "Y": 3,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N12_3",
+        "N14_3"
+      ]
+    },
+    {
+      "Id": "N14_3",
+      "Type": "Big",
+      "X": 14,
+      "Y": 3,
+      "Stat": "Genetics_DamageResistance",
+      "Value": 2,
+      "Links": [
+        "N13_3",
+        "N14_4"
+      ]
+    },
+    {
+      "Id": "N14_4",
+      "Type": "Small",
+      "X": 14,
+      "Y": 4,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N14_3",
+        "N14_5"
+      ]
+    },
+    {
+      "Id": "N14_5",
+      "Type": "Small",
+      "X": 14,
+      "Y": 5,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N14_4",
+        "N14_6"
+      ]
+    },
+    {
+      "Id": "N14_7",
+      "Type": "Small",
+      "X": 14,
+      "Y": 7,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N14_6",
+        "N14_8"
+      ]
+    },
+    {
+      "Id": "N14_8",
+      "Type": "Small",
+      "X": 14,
+      "Y": 8,
+      "Stat": "Stamina",
+      "Value": 2,
+      "Links": [
+        "N14_7",
+        "N14_9"
+      ]
+    },
+    {
+      "Id": "N14_9",
+      "Type": "Big",
+      "X": 14,
+      "Y": 9,
+      "Stat": "Genetics_KnockbackResistance",
+      "Value": 8,
+      "Links": [
+        "N13_9",
+        "N14_8"
+      ]
+    },
+    {
+      "Id": "N13_9",
+      "Type": "Small",
+      "X": 13,
+      "Y": 9,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N12_9",
+        "N14_9"
+      ]
+    },
+    {
+      "Id": "N12_9",
+      "Type": "Small",
+      "X": 12,
+      "Y": 9,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_9",
+        "N13_9"
+      ]
+    },
+    {
+      "Id": "N10_9",
+      "Type": "Small",
+      "X": 10,
+      "Y": 9,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_9",
+        "N9_9"
+      ]
+    },
+    {
+      "Id": "N9_9",
+      "Type": "Small",
+      "X": 9,
+      "Y": 9,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N10_9",
+        "N8_9"
+      ]
+    },
+    {
+      "Id": "N8_9",
+      "Type": "Big",
+      "X": 8,
+      "Y": 9,
+      "Stat": "Oxygen",
+      "Value": 10,
+      "Links": [
+        "N8_8",
+        "N9_9"
+      ]
+    },
+    {
+      "Id": "N8_8",
+      "Type": "Small",
+      "X": 8,
+      "Y": 8,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N8_7",
+        "N8_9"
+      ]
+    },
+    {
+      "Id": "N8_7",
+      "Type": "Small",
+      "X": 8,
+      "Y": 7,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N8_6",
+        "N8_8"
+      ]
+    },
+    {
+      "Id": "N8_5",
+      "Type": "Small",
+      "X": 8,
+      "Y": 5,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N8_4",
+        "N8_6"
+      ]
+    },
+    {
+      "Id": "N8_4",
+      "Type": "Small",
+      "X": 8,
+      "Y": 4,
+      "Stat": "Mana",
+      "Value": 2,
+      "Links": [
+        "N8_3",
+        "N8_5"
+      ]
+    },
+    {
+      "Id": "N8_3",
+      "Type": "Big",
+      "X": 8,
+      "Y": 3,
+      "Stat": "Genetics_DamageResistance",
+      "Value": 2,
+      "Links": [
+        "N8_4",
+        "N9_3"
+      ]
+    },
+    {
+      "Id": "N9_3",
+      "Type": "Small",
+      "X": 9,
+      "Y": 3,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N10_3",
+        "N8_3"
+      ]
+    },
+    {
+      "Id": "N10_3",
+      "Type": "Small",
+      "X": 10,
+      "Y": 3,
+      "Stat": "Health",
+      "Value": 2,
+      "Links": [
+        "N11_3",
+        "N9_3"
+      ]
+    }
+  ]
+}

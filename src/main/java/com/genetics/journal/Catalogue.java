@@ -212,8 +212,8 @@ public final class Catalogue {
     /** "Max Health", "Max Mana (drawback)", the effect's or mutation's name. */
     @Nonnull
     public static String name(@Nonnull String key, @Nullable String language) {
-        if (key.startsWith(STAT)) return "Max " + GeneText.prettify(key.substring(STAT.length()));
-        if (key.startsWith(DRAWBACK)) return "Max " + GeneText.prettify(key.substring(DRAWBACK.length()));
+        if (key.startsWith(STAT)) return GeneText.statName(key.substring(STAT.length()));
+        if (key.startsWith(DRAWBACK)) return GeneText.statName(key.substring(DRAWBACK.length()));
         if (key.startsWith(EFFECT)) return GeneText.effectName(key.substring(EFFECT.length()), language);
         if (key.startsWith(MUTATION)) return GeneText.mutationName(key.substring(MUTATION.length()), language);
         return key;

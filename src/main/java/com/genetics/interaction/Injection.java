@@ -9,6 +9,7 @@ import com.genetics.genome.ComplexityCalculator;
 import com.genetics.genome.Gene;
 import com.genetics.genome.GeneText;
 import com.genetics.genome.Genome;
+import com.genetics.tree.GenomeTree;
 import com.genetics.genome.GenomeApplier;
 import com.genetics.genome.InjectionRoller;
 import com.genetics.sickness.Sickness;
@@ -42,9 +43,16 @@ public final class Injection {
     private Injection() {
     }
 
-    /** Complexity of the genes an injection of this sample would keep (everything but temporary effects). */
+    /**
+     * Complexity of the genes an injection of this sample would keep (everything but temporary effects). Genetic
+     * material from the Genome Tree counts at the tree's cost ({@link GenomeTree#complexityScale}).
+     */
     public static double lastingComplexity(@Nonnull Genome sample) {
-        return ComplexityCalculator.compute(lasting(sample.genes()));
+        return round(ComplexityCalculator.compute(lasting(sample.genes())) * GenomeTree.complexityScale(sample));
+    }
+
+    private static double round(double value) {
+        return Math.round(value * 10) / 10.0;
     }
 
     /** True if injecting this sample, as it is, would go over the user's capacity. */
@@ -86,16 +94,18 @@ public final class Injection {
         }
 
         // Capacity check, after the roll (design doc §3.4).
+        // Tree material carries the tree's cost: scale the Codex sum by it, and degrade against the scaled capacity.
         float capacity = GenomeCapacity.capacity(self, accessor);
-        double carried = ComplexityCalculator.compute(lasting);
+        double scale = GenomeTree.complexityScale(sample);
+        double carried = round(ComplexityCalculator.compute(lasting) * scale);
         double overflow = Math.max(0, carried - capacity);
         List<DegradeStrategy.Change> degraded = overflow > 0
-                ? DefaultDegradeStrategy.INSTANCE.degrade(lasting, capacity, ThreadLocalRandom.current())
+                ? DefaultDegradeStrategy.INSTANCE.degrade(lasting, capacity / scale, ThreadLocalRandom.current())
                 : List.of();
 
         ActiveGenome current = accessor.getComponent(self, ActiveGenome.getComponentType());
         Genome previous = current != null ? current.getGenome() : null;
-        Genome next = new Genome(Genome.FORMAT_VERSION, sample.processed(), true, ComplexityCalculator.compute(lasting), sample.source(), lasting);
+        Genome next = new Genome(Genome.FORMAT_VERSION, sample.processed(), true, round(ComplexityCalculator.compute(lasting) * scale), sample.source(), lasting);
         // Update the existing component in place, so the maintenance system never re-applies the previous genome.
         if (current != null) current.setGenome(next);
         else accessor.putComponent(self, ActiveGenome.getComponentType(), new ActiveGenome(next));

@@ -1,0 +1,131 @@
+// One Genome Tree node. TreeTab places it (the root's Anchor) and shows one state group: Off (not reachable),
+// Avail (can be taken), Locked (needs a Genetic Library entry) or On<Type> (owned). Each state has its own glyph label.
+Group {
+  LayoutMode: Top;
+
+  Button #Button {
+    LayoutMode: Top;
+    FlexWeight: 1;
+    Style: (
+      Default: (Background: #000000(0)),
+      Hovered: (Background: #000000(0)),
+      Pressed: (Background: #000000(0))
+    );
+
+    Group #Off {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #1a2533;
+      OutlineColor: #3a4f66;
+      OutlineSize: 1;
+
+      Label #TOff {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #66788a, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #Avail {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #24364d;
+      OutlineColor: #f0b54a;
+      OutlineSize: 1;
+      Visible: false;
+
+      Label #TAvail {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #f0b54a, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #Locked {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #12171e;
+      OutlineColor: #2a333d;
+      OutlineSize: 1;
+      Visible: false;
+
+      Label #TLocked {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #4f5d6b, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #OnStat {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #23806e;
+      OutlineColor: #3ec9a7;
+      OutlineSize: 1;
+      Visible: false;
+
+      Label #TOnStat {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #eaf1f4, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #OnBig {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #2b9a85;
+      OutlineColor: #8ff5dc;
+      OutlineSize: 1;
+      Visible: false;
+
+      Label #TOnBig {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #eaf1f4, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #OnNotable {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #5d3f91;
+      OutlineColor: #b78cf2;
+      OutlineSize: 1;
+      Visible: false;
+
+      Label #TOnNotable {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #eaf1f4, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #OnCore {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #9a6a1c;
+      OutlineColor: #f0b54a;
+      OutlineSize: 1;
+      Visible: false;
+
+      Label #TOnCore {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #OnSink {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #47713a;
+      OutlineColor: #8fd17a;
+      OutlineSize: 1;
+      Visible: false;
+
+      Label #TOnSink {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #eaf1f4, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #OnOrigin {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: #3ec9a7;
+      OutlineColor: #eaf1f4;
+      OutlineSize: 1;
+      Visible: false;
+
+      Label #TOnOrigin {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #0b121a, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+  }
+}

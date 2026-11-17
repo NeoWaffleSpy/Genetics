@@ -48,6 +48,8 @@ public final class Codex {
                 com.genetics.tier.ComplexityTier.CODEC, com.genetics.tier.ComplexityTier::getId));
         registry.register(store(com.genetics.research.ResearchNode.class, com.genetics.research.ResearchNode.PATH,
                 com.genetics.research.ResearchNode.CODEC, com.genetics.research.ResearchNode::getId));
+        registry.register(store(com.genetics.tree.TreeLayout.class, com.genetics.tree.TreeLayout.PATH,
+                com.genetics.tree.TreeLayout.CODEC, com.genetics.tree.TreeLayout::getId));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -185,6 +187,13 @@ public final class Codex {
             if (event.getMaxBand() != null && sickness.rank(event.getMaxBand()) < 0) problems += warn(where + ": unknown MaxBand '" + event.getMaxBand() + "'.");
             problems += checkActions(event.getActions(), where);
         }
+        for (String problem : com.genetics.tree.GenomeTree.check(com.genetics.tree.TreeLayout.get())) problems += warn("Genome Tree: " + problem);
+        for (com.genetics.tree.TreeNode node : com.genetics.tree.TreeLayout.get().getNodes()) {
+            String where = "Genome Tree node " + node.getId();
+            if (node.getStat() != null) problems += checkStat(node.getStat(), where);
+            for (String tier : node.getTiers()) problems += checkEffect(tier, where);
+            if (node.getMutation() != null && mutation(node.getMutation()) == null) problems += warn(where + ": unknown mutation '" + node.getMutation() + "'.");
+        }
         if (StatEntry.getAssetMap().getAsset(DEFAULT_ID) == null) problems += warn("Effect Codex has no " + DEFAULT_ID + " stat entry.");
         if (EffectEntry.getAssetMap().getAsset(DEFAULT_ID) == null) problems += warn("Effect Codex has no " + DEFAULT_ID + " effect entry.");
 
@@ -218,6 +227,9 @@ public final class Codex {
 
     private static int checkStat(@Nullable String stat, @Nonnull String where) {
         if (stat == null) return warn(where + ": missing stat id.");
+        if (com.genetics.genome.GeneText.isSpecialStat(stat)) {
+            return com.genetics.tree.SpecialStats.ALL.contains(stat) ? 0 : warn(where + ": unknown special stat '" + stat + "'.");
+        }
         return EntityStatType.getAssetMap().getAsset(stat) == null ? warn(where + ": unknown stat '" + stat + "'.") : 0;
     }
 

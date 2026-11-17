@@ -302,6 +302,62 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
         public int getMaxMutations() { return Math.max(1, maxMutations); }
     }
 
+    /**
+     * The Genome Tree (design doc §8.3): what each kind of node costs, in Complexity, and how Notables and Cores get
+     * dearer. With k Notables owned, the next costs NotableCost x NotableMultiplier^k (Cores the same with their own
+     * values). A Sink's rank r costs SinkCost + (r - 1) x SinkCostGrowth.
+     */
+    public static final class GenomeTree {
+        public static final BuilderCodec<GenomeTree> CODEC = BuilderCodec.builder(GenomeTree.class, GenomeTree::new)
+                .append(new KeyedCodec<>("SmallCost", Codec.DOUBLE), (t, v) -> t.smallCost = v, t -> t.smallCost)
+                .documentation("Complexity of a Small node (basic stat).").add()
+                .append(new KeyedCodec<>("BigCost", Codec.DOUBLE), (t, v) -> t.bigCost = v, t -> t.bigCost)
+                .documentation("Complexity of a Big node (special stat).").add()
+                .append(new KeyedCodec<>("NotableCost", Codec.DOUBLE), (t, v) -> t.notableCost = v, t -> t.notableCost)
+                .documentation("Complexity of the first Notable (mutation).").add()
+                .append(new KeyedCodec<>("NotableMultiplier", Codec.DOUBLE), (t, v) -> t.notableMultiplier = v, t -> t.notableMultiplier)
+                .documentation("Each Notable owned multiplies the next one's cost by this.").add()
+                .append(new KeyedCodec<>("CoreCost", Codec.DOUBLE), (t, v) -> t.coreCost = v, t -> t.coreCost)
+                .documentation("Complexity of the first Core (permanent buff tier).").add()
+                .append(new KeyedCodec<>("CoreMultiplier", Codec.DOUBLE), (t, v) -> t.coreMultiplier = v, t -> t.coreMultiplier)
+                .documentation("Each Core owned multiplies the next one's cost by this.").add()
+                .append(new KeyedCodec<>("SinkCost", Codec.DOUBLE), (t, v) -> t.sinkCost = v, t -> t.sinkCost)
+                .documentation("Complexity of a Sink's first rank.").add()
+                .append(new KeyedCodec<>("SinkCostGrowth", Codec.DOUBLE), (t, v) -> t.sinkCostGrowth = v, t -> t.sinkCostGrowth)
+                .documentation("Each further rank of a Sink costs this much more than the one before.").add()
+                .append(new KeyedCodec<>("RequireLibrary", Codec.BOOLEAN), (t, v) -> t.requireLibrary = v, t -> t.requireLibrary)
+                .documentation("Notables need their mutation, and Cores their buff (any form), in the Genetic Library.").add()
+                .append(new KeyedCodec<>("DamageResistanceCap", Codec.DOUBLE), (t, v) -> t.damageResistanceCap = v, t -> t.damageResistanceCap)
+                .documentation("Most damage resistance a genome can give, in percent.").add()
+                .append(new KeyedCodec<>("KnockbackResistanceCap", Codec.DOUBLE), (t, v) -> t.knockbackResistanceCap = v, t -> t.knockbackResistanceCap)
+                .documentation("Most knockback resistance a genome can give, in percent.").add()
+                .build();
+
+        private double smallCost = 2;
+        private double bigCost = 4;
+        private double notableCost = 12;
+        private double notableMultiplier = 2;
+        private double coreCost = 15;
+        private double coreMultiplier = 3;
+        private double sinkCost = 3;
+        private double sinkCostGrowth = 1;
+        private boolean requireLibrary = true;
+        private double damageResistanceCap = 60;
+        private double knockbackResistanceCap = 90;
+
+        public double getSmallCost() { return Math.max(0, smallCost); }
+        public double getBigCost() { return Math.max(0, bigCost); }
+        public double getNotableCost() { return Math.max(0, notableCost); }
+        public double getNotableMultiplier() { return Math.max(1, notableMultiplier); }
+        public double getCoreCost() { return Math.max(0, coreCost); }
+        public double getCoreMultiplier() { return Math.max(1, coreMultiplier); }
+        public double getSinkCost() { return Math.max(0, sinkCost); }
+        public double getSinkCostGrowth() { return Math.max(0, sinkCostGrowth); }
+        public boolean isRequireLibrary() { return requireLibrary; }
+        public double getDamageResistanceCap() { return Math.clamp(damageResistanceCap, 0, 100); }
+        public double getKnockbackResistanceCap() { return Math.clamp(knockbackResistanceCap, 0, 100); }
+    }
+
     /** Science (placeholder name) paid for Catalogue discoveries (design doc §9.4). */
     public static final class Science {
         public static final BuilderCodec<Science> CODEC = BuilderCodec.builder(Science.class, Science::new)
@@ -366,6 +422,8 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
             .documentation("Science paid for Catalogue discoveries.").add()
             .append(new KeyedCodec<>("Library", Library.CODEC), (t, v) -> t.library = v, t -> t.library)
             .documentation("Genetic Library: fusion, several mutations, refining.").add()
+            .append(new KeyedCodec<>("GenomeTree", GenomeTree.CODEC), (t, v) -> t.genomeTree = v, t -> t.genomeTree)
+            .documentation("Genome Tree: node costs and how Notables and Cores get dearer.").add()
             .append(new KeyedCodec<>("Splicing", Splicing.CODEC), (t, v) -> t.splicing = v, t -> t.splicing).add()
             .append(new KeyedCodec<>("Permanence", Permanence.CODEC), (t, v) -> t.permanence = v, t -> t.permanence).add()
             .append(new KeyedCodec<>("StationUpgrades", new ArrayCodec<>(StationUpgrade.CODEC, StationUpgrade[]::new)), (t, v) -> t.stationUpgrades = v, t -> t.stationUpgrades)
@@ -384,6 +442,7 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     private Milestone[] milestones = new Milestone[0];
     private Science science = new Science();
     private Library library = new Library();
+    private GenomeTree genomeTree = new GenomeTree();
     private Splicing splicing = new Splicing();
     private Permanence permanence = new Permanence();
     private StationUpgrade[] stationUpgrades = {
@@ -446,6 +505,11 @@ public final class Balance implements JsonAssetWithMap<String, DefaultAssetMap<S
     @Nonnull
     public Library library() {
         return library != null ? library : BUILT_IN.library;
+    }
+
+    @Nonnull
+    public GenomeTree genomeTree() {
+        return genomeTree != null ? genomeTree : BUILT_IN.genomeTree;
     }
 
     @Nonnull

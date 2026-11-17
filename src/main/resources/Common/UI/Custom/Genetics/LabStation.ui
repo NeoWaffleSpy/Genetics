@@ -134,8 +134,8 @@ $C.@DecoratedContainer #Panel {
       TextButton #TabProcessOff { Style: @TabOffStyle; Text: "Process"; Anchor: (Width: 124); Visible: false; }
       TextButton #TabSpliceOn { Style: @TabOnStyle; Text: "Splice"; Anchor: (Width: 124); Visible: false; }
       TextButton #TabSpliceOff { Style: @TabOffStyle; Text: "Splice"; Anchor: (Width: 124); }
-      TextButton #TabLibraryOn { Style: @TabOnStyle; Text: "Library"; Anchor: (Width: 124); Visible: false; }
-      TextButton #TabLibraryOff { Style: @TabOffStyle; Text: "Library"; Anchor: (Width: 124); }
+      TextButton #TabTreeOn { Style: @TabOnStyle; Text: "Genome Tree"; Anchor: (Width: 124); Visible: false; }
+      TextButton #TabTreeOff { Style: @TabOffStyle; Text: "Genome Tree"; Anchor: (Width: 124); }
       TextButton #TabCatalogueOn { Style: @TabOnStyle; Text: "Catalogue"; Anchor: (Width: 124); Visible: false; }
       TextButton #TabCatalogueOff { Style: @TabOffStyle; Text: "Catalogue"; Anchor: (Width: 124); }
       TextButton #TabResearchOn { Style: @TabOnStyle; Text: "Research"; Anchor: (Width: 124); Visible: false; }
@@ -679,13 +679,14 @@ $C.@DecoratedContainer #Panel {
         }
       }
 
-      // ---- Library: extracted genes, combined into new genetic material (Phase 3).
-      Group #LibraryTab {
+      // ---- Genome Tree: spend Genome Capacity on nodes, then craft the result into an empty syringe (Phase 3).
+      // The tree tab hides the rail: its sidebar has its own syringe slot (#TreeSlot, the same station slot).
+      Group #TreeTab {
         LayoutMode: Top;
         FlexWeight: 1;
         Visible: false;
 
-        Group #LibraryLocked {
+        Group #TreeLocked {
           LayoutMode: Top;
           FlexWeight: 1;
           Padding: (Full: 12);
@@ -694,11 +695,11 @@ $C.@DecoratedContainer #Panel {
           OutlineSize: 1;
           Visible: false;
 
-          Label #LibraryLockedText {
+          Label #TreeLockedText {
             Style: (FontSize: 16, TextColor: #a9b9c7, Wrap: true);
           }
 
-          Group #LibUpgradeCost {
+          Group #TreeUpgradeCost {
             LayoutMode: Left;
             Anchor: (Height: 46, Top: 10);
           }
@@ -707,7 +708,7 @@ $C.@DecoratedContainer #Panel {
             LayoutMode: Left;
             Anchor: (Height: 44, Top: 10);
 
-            TextButton #LibUpgradeButton {
+            TextButton #TreeUpgradeButton {
               Style: @PrimaryStyle;
               Text: "Upgrade to T3";
               Anchor: (Width: 210);
@@ -715,87 +716,59 @@ $C.@DecoratedContainer #Panel {
           }
         }
 
-        Group #LibraryOpen {
-          LayoutMode: Top;
+        Group #TreeOpen {
+          LayoutMode: Left;
           FlexWeight: 1;
 
+          // The tree: nodes and links are placed on #TreeCanvas by TreeTab (absolute Anchors).
           Group {
-            LayoutMode: Left;
+            LayoutMode: Top;
             FlexWeight: 1;
+            Padding: (Left: 4, Right: 4, Top: 4);
+            Background: #0d141c;
+            OutlineColor: #273748;
+            OutlineSize: 1;
 
-            Group {
-              LayoutMode: Top;
+            Group #TreeCanvas {
+              Anchor: (Width: 660, Height: 368);
+            }
+
+            Label #TreeInfo {
               FlexWeight: 1;
-              Padding: (Full: 12);
-              Background: #111a24;
-              OutlineColor: #273748;
-              OutlineSize: 1;
-
-              Group {
-                LayoutMode: Left;
-                Anchor: (Height: 26);
-
-                Label {
-                  Text: "Genetic Library";
-                  Style: (FontSize: 18, RenderBold: true, TextColor: #eaf1f4, FontName: "Secondary", VerticalAlignment: Center);
-                }
-
-                Group {
-                  FlexWeight: 1;
-                }
-
-                Label #LibraryCount {
-                  Style: (FontSize: 12, RenderBold: true, TextColor: #a9b9c7, VerticalAlignment: Center);
-                }
-              }
-
-              Group {
-                LayoutMode: Left;
-                Anchor: (Height: 30, Top: 8);
-
-                TextButton #LibSubStatsOn { Style: @SubOnStyle; Text: "Stats"; Anchor: (Width: 130); }
-                TextButton #LibSubStatsOff { Style: @SubOffStyle; Text: "Stats"; Anchor: (Width: 130); Visible: false; }
-                Group { Anchor: (Width: 8); }
-                TextButton #LibSubEffectsOn { Style: @SubOnStyle; Text: "Effects"; Anchor: (Width: 130); Visible: false; }
-                TextButton #LibSubEffectsOff { Style: @SubOffStyle; Text: "Effects"; Anchor: (Width: 130); }
-                Group { Anchor: (Width: 8); }
-                TextButton #LibSubMutationsOn { Style: @SubOnStyle; Text: "Mutations"; Anchor: (Width: 130); Visible: false; }
-                TextButton #LibSubMutationsOff { Style: @SubOffStyle; Text: "Mutations"; Anchor: (Width: 130); }
-              }
-
-              Label #LibraryEmpty {
-                Padding: (Top: 8);
-                Text: "Empty. Put genetic material in the slot, open the Process tab and extract a gene with its Extract button.";
-                Style: (FontSize: 14, TextColor: #66788a, Wrap: true);
-              }
-
-              Group #LibraryList {
-                LayoutMode: TopScrolling;
-                FlexWeight: 1;
-                Padding: (Top: 6);
-                ScrollbarStyle: $C.@DefaultScrollbarStyle;
-              }
+              Padding: (Left: 6, Top: 2);
+              Style: (FontSize: 12, TextColor: #a9b9c7, Wrap: true);
             }
+          }
+
+          Group {
+            Anchor: (Width: 10);
+          }
+
+          // Sidebar: syringe slot and capacity, owned buffs, crafting cost.
+          Group {
+            LayoutMode: Top;
+            Anchor: (Width: 262);
+            Padding: (Full: 10);
+            Background: #111a24;
+            OutlineColor: #273748;
+            OutlineSize: 1;
 
             Group {
-              Anchor: (Width: 10);
-            }
+              LayoutMode: Left;
+              Anchor: (Height: 64);
 
-            Group {
-              LayoutMode: Top;
-              Anchor: (Width: 260);
-              Padding: (Full: 12);
-              Background: #111a24;
-              OutlineColor: #273748;
-              OutlineSize: 1;
-
-              Label #DesignName {
-                Style: (FontSize: 18, RenderBold: true, TextColor: #eaf1f4, FontName: "Secondary", Wrap: true);
+              ItemGrid #TreeSlot {
+                Anchor: (Width: 64, Height: 64);
+                SlotsPerRow: 1;
+                AreItemsDraggable: true;
+                InfoDisplay: None;
+                Style: @SlotStyle;
               }
 
               Group {
                 LayoutMode: Top;
-                Padding: (Top: 6);
+                FlexWeight: 1;
+                Padding: (Left: 10);
 
                 Group {
                   LayoutMode: Left;
@@ -807,86 +780,87 @@ $C.@DecoratedContainer #Panel {
                     Style: @SectionStyle;
                   }
 
-                  Label #LCapNumbers {
+                  Label #TCapNumbers {
                     Style: (FontSize: 13, RenderBold: true, TextColor: #eaf1f4, VerticalAlignment: Center);
                   }
                 }
 
-                Group #LCapTrack {
+                Group #TCapTrack {
                   LayoutMode: Left;
                   Anchor: (Height: 10, Top: 4);
                   Background: #0b121a;
                   OutlineColor: #273748;
                   OutlineSize: 1;
 
-                  Group #LCapFill {
+                  Group #TCapFill {
                     Anchor: (Width: 0);
                     Background: #f0b54a;
                   }
 
-                  Group #LCapOver {
+                  Group #TCapOver {
                     Anchor: (Width: 0);
                     Background: #e86a6a;
                   }
                 }
 
-                Label #LCapLegend {
+                Label #TCapLegend {
                   Padding: (Top: 4);
                   Style: (FontSize: 11, TextColor: #a9b9c7, Wrap: true);
                 }
               }
-
-              Label #DesignMutations {
-                Padding: (Top: 6);
-                Style: (FontSize: 12, RenderBold: true, TextColor: #b78cf2, Wrap: true);
-              }
-
-              Label #DesignHeader {
-                Padding: (Top: 8, Bottom: 6);
-                Style: @SectionStyle;
-              }
-
-              Group #DesignList {
-                LayoutMode: TopScrolling;
-                FlexWeight: 1;
-                ScrollbarStyle: $C.@DefaultScrollbarStyle;
-              }
             }
-          }
 
-          Group #LibraryReasonRow {
-            LayoutMode: Left;
-            Anchor: (Height: 24);
-            Padding: (Top: 6);
+            Label #TreeNext {
+              Padding: (Top: 6);
+              Style: (FontSize: 11, RenderBold: true, TextColor: #b78cf2, Wrap: true);
+            }
 
-            Label #LibraryCostLabel {
+            Label #TreeHeader {
+              Padding: (Top: 6, Bottom: 4);
+              Text: "Active nodes";
+              Style: @SectionStyle;
+            }
+
+            Group #TreeBuffs {
+              LayoutMode: TopScrolling;
+              FlexWeight: 1;
+              ScrollbarStyle: $C.@DefaultScrollbarStyle;
+            }
+
+            Label #TreeCostLabel {
+              Padding: (Top: 6, Bottom: 2);
               Text: "Cost";
               Style: @SectionStyle;
             }
 
-            Label #LibraryReason {
-              FlexWeight: 1;
-              Style: (FontSize: 14, RenderBold: true, TextColor: #e86a6a, HorizontalAlignment: End, VerticalAlignment: Center);
+            Group #TreeCost {
+              LayoutMode: Top;
             }
-          }
 
-          Group #LibraryBar {
-            LayoutMode: Left;
-            Anchor: (Height: 54);
-            Padding: (Top: 6);
-
-            Group #LibraryCost {
-              LayoutMode: Left;
+            Label #TreeReason {
+              Padding: (Top: 2);
+              Style: (FontSize: 12, RenderBold: true, TextColor: #e86a6a, Wrap: true);
             }
 
             Group {
-              FlexWeight: 1;
-            }
+              LayoutMode: Left;
+              Anchor: (Height: 40, Top: 4);
 
-            TextButton #CombineButton {
-              Style: @PrimaryStyle;
-              Text: "Combine";
-              Anchor: (Width: 160, Height: 44);
+              TextButton #TreeResetButton {
+                Style: @SecondaryStyle;
+                Text: "Reset";
+                Anchor: (Width: 84);
+              }
+
+              Group {
+                Anchor: (Width: 8);
+              }
+
+              TextButton #TreeCraftButton {
+                Style: @PrimaryStyle;
+                Text: "Craft";
+                FlexWeight: 1;
+              }
             }
           }
         }

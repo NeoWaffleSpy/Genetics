@@ -10,7 +10,7 @@
   "Features": [
     "GeneticLibrary"
   ],
-  "Description": "Unlocks the Library tab and the Lab Station T3 upgrade, and teaches the Gene Enhancer recipe (used to extract stats and effects).",
+  "Description": "Unlocks the Genome Tree tab and the Lab Station T3 upgrade, and teaches the Gene Enhancer recipe (used to extract stats, effects and mutations into the Genetic Library, which unlocks the tree's Notables and Cores).",
   "Recipes": [
     "Genetics_Gene_Enhancer"
   ]
