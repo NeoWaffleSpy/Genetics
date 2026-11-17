@@ -1,0 +1,27 @@
+// One material of the Genome Tree's crafting cost, compact for the sidebar: icon, "have / need  Name".
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 26);
+  Padding: (Bottom: 2);
+
+  Group {
+    LayoutMode: Top;
+    Anchor: (Width: 24);
+
+    ItemSlot #Icon {
+      Anchor: (Width: 24, Height: 24);
+      ShowQualityBackground: true;
+    }
+  }
+
+  Label #Amount {
+    Anchor: (Width: 64);
+    Padding: (Left: 6);
+    Style: (FontSize: 13, RenderBold: true, TextColor: #8fd17a, VerticalAlignment: Center);
+  }
+
+  Label #Item {
+    FlexWeight: 1;
+    Style: (FontSize: 12, TextColor: #a9b9c7, VerticalAlignment: Center);
+  }
+}

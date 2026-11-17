@@ -109,10 +109,18 @@
     "NewBuff": 2,
     "NewMutation": 4
   },
-  "Library": {
-    "ExtractItem": "Genetics_Gene_Enhancer",
-    "ComplexityPerEnhancer": 10,
-    "MutationCostBase": 3,
-    "MaxMutations": 4
+  "GenomeTree": {
+    "SmallCost": 2,
+    "BigCost": 4,
+    "NotableCost": 12,
+    "NotableMultiplier": 2,
+    "CoreCost": 15,
+    "CoreMultiplier": 3,
+    "SinkCost": 3,
+    "SinkCostGrowth": 1,
+    "RequireDiscovery": true,
+    "MaxMutations": 4,
+    "DamageResistanceCap": 60,
+    "KnockbackResistanceCap": 90
   }
 }

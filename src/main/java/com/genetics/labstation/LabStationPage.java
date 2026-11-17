@@ -50,8 +50,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     static final String SPLICE_GRID = "#SpliceSlot";
     static final String STORAGE_GRID = "#Storage";
     static final String HOTBAR_GRID = "#Hotbar";
+    /** The Genome Tree sidebar's syringe slot: a second view of the station's slot. */
+    static final String TREE_GRID = "#TreeSlot";
     static final short SAMPLE_SLOT = Station.SAMPLE_SLOT;
-    private static final List<String> GRIDS = List.of(SAMPLE_GRID, STORAGE_GRID, HOTBAR_GRID);
+    private static final List<String> GRIDS = List.of(SAMPLE_GRID, TREE_GRID, STORAGE_GRID, HOTBAR_GRID);
     /**
      * A drop arrives as two events, in this order: {@code Dropped} on the target grid (target slot, source slot,
      * item) and then {@code SlotMouseDragCompleted} on the source grid (which grid the drag came from).
@@ -70,9 +72,9 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             CustomUIEventBindingType.SlotMouseEntered,
             CustomUIEventBindingType.SlotMouseExited
     );
-    private static final List<String> TABS = List.of("Process", "Splice", "Library", "Catalogue", "Research");
-    /** Tabs that keep the sample rail and the inventory on screen. */
-    private static final List<String> BENCH_TABS = List.of("Process", "Splice", "Library");
+    private static final List<String> TABS = List.of("Process", "Splice", "Tree", "Catalogue", "Research");
+    /** Tabs that keep the inventory on screen (all but Tree also show the sample rail; Tree has its own slot). */
+    private static final List<String> BENCH_TABS = List.of("Process", "Splice", "Tree");
     static final List<String> SUBS = List.of("Creatures", "Genes", "Buffs", "Mutations");
 
     final Station station;
@@ -100,14 +102,16 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     short bSlot = -1;
     boolean[] spliceKeep = new boolean[0];
     String sub = "Creatures";
-    /** Gene of the genetic material picked for extraction, or -1. */
-    int extractIndex = -1;
-    /** Library entries ticked into the combination. */
-    final java.util.Set<String> libraryUse = new java.util.LinkedHashSet<>();
-    /** The Library sub-tab shown: Stats, Effects or Mutations. */
-    String libraryFilter = "Stats";
-    /** Amount (0-100% of the best value) chosen per library entry. */
-    final java.util.Map<String, Double> libraryAmount = new java.util.HashMap<>();
+    /** Genome Tree: canvas row of each node, the links in canvas order, and the states last sent. */
+    final java.util.Map<String, Integer> treeRows = new java.util.HashMap<>();
+    final List<String[]> treeLinks = new ArrayList<>();
+    final java.util.Map<String, String> treeStates = new java.util.HashMap<>();
+    final java.util.Map<Integer, Boolean> treeLinkStates = new java.util.HashMap<>();
+    /** The node under the mouse, and the last refusal (shown above its details). */
+    @Nullable
+    String treeHover;
+    @Nullable
+    String treeMessage;
     @Nullable
     String catalogueSelected;
     /** Open Catalogue groups, as "Sub:Group". */
@@ -147,7 +151,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         if (!sampleKey.equals(builtSample)) {
             Genome sample = sample();
             keep = new boolean[sample != null ? sample.genes().size() : 0];
-            extractIndex = -1;
             Arrays.fill(keep, true);
             permanent = new boolean[keep.length];
         }
@@ -168,22 +171,17 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 events.addEventBinding(CustomUIEventBindingType.Activating, "#Sub" + s + state, new EventData().append("Action", "Sub").append("Tab", s), false);
             }
         }
-        for (String f : LibraryTab.FILTERS) {
-            for (String state : List.of("On", "Off")) {
-                events.addEventBinding(CustomUIEventBindingType.Activating, "#LibSub" + f + state, new EventData().append("Action", "LibSub").append("Tab", f), false);
-            }
-        }
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ProcessButton", new EventData().append("Action", "Process"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceWithButton", new EventData().append("Action", "Tab").append("Tab", "Splice"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeButton", new EventData().append("Action", "Upgrade"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeStationButton", new EventData().append("Action", "Tab")
-                .append("Tab", station.tier() < 2 ? "Splice" : "Library"), false);
+                .append("Tab", station.tier() < 2 ? "Splice" : "Tree"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#SpliceButton", new EventData().append("Action", "Splice"), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ResearchButton", new EventData().append("Action", "Research"), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#ExtractButton", new EventData().append("Action", "Extract"), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#CombineButton", new EventData().append("Action", "Combine"), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#LibUpgradeButton", new EventData().append("Action", "Upgrade"), false);
-        for (String grid : List.of(SAMPLE_GRID, SPLICE_GRID, STORAGE_GRID, HOTBAR_GRID)) {
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#TreeCraftButton", new EventData().append("Action", "TreeCraft"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#TreeResetButton", new EventData().append("Action", "TreeReset"), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#TreeUpgradeButton", new EventData().append("Action", "Upgrade"), false);
+        for (String grid : List.of(SAMPLE_GRID, TREE_GRID, SPLICE_GRID, STORAGE_GRID, HOTBAR_GRID)) {
             for (CustomUIEventBindingType type : SLOT_EVENTS) {
                 events.addEventBinding(type, grid, new EventData().append("Action", type.name()).append("Grid", grid), false);
             }
@@ -194,7 +192,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         writeTooltip(commands, ref, store);
         switch (tab) {
             case "Splice" -> SpliceTab.build(this, ref, store, commands, events);
-            case "Library" -> LibraryTab.build(this, ref, store, commands, events);
+            case "Tree" -> TreeTab.build(this, ref, store, commands, events);
             case "Catalogue" -> CatalogueTab.build(this, ref, store, commands, events);
             case "Research" -> ResearchTab.build(this, ref, store, commands, events);
             default -> ProcessTab.build(this, ref, store, commands, events);
@@ -218,7 +216,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             commands.set("#Tab" + t + "Off.Visible", !t.equals(tab));
             commands.set("#" + t + "Tab.Visible", t.equals(tab));
         }
-        commands.set("#Rail.Visible", bench);
+        commands.set("#Rail.Visible", bench && !tab.equals("Tree"));
         commands.set("#InventoryPanel.Visible", bench);
         Anchor panel = new Anchor();
         panel.setWidth(Value.of(1000));
@@ -256,9 +254,10 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             commands.set("#SpeciesName.Text", "No sample");
             commands.set("#SpeciesMeta.Text", "Drag a filled syringe into the slot.");
         } else if (a.source() == null || a.source().spliced()) {
-            boolean designed = a.source() != null && com.genetics.library.Library.SOURCE_ID.equals(a.source().mobId());
-            commands.set("#SpeciesName.Text", designed ? "Designed" : a.source() != null ? "Spliced" : "Unknown");
-            commands.set("#SpeciesMeta.Text", designed ? "Combined in the Genetic Library"
+            boolean designed = a.source() != null && Genome.LEGACY_DESIGNED_ID.equals(a.source().mobId());
+            boolean tree = com.genetics.tree.GenomeTree.isTreeGenome(a);
+            commands.set("#SpeciesName.Text", designed || tree ? "Designed" : a.source() != null ? "Spliced" : "Unknown");
+            commands.set("#SpeciesMeta.Text", tree ? "Crafted on the Genome Tree" : designed ? "Combined in the Genetic Library"
                     : a.source() != null ? "Mostly " + a.source().mobName() + " genes" : "");
         } else {
             String species = com.genetics.journal.Catalogue.speciesOf(a.source().mobId());
@@ -284,12 +283,6 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 if (data.tab != null && TABS.contains(data.tab) && !data.tab.equals(tab)) {
                     tab = data.tab;
                     hoveredGrid = null;
-                    rebuild();
-                }
-            }
-            case "LibSub" -> {
-                if (data.tab != null && LibraryTab.FILTERS.contains(data.tab) && !data.tab.equals(libraryFilter)) {
-                    libraryFilter = data.tab;
                     rebuild();
                 }
             }
@@ -340,39 +333,28 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
                 if (message != null) playerRef.sendMessage(Message.raw(message));
                 rebuild();
             }
-            case "PickExtract" -> {
-                int i = parse(data.index);
-                extractIndex = i == extractIndex ? -1 : i;
+            case "TreeTake", "TreeRefund" -> {
+                if (data.node == null) return;
+                treeMessage = data.action.equals("TreeTake") ? TreeTab.take(this, ref, store, data.node) : TreeTab.refund(this, ref, store, data.node);
+                treeHover = data.node;
                 partial(ref, store);
             }
-            case "Extract" -> {
-                String message = ProcessTab.extract(this, ref, store);
-                if (message != null) playerRef.sendMessage(Message.raw(message));
-                rebuild();
-            }
-            case "LibraryUse" -> {
-                if (data.node != null) {
-                    boolean use = data.checked != null ? data.checked : !libraryUse.contains(data.node);
-                    if (use) libraryUse.add(data.node);
-                    else libraryUse.remove(data.node);
-                }
-                partial(ref, store);
-            }
-            case "Combine" -> {
-                String message = LibraryTab.combine(this, ref, store);
-                if (message != null) playerRef.sendMessage(Message.raw(message));
-                rebuild();
-            }
-            case "LibraryAmount", "LibraryField" -> {
-                Double input = data.action.equals("LibraryAmount") ? (data.amount != null ? (double) data.amount : null) : data.field;
-                if (data.node == null || input == null) return;
+            case "TreeHover" -> {
+                if (data.node == null || data.node.equals(treeHover)) return;
+                treeHover = data.node;
+                treeMessage = null;
                 UICommandBuilder commands = new UICommandBuilder();
-                LibraryTab.setAmount(this, ref, store, commands, data.node, input, data.action.equals("LibraryAmount"));
-                LibraryTab.update(this, ref, store, commands);
+                TreeTab.update(this, ref, store, commands);
                 sendUpdate(commands, false);
             }
-            case "Discard" -> {
-                if (data.node != null) playerRef.sendMessage(Message.raw(LibraryTab.discard(this, ref, store, data.node)));
+            case "TreeReset" -> {
+                TreeTab.reset(ref, store);
+                treeMessage = null;
+                partial(ref, store);
+            }
+            case "TreeCraft" -> {
+                String message = TreeTab.craft(this, ref, store);
+                if (message != null) playerRef.sendMessage(Message.raw(message));
                 rebuild();
             }
             case "Splice" -> {
@@ -383,7 +365,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             case "Upgrade" -> {
                 String failure = LabStationBlock.upgrade(world, station.pos(), ref, store);
                 playerRef.sendMessage(Message.raw(failure != null ? failure : "Lab Station upgraded to tier " + station.tier()
-                        + (station.tier() >= 3 ? ": the Genetic Library is open." : ": you can now splice and process Moderate samples.")));
+                        + (station.tier() >= 3 ? ": the Genome Tree is open." : ": you can now splice and process Moderate samples.")));
                 rebuild();
             }
             case "Research" -> {
@@ -559,7 +541,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
     private ItemContainer containerFor(@Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref, @Nullable String grid) {
         if (grid == null) return null;
         return switch (grid) {
-            case SAMPLE_GRID -> container;
+            case SAMPLE_GRID, TREE_GRID -> container;
             case STORAGE_GRID -> playerContainer(store, ref, STORAGE_SECTION_ID);
             case HOTBAR_GRID -> playerContainer(store, ref, HOTBAR_SECTION_ID);
             default -> null;
@@ -603,7 +585,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
         switch (tab) {
             case "Process" -> ProcessTab.update(this, ref, store, commands);
             case "Splice" -> SpliceTab.update(this, ref, store, commands);
-            case "Library" -> LibraryTab.update(this, ref, store, commands);
+            case "Tree" -> TreeTab.update(this, ref, store, commands);
             default -> {
             }
         }
@@ -628,7 +610,8 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
             stack = hovered != null && hoveredSlot >= 0 && hoveredSlot < hovered.getCapacity() ? hovered.getItemStack((short) hoveredSlot) : null;
         }
         boolean bench = BENCH_TABS.contains(tab);
-        if (!bench || isEmpty(stack) || hoveredGrid == null) {
+        // The tree's slot sits in its sidebar, away from where ItemTooltip places the station slot's tooltip.
+        if (!bench || isEmpty(stack) || hoveredGrid == null || TREE_GRID.equals(hoveredGrid)) {
             commands.set("#TooltipLayer.Visible", false);
             return;
         }
@@ -637,6 +620,7 @@ public class LabStationPage extends InteractiveCustomUIPage<LabStationPage.Event
 
     private void writeGrids(@Nonnull UICommandBuilder commands, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         commands.set(SAMPLE_GRID + ".Slots", slotsOf(container));
+        commands.set(TREE_GRID + ".Slots", slotsOf(container));
         ItemStack b = bStack();
         ItemGridSlot bSlotView = b != null ? new ItemGridSlot(new ItemStack(b.getItemId(), b.getQuantity())) : new ItemGridSlot();
         bSlotView.setActivatable(true);

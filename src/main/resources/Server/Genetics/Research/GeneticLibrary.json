@@ -1,5 +1,5 @@
 {
-  "Name": "Genetic Library",
+  "Name": "Genome Tree",
   "Branch": "Lab",
   "Order": 3,
   "Icon": "Helix",
@@ -10,8 +10,5 @@
   "Features": [
     "GeneticLibrary"
   ],
-  "Description": "Unlocks the Library tab and the Lab Station T3 upgrade, and teaches the Gene Enhancer recipe (used to extract stats and effects).",
-  "Recipes": [
-    "Genetics_Gene_Enhancer"
-  ]
+  "Description": "Unlocks the Genome Tree tab and the Lab Station T3 upgrade. Spend your Genome Capacity on the tree; its mutations and permanent buffs open up as you discover them in the Catalogue."
 }

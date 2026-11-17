@@ -19,7 +19,7 @@ public sealed interface Gene {
     /**
      * A modifier to a vanilla stat's max, in percent. Negative values are drawbacks.
      * {@code cost} is the value Complexity is counted from: the same as the percent, except for stats fused in the
-     * Genetic Library (design doc §8.1), where it is the full value of every copy fused into it.
+     * first version of the old Genetic Library (design doc §8.1), where it is the full value of every copy fused into it.
      */
     record Stat(@Nonnull String stat, double percent, double cost) implements Gene {
         public Stat {

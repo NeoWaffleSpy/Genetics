@@ -42,6 +42,8 @@ public record Genome(int version, boolean processed, boolean identified, double 
     public static final String LEGACY_METADATA_KEY = "Genetics:Genes";
     /** Current format version. Bump it, and migrate in {@link #fromBson}, when the format changes. */
     public static final int FORMAT_VERSION = 1;
+    /** Source id of genomes combined in the old Genetic Library, still shown as "Designed Gene". */
+    public static final String LEGACY_DESIGNED_ID = "Genetics_Library";
 
     /** Where a sample came from. Kept so the Lab Station and later systems (sickness events) can name the mob. */
     public record Source(@Nonnull String mobId, @Nonnull String mobName, @Nullable String model, @Nullable String icon, long sampledAt,
@@ -99,7 +101,7 @@ public record Genome(int version, boolean processed, boolean identified, double 
     public String title() {
         if (source != null && source.spliced()) {
             com.genetics.tier.ComplexityTier tier = com.genetics.tier.Tiers.forComplexity(complexity);
-            boolean designed = com.genetics.library.Library.SOURCE_ID.equals(source.mobId());
+            boolean designed = LEGACY_DESIGNED_ID.equals(source.mobId()) || com.genetics.tree.GenomeTree.SOURCE_ID.equals(source.mobId());
             return (tier != null ? tier.getName() + " " : "") + (designed ? "Designed Gene" : "Spliced Gene");
         }
         return (source != null ? source.mobName() : "Unknown") + "'s Genes";

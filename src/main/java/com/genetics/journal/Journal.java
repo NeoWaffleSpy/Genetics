@@ -33,11 +33,7 @@ public final class Journal {
     /** The entity's Catalogue, created if it has none yet. */
     @Nonnull
     public static GeneJournal of(@Nonnull Ref<EntityStore> ref, @Nonnull ComponentAccessor<EntityStore> accessor) {
-        GeneJournal journal = accessor.getComponent(ref, GeneJournal.getComponentType());
-        if (journal == null) {
-            journal = new GeneJournal();
-            accessor.putComponent(ref, GeneJournal.getComponentType(), journal);
-        }
+        GeneJournal journal = com.genetics.util.Components.getOrCreate(ref, accessor, GeneJournal.getComponentType(), GeneJournal::new);
         journal.migrateSpecies(Catalogue::speciesOf, (species, fallback) -> Catalogue.speciesName(species, null, fallback));
         return journal;
     }

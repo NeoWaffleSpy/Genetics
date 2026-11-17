@@ -174,7 +174,7 @@ final class CatalogueTab {
         switch (page.sub) {
             case "Creatures" -> creatureDetail(c, journal, selected, language);
             case "Mutations" -> mutationDetail(c, journal, selected, language);
-            default -> geneDetail(c, journal, com.genetics.library.Library.of(ref, store), selected, language, page.sub.equals("Buffs"));
+            default -> geneDetail(c, journal, selected, language, page.sub.equals("Buffs"));
         }
     }
 
@@ -352,7 +352,7 @@ final class CatalogueTab {
         d.note(text);
     }
 
-    private static void geneDetail(@Nonnull UICommandBuilder c, @Nonnull GeneJournal journal, @Nonnull com.genetics.library.GeneLibrary library,
+    private static void geneDetail(@Nonnull UICommandBuilder c, @Nonnull GeneJournal journal,
                                    @Nonnull Entry entry, @Nullable String language, boolean buff) {
         String key = entry.id();
         Detail d = new Detail(c);
@@ -379,7 +379,7 @@ final class CatalogueTab {
                     + GeneText.duration(Balance.get().splicing().getMaxEffectDuration()) + ".");
             d.note("Permanent: +" + GeneText.number(permanent) + ". Splice samples until the timer reaches "
                     + GeneText.duration(Balance.get().permanence().getMinDuration()) + ", then tick Make permanent when processing (costs a Gene Stabilizer).");
-            libraryNote(d, library, key, language);
+            treeNote(d, effect);
         } else {
             String stat = key.substring(key.indexOf(':') + 1);
             double weight = Codex.statWeight(stat);
@@ -409,13 +409,15 @@ final class CatalogueTab {
         for (String id : carriers) d.row(type, speciesName(journal, id, null), Catalogue.range(Catalogue.profileOf(id), key));
     }
 
-    private static void libraryNote(@Nonnull Detail d, @Nonnull com.genetics.library.GeneLibrary library, @Nonnull String key, @Nullable String language) {
-        List<String> held = new ArrayList<>();
-        for (com.genetics.library.GeneLibrary.Entry e : library.getEntries()) {
-            if (e.getGene() != null && Catalogue.key(e.getGene()).equals(key)) held.add(GeneText.describe(e.getGene(), language));
+    /** What discovering this buff opens on the Genome Tree: its Cores up to this tier. */
+    private static void treeNote(@Nonnull Detail d, @Nonnull String effect) {
+        for (com.genetics.tree.TreeNode node : com.genetics.tree.TreeLayout.get().getNodes()) {
+            int tier = node.getTiers().indexOf(effect);
+            if (node.kind() != com.genetics.tree.TreeNode.Kind.CORE || tier < 0) continue;
+            d.header("Genome Tree");
+            d.note("Lets you claim " + com.genetics.tree.GenomeTree.nodeName(node) + " Cores up to tier " + (tier + 1) + " of " + node.getTiers().size() + ".");
+            return;
         }
-        d.header("Your Genetic Library");
-        d.note(held.isEmpty() ? "Not extracted yet." : String.join(", ", held));
     }
 
     /** What an effect does, from its Effect Codex name key with ".desc" in place of ".name". */
@@ -471,8 +473,7 @@ final class CatalogueTab {
         if (known) {
             d.header("Cost");
             d.note("Complexity +" + GeneText.number(mutation.getComplexity()) + ". Rolled only by " + mutation.getMinTier()
-                    + " splices or above. In the Genetic Library, each extra mutation multiplies the cost by "
-                    + GeneText.number(Balance.get().library().getMutationCostBase()) + ".");
+                    + " splices or above. Discovering it opens its Notable on the Genome Tree.");
         }
     }
 

@@ -52,8 +52,6 @@ public class GeneticsPlugin extends JavaPlugin {
         MorphSystem.State.setComponentType(entities.registerComponent(MorphSystem.State.class, MorphSystem.State::new));
         SicknessState.setComponentType(entities.registerComponent(SicknessState.class, SicknessState.ID, SicknessState.CODEC));
         GeneJournal.setComponentType(entities.registerComponent(GeneJournal.class, GeneJournal.ID, GeneJournal.CODEC));
-        com.genetics.library.GeneLibrary.setComponentType(entities.registerComponent(com.genetics.library.GeneLibrary.class,
-                com.genetics.library.GeneLibrary.ID, com.genetics.library.GeneLibrary.CODEC));
         MutationSystem.State.setComponentType(entities.registerComponent(MutationSystem.State.class, MutationSystem.State::new));
         com.genetics.interaction.SampledOnce.setComponentType(entities.registerComponent(com.genetics.interaction.SampledOnce.class,
                 com.genetics.interaction.SampledOnce.ID, com.genetics.interaction.SampledOnce.CODEC));
@@ -66,6 +64,7 @@ public class GeneticsPlugin extends JavaPlugin {
         entities.registerSystem(new MutationSystem());
         entities.registerSystem(new com.genetics.mutation.MutationDamageSystems.Filter());
         entities.registerSystem(new com.genetics.mutation.MutationDamageSystems.Inspect());
+        entities.registerSystem(new com.genetics.tree.SpecialStats.Filter());
         LOGGER.atInfo().log("Genetics set up.");
     }
 

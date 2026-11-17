@@ -83,7 +83,7 @@ public final class MutationDamageSystems {
     }
 
     @Nullable
-    private static Genome genome(@Nonnull Ref<EntityStore> ref, @Nonnull ComponentAccessor<EntityStore> accessor) {
+    public static Genome genome(@Nonnull Ref<EntityStore> ref, @Nonnull ComponentAccessor<EntityStore> accessor) {
         ActiveGenome active = accessor.getComponent(ref, ActiveGenome.getComponentType());
         return active != null ? active.getGenome() : null;
     }
