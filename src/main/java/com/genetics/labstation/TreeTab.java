@@ -51,6 +51,8 @@ final class TreeTab {
     private static final int TRACK = 166;
     /** Space between the canvas edge and the first grid cell. */
     private static final int MARGIN = 2;
+    /** Room under the canvas for the sideways scrollbar. */
+    private static final int SCROLLBAR = 14;
     private static final int LINK_WIDTH = 2;
     /** Node states, matching the state groups of TreeNode.ui. */
     static final List<String> STATES = List.of("Off", "Avail", "Locked", "OnStat", "OnBig", "OnNotable", "OnCore", "OnSink", "OnOrigin");
@@ -83,6 +85,22 @@ final class TreeTab {
         TreeLayout layout = TreeLayout.get();
         GenomeTree.prune(layout, journal.getTree());
         int cell = layout.getCell();
+        // The canvas is as big as the tree; the view around it scrolls when it is bigger than the panel.
+        int columns = 0;
+        int rows = 0;
+        for (TreeNode node : layout.getNodes()) {
+            columns = Math.max(columns, node.getX() + 1);
+            rows = Math.max(rows, node.getY() + 1);
+        }
+        int canvasWidth = 2 * MARGIN + columns * cell;
+        int canvasHeight = 2 * MARGIN + rows * cell;
+        Anchor canvas = new Anchor();
+        canvas.setWidth(Value.of(canvasWidth));
+        canvas.setHeight(Value.of(canvasHeight));
+        c.setObject("#TreeCanvas.Anchor", canvas);
+        Anchor treeRow = new Anchor();
+        treeRow.setHeight(Value.of(canvasHeight + SCROLLBAR));
+        c.setObject("#TreeRow.Anchor", treeRow);
         c.clear("#TreeCanvas");
         int index = 0;
         // Links first, so the nodes are drawn over them.
@@ -104,8 +122,8 @@ final class TreeTab {
         for (TreeNode node : layout.getNodes()) {
             String row = "#TreeCanvas[" + index + "]";
             c.append("#TreeCanvas", NODE);
-            int w = width(node);
-            int h = height(node);
+            int w = width(node, cell);
+            int h = height(node, cell);
             c.setObject(row + ".Anchor", anchor(center(node.getX(), cell) - w / 2, center(node.getY(), cell) - h / 2, w, h));
             String glyph = glyph(node);
             for (String state : STATES) c.set(row + " #T" + state + ".Text", glyph);
@@ -347,20 +365,21 @@ final class TreeTab {
         return MARGIN + gridPosition * cell + cell / 2;
     }
 
-    private static int width(@Nonnull TreeNode node) {
+    /** A node's size on screen, for a 28 px cell, scaled to the tree's cell size. */
+    private static int width(@Nonnull TreeNode node, int cell) {
         TreeNode.Kind kind = node.kind();
-        if (kind == null) return 12;
-        return switch (kind) {
+        int size = kind == null ? 12 : switch (kind) {
             case ORIGIN, NOTABLE -> 22;
             case CORE -> 24;
             case SINK -> 26;
             case BIG -> 18;
             case SMALL -> 12;
         };
+        return Math.round(size * cell / 28f);
     }
 
-    private static int height(@Nonnull TreeNode node) {
-        return node.kind() == TreeNode.Kind.SINK ? 18 : width(node);
+    private static int height(@Nonnull TreeNode node, int cell) {
+        return node.kind() == TreeNode.Kind.SINK ? Math.round(18 * cell / 28f) : width(node, cell);
     }
 
     @Nonnull
