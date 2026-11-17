@@ -1,5 +1,6 @@
 // One Genome Tree node. TreeTab places it (the root's Anchor) and shows one state group: Off (not reachable),
-// Avail (can be taken), Locked (needs a Genetic Library entry) or On<Type> (owned). Each state has its own glyph label.
+// Avail (can be taken), Locked (not discovered yet) or On<Type> (owned); Notables use the diamond states D<State>.
+// Each state has its own glyph label.
 Group {
   LayoutMode: Top;
 
@@ -125,6 +126,51 @@ Group {
 
       Label #TOnOrigin {
         Style: (FontSize: 11, RenderBold: true, TextColor: #0b121a, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    // Notables are diamonds: a texture instead of a filled square.
+    Group #DOff {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: "Icons/TreeDiamondOff.png";
+      Visible: false;
+
+      Label #TDOff {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #66788a, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #DAvail {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: "Icons/TreeDiamondAvail.png";
+      Visible: false;
+
+      Label #TDAvail {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #f0b54a, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #DLocked {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: "Icons/TreeDiamondLocked.png";
+      Visible: false;
+
+      Label #TDLocked {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #4f5d6b, HorizontalAlignment: Center, VerticalAlignment: Center);
+      }
+    }
+
+    Group #DOn {
+      LayoutMode: Middle;
+      FlexWeight: 1;
+      Background: "Icons/TreeDiamondOn.png";
+      Visible: false;
+
+      Label #TDOn {
+        Style: (FontSize: 11, RenderBold: true, TextColor: #eaf1f4, HorizontalAlignment: Center, VerticalAlignment: Center);
       }
     }
   }

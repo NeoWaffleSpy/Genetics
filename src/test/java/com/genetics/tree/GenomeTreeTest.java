@@ -75,6 +75,27 @@ class GenomeTreeTest {
     }
 
     @Test
+    void everyMutationAndEveryBuffTierIsOnTheTree() {
+        TreeLayout layout = tree();
+        for (String mutation : com.genetics.codex.MutationEntry.getAssetMap().getAssetMap().keySet()) {
+            assertEquals(1, nodesOf(layout, TreeNode.Kind.NOTABLE, mutation).size(), mutation + " has one Notable");
+        }
+        Map<String, Integer> cores = new HashMap<>();
+        for (TreeNode node : layout.getNodes()) {
+            if (node.kind() == TreeNode.Kind.CORE) cores.merge(node.getBuff(), 1, Integer::sum);
+        }
+        for (TreeNode node : layout.getNodes()) {
+            if (node.kind() == TreeNode.Kind.CORE) {
+                assertEquals(node.getTiers().size(), cores.get(node.getBuff()), node.getBuff() + " has one Core per tier");
+            }
+        }
+        for (com.genetics.codex.EffectEntry effect : com.genetics.codex.EffectEntry.getAssetMap().getAssetMap().values()) {
+            if (effect.getId().equals("Default")) continue;
+            assertTrue(layout.getNodes().stream().anyMatch(n -> n.getTiers().contains(effect.getId())), effect.getId() + " is a Core tier");
+        }
+    }
+
+    @Test
     void notablesDoubleAndCoresTriple() {
         assertEquals(12 + 24 + 48, GenomeTree.escalated(List.of(12.0, 12.0, 12.0), 2));
         assertEquals(15 + 45 + 135, GenomeTree.escalated(List.of(15.0, 15.0, 15.0), 3));

@@ -55,7 +55,8 @@ final class TreeTab {
     private static final int SCROLLBAR = 14;
     private static final int LINK_WIDTH = 2;
     /** Node states, matching the state groups of TreeNode.ui. */
-    static final List<String> STATES = List.of("Off", "Avail", "Locked", "OnStat", "OnBig", "OnNotable", "OnCore", "OnSink", "OnOrigin");
+    static final List<String> STATES = List.of("Off", "Avail", "Locked", "OnStat", "OnBig", "OnNotable", "OnCore", "OnSink", "OnOrigin",
+            "DOff", "DAvail", "DLocked", "DOn");
     private static final String HELP = "Click a node linked to yours to take it, right click to give it back. Sinks take a rank per click."
             + " Notables (mutations) and Cores (permanent buffs) sit at the end of side branches and open up as you discover them in the Catalogue;"
             + " each one owned makes the next dearer.";
@@ -171,7 +172,7 @@ final class TreeTab {
             Integer index = page.treeRows.get(node.getId());
             if (index == null) continue;
             String row = "#TreeCanvas[" + index + "]";
-            String state = state(layout, allocation, node, capacity, balance, unlocks);
+            String state = shownState(layout, allocation, node, capacity, balance, unlocks);
             String previous = page.treeStates.put(node.getId(), state);
             if (!state.equals(previous)) for (String s : STATES) c.set(row + " #" + s + ".Visible", s.equals(state));
             if (node.kind() == TreeNode.Kind.SINK) c.set(row + " #TOnSink.Text", String.valueOf(allocation.rank(node.getId())));
@@ -280,6 +281,20 @@ final class TreeTab {
 
     // ---- Nodes
 
+    /** The state group to show; Notables use the diamond versions. */
+    @Nonnull
+    private static String shownState(@Nonnull TreeLayout layout, @Nonnull TreeAllocation allocation, @Nonnull TreeNode node, double capacity,
+                                     @Nonnull Balance.GenomeTree balance, @Nonnull ToIntFunction<TreeNode> unlocks) {
+        String state = state(layout, allocation, node, capacity, balance, unlocks);
+        if (node.kind() != TreeNode.Kind.NOTABLE) return state;
+        return switch (state) {
+            case "OnNotable" -> "DOn";
+            case "Avail" -> "DAvail";
+            case "Locked" -> "DLocked";
+            default -> "DOff";
+        };
+    }
+
     @Nonnull
     private static String state(@Nonnull TreeLayout layout, @Nonnull TreeAllocation allocation, @Nonnull TreeNode node, double capacity,
                                 @Nonnull Balance.GenomeTree balance, @Nonnull ToIntFunction<TreeNode> unlocks) {
@@ -369,7 +384,8 @@ final class TreeTab {
     private static int width(@Nonnull TreeNode node, int cell) {
         TreeNode.Kind kind = node.kind();
         int size = kind == null ? 12 : switch (kind) {
-            case ORIGIN, NOTABLE -> 22;
+            case ORIGIN -> 22;
+            case NOTABLE -> 27;
             case CORE -> 24;
             case SINK -> 26;
             case BIG -> 18;

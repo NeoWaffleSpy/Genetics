@@ -515,9 +515,15 @@ around them. They stay in Phases 1 and 2.
   | Core | one tier of a permanent buff: owning n Cores of a buff gives tier n | 15, tripled by each Core owned (15, 45, 135) |
   | Sink | a stat per rank, without limit | rank r costs 3 + (r − 1) |
 
-- **Cores.** Each buff has one Core per tier, spread far apart: Might ×3, Speed ×3, Hide ×2, Night Vision ×1.
+- **Content.** Every mutation has a Notable (24) and every buff family one Core per tier (24): Might, Speed,
+  Endurance, Vitality and Regeneration ×3, Hide ×2, Night Vision, Stamina Regen and the five immunities ×1. A buff's
+  tiers sit in different regions, so its third tier means a long trip.
+- **Shape.** Deliberately uneven: four arms of different lengths and turns (Vital north-west, Kinetic east, Feral
+  south, Elemental north-east off the Kinetic arm), a side arm, and two cross-links that make loops. Mutations are
+  drawn as diamonds. The view scrolls both ways (mouse wheel, scrollbars); dragging the view isn't possible, since
+  the server never receives mouse movement.
 - **Layout rules.** Notables and Cores sit at the **end of a side branch**, hanging off a Small or Big node, never on a
-  path. Sinks end the four main arms. A ring around the Origin links the arms, so there's more than one route.
+  path. Sinks end the arms.
 - **Catalogue discoveries** (`RequireDiscovery`). A Notable needs its mutation discovered. A buff's Cores can be
   claimed up to the **highest tier of that buff discovered**, in any form: with Might T1 and T2 discovered, two of the
   three Might Cores. Locked nodes show dimmed, and hovering one says what to discover. At most `MaxMutations` (4)
